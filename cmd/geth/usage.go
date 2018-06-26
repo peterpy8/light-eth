@@ -166,13 +166,6 @@ var AppHelpFlagGroups = []flagGroup{
 		}, debug.Flags...),
 	},
 	{
-		Name: "EXPERIMENTAL",
-		Flags: []cli.Flag{
-			utils.WhisperEnabledFlag,
-			utils.NatspecEnabledFlag,
-		},
-	},
-	{
 		Name: "MISCELLANEOUS",
 		Flags: []cli.Flag{
 			utils.SolcPathFlag,

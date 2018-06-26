@@ -165,7 +165,6 @@ participating.
 		utils.IPCPathFlag,
 		utils.ExecFlag,
 		utils.PreloadJSFlag,
-		utils.WhisperEnabledFlag,
 		utils.DevModeFlag,
 		utils.TestNetFlag,
 		utils.VMForceJitFlag,
@@ -260,13 +259,6 @@ func initGenesis(ctx *cli.Context) error {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack := utils.MakeNode(ctx, clientIdentifier, gitCommit)
 	utils.RegisterEthService(ctx, stack, utils.MakeDefaultExtraData(clientIdentifier))
-
-	// Whisper must be explicitly enabled, but is auto-enabled in --dev mode.
-	shhEnabled := ctx.GlobalBool(utils.WhisperEnabledFlag.Name)
-	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperEnabledFlag.Name) && ctx.GlobalIsSet(utils.DevModeFlag.Name)
-	if shhEnabled || shhAutoEnabled {
-		utils.RegisterShhService(stack)
-	}
 
 	// Add the release oracle service so it boots along with node.
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {

@@ -51,7 +51,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/pow"
 	"github.com/ethereum/go-ethereum/rpc"
-	whisper "github.com/ethereum/go-ethereum/whisper/whisperv2"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -368,10 +367,6 @@ var (
 	DiscoveryV5Flag = cli.BoolFlag{
 		Name:  "v5disc",
 		Usage: "Enables the experimental RLPx V5 (Topic Discovery) mechanism",
-	}
-	WhisperEnabledFlag = cli.BoolFlag{
-		Name:  "shh",
-		Usage: "Enable Whisper",
 	}
 	// ATM the url is left to the user and deployment to
 	JSpathFlag = cli.StringFlag{
@@ -800,13 +795,6 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		}); err != nil {
 			Fatalf("Failed to register the Ethereum full node service: %v", err)
 		}
-	}
-}
-
-// RegisterShhService configures whisper and adds it to the given node.
-func RegisterShhService(stack *node.Node) {
-	if err := stack.Register(func(*node.ServiceContext) (node.Service, error) { return whisper.New(), nil }); err != nil {
-		Fatalf("Failed to register the Whisper service: %v", err)
 	}
 }
 

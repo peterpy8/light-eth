@@ -28,8 +28,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/pow"
 	"gopkg.in/fatih/set.v0"
-	//"github.com/ethereum/go-ethereum-1/Godeps/_workspace/src/gopkg.in/fatih/set.v0"
-	"github.com/ethereum/go-ethereum-1/Godeps/_workspace/src/gopkg.in/fatih/set.v0"
 )
 
 var (

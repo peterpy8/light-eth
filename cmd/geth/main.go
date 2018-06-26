@@ -18,7 +18,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -32,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/console"
-	"github.com/ethereum/go-ethereum/contracts/release"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/eth"
@@ -259,21 +257,6 @@ func initGenesis(ctx *cli.Context) error {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack := utils.MakeNode(ctx, clientIdentifier, gitCommit)
 	utils.RegisterEthService(ctx, stack, utils.MakeDefaultExtraData(clientIdentifier))
-
-	// Add the release oracle service so it boots along with node.
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		config := release.Config{
-			Oracle: relOracle,
-			Major:  uint32(utils.VersionMajor),
-			Minor:  uint32(utils.VersionMinor),
-			Patch:  uint32(utils.VersionPatch),
-		}
-		commit, _ := hex.DecodeString(gitCommit)
-		copy(config.Commit[:], commit)
-		return release.NewReleaseService(ctx, config)
-	}); err != nil {
-		utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
-	}
 
 	return stack
 }

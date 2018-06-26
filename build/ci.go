@@ -155,7 +155,7 @@ func doInstall(cmdline []string) {
 		log.Println("You have Go version", runtime.Version())
 		log.Println("go-ethereum requires at least Go version 1.4 and cannot")
 		log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
-		os.Exit(1)
+		//os.Exit(1)
 	}
 	// Compile packages given as arguments, or everything if there are no arguments.
 	packages := []string{"./..."}
@@ -211,7 +211,7 @@ func buildFlags(env build.Environment) (flags []string) {
 	// Since Go 1.5, the separator char for link time assignments
 	// is '=' and using ' ' prints a warning. However, Go < 1.5 does
 	// not support using '='.
-	sep := " "
+	sep := "="
 	if runtime.Version() > "go1.5" || strings.Contains(runtime.Version(), "devel") {
 		sep = "="
 	}

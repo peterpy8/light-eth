@@ -28,6 +28,8 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/pow"
 	"gopkg.in/fatih/set.v0"
+	//"github.com/ethereum/go-ethereum-1/Godeps/_workspace/src/gopkg.in/fatih/set.v0"
+	"github.com/ethereum/go-ethereum-1/Godeps/_workspace/src/gopkg.in/fatih/set.v0"
 )
 
 var (
@@ -263,11 +265,12 @@ func ValidateHeader(config *params.ChainConfig, pow pow.PoW, header *types.Heade
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
 func CalcDifficulty(config *params.ChainConfig, time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {
-	if config.IsHomestead(new(big.Int).Add(parentNumber, common.Big1)) {
-		return calcDifficultyHomestead(time, parentTime, parentNumber, parentDiff)
-	} else {
-		return calcDifficultyFrontier(time, parentTime, parentNumber, parentDiff)
-	}
+	//if config.IsHomestead(new(big.Int).Add(parentNumber, common.Big1)) {
+	//	return calcDifficultyHomestead(time, parentTime, parentNumber, parentDiff)
+	//} else {
+	//	return calcDifficultyFrontier(time, parentTime, parentNumber, parentDiff)
+	//}
+	return big.NewInt(0x200)
 }
 
 func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {

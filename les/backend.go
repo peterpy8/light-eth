@@ -18,7 +18,6 @@
 package les
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -27,27 +26,23 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/compiler"
 	"github.com/ethereum/go-ethereum/common/httpclient"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/eth/filters"
-	"github.com/ethereum/go-ethereum/eth/gasprice"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/params"
-	rpc "github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type LightEthereum struct {
 	odr         *LesOdr
-	relay       *LesTxRelay
+	//relay       *LesTxRelay
 	chainConfig *params.ChainConfig
 	// Channel for shutting down the service
 	shutdownChan chan bool
@@ -73,57 +68,57 @@ type LightEthereum struct {
 	netRPCService *ethapi.PublicNetAPI
 }
 
-func New(ctx *node.ServiceContext, config *eth.Config) (*LightEthereum, error) {
-	chainDb, err := eth.CreateDB(ctx, config, "lightchaindata")
-	if err != nil {
-		return nil, err
-	}
-	if err := eth.SetupGenesisBlock(&chainDb, config); err != nil {
-		return nil, err
-	}
-	pow, err := eth.CreatePoW(config)
-	if err != nil {
-		return nil, err
-	}
-
-	odr := NewLesOdr(chainDb)
-	relay := NewLesTxRelay()
-	eth := &LightEthereum{
-		odr:            odr,
-		relay:          relay,
-		chainDb:        chainDb,
-		eventMux:       ctx.EventMux,
-		accountManager: ctx.AccountManager,
-		pow:            pow,
-		shutdownChan:   make(chan bool),
-		httpclient:     httpclient.New(config.DocRoot),
-		netVersionId:   config.NetworkId,
-		NatSpec:        config.NatSpec,
-		PowTest:        config.PowTest,
-		solcPath:       config.SolcPath,
-	}
-
-	if config.ChainConfig == nil {
-		return nil, errors.New("missing chain config")
-	}
-	eth.chainConfig = config.ChainConfig
-	eth.blockchain, err = light.NewLightChain(odr, eth.chainConfig, eth.pow, eth.eventMux)
-	if err != nil {
-		if err == core.ErrNoGenesis {
-			return nil, fmt.Errorf(`Genesis block not found. Please supply a genesis block with the "--genesis /path/to/file" argument`)
-		}
-		return nil, err
-	}
-
-	eth.txPool = light.NewTxPool(eth.chainConfig, eth.eventMux, eth.blockchain, eth.relay)
-	if eth.protocolManager, err = NewProtocolManager(eth.chainConfig, config.LightMode, config.NetworkId, eth.eventMux, eth.pow, eth.blockchain, nil, chainDb, odr, relay); err != nil {
-		return nil, err
-	}
-
-	eth.ApiBackend = &LesApiBackend{eth, nil}
-	eth.ApiBackend.gpo = gasprice.NewLightPriceOracle(eth.ApiBackend)
-	return eth, nil
-}
+//func New(ctx *node.ServiceContext, config *eth.Config) (*LightEthereum, error) {
+//	chainDb, err := eth.CreateDB(ctx, config, "lightchaindata")
+//	if err != nil {
+//		return nil, err
+//	}
+//	if err := eth.SetupGenesisBlock(&chainDb, config); err != nil {
+//		return nil, err
+//	}
+//	pow, err := eth.CreatePoW(config)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	odr := NewLesOdr(chainDb)
+//	//relay := NewLesTxRelay()
+//	eth := &LightEthereum{
+//		odr:            odr,
+//		//relay:          relay,
+//		chainDb:        chainDb,
+//		eventMux:       ctx.EventMux,
+//		accountManager: ctx.AccountManager,
+//		pow:            pow,
+//		shutdownChan:   make(chan bool),
+//		httpclient:     httpclient.New(config.DocRoot),
+//		netVersionId:   config.NetworkId,
+//		NatSpec:        config.NatSpec,
+//		PowTest:        config.PowTest,
+//		solcPath:       config.SolcPath,
+//	}
+//
+//	if config.ChainConfig == nil {
+//		return nil, errors.New("missing chain config")
+//	}
+//	eth.chainConfig = config.ChainConfig
+//	eth.blockchain, err = light.NewLightChain(odr, eth.chainConfig, eth.pow, eth.eventMux)
+//	if err != nil {
+//		if err == core.ErrNoGenesis {
+//			return nil, fmt.Errorf(`Genesis block not found. Please supply a genesis block with the "--genesis /path/to/file" argument`)
+//		}
+//		return nil, err
+//	}
+//
+//	eth.txPool = light.NewTxPool(eth.chainConfig, eth.eventMux, eth.blockchain, eth.relay)
+//	if eth.protocolManager, err = NewProtocolManager(eth.chainConfig, config.LightMode, config.NetworkId, eth.eventMux, eth.pow, eth.blockchain, nil, chainDb, odr, relay); err != nil {
+//		return nil, err
+//	}
+//
+//	eth.ApiBackend = &LesApiBackend{eth, nil}
+//	eth.ApiBackend.gpo = gasprice.NewLightPriceOracle(eth.ApiBackend)
+//	return eth, nil
+//}
 
 type LightDummyAPI struct{}
 

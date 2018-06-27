@@ -778,13 +778,13 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		state.MaxTrieCacheGen = uint16(gen)
 	}
 
-	if ethConf.LightMode {
-		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, ethConf)
-		}); err != nil {
-			Fatalf("Failed to register the Ethereum light node service: %v", err)
-		}
-	} else {
+	//if ethConf.LightMode {
+	//	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+	//		return les.New(ctx, ethConf)
+	//	}); err != nil {
+	//		Fatalf("Failed to register the Ethereum light node service: %v", err)
+	//	}
+	//} else {
 		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 			fullNode, err := eth.New(ctx, ethConf)
 			if fullNode != nil && ethConf.LightServ > 0 {
@@ -795,7 +795,7 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		}); err != nil {
 			Fatalf("Failed to register the Ethereum full node service: %v", err)
 		}
-	}
+	//}
 }
 
 // SetupNetwork configures the system for either the main net or some test network.

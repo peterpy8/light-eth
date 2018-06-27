@@ -94,7 +94,7 @@ type txPool interface {
 type ProtocolManager struct {
 	lightSync   bool
 	txpool      txPool
-	txrelay     *LesTxRelay
+	//txrelay     *LesTxRelay
 	networkId   int
 	chainConfig *params.ChainConfig
 	blockchain  BlockChain
@@ -130,7 +130,7 @@ type ProtocolManager struct {
 
 // NewProtocolManager returns a new ethereum sub protocol manager. The Ethereum sub protocol manages peers capable
 // with the ethereum network.
-func NewProtocolManager(chainConfig *params.ChainConfig, lightSync bool, networkId int, mux *event.TypeMux, pow pow.PoW, blockchain BlockChain, txpool txPool, chainDb ethdb.Database, odr *LesOdr, txrelay *LesTxRelay) (*ProtocolManager, error) {
+func NewProtocolManager(chainConfig *params.ChainConfig, lightSync bool, networkId int, mux *event.TypeMux, pow pow.PoW, blockchain BlockChain, txpool txPool, chainDb ethdb.Database, odr *LesOdr) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
 		lightSync:   lightSync,
@@ -140,7 +140,7 @@ func NewProtocolManager(chainConfig *params.ChainConfig, lightSync bool, network
 		chainDb:     chainDb,
 		networkId:   networkId,
 		txpool:      txpool,
-		txrelay:     txrelay,
+		//txrelay:     txrelay,
 		odr:         odr,
 		peers:       newPeerSet(),
 		newPeerCh:   make(chan *peer),
@@ -220,13 +220,13 @@ func (pm *ProtocolManager) removePeer(id string) {
 
 	// Unregister the peer from the downloader and Ethereum peer set
 	glog.V(logger.Debug).Infof("LES: unregister peer %v", id)
-	if pm.lightSync {
-		pm.downloader.UnregisterPeer(id)
-		pm.odr.UnregisterPeer(peer)
-		if pm.txrelay != nil {
-			pm.txrelay.removePeer(id)
-		}
-	}
+	//if pm.lightSync {
+	//	pm.downloader.UnregisterPeer(id)
+	//	pm.odr.UnregisterPeer(peer)
+	//	if pm.txrelay != nil {
+	//		pm.txrelay.removePeer(id)
+	//	}
+	//}
 	if err := pm.peers.Unregister(id); err != nil {
 		glog.V(logger.Error).Infoln("Removal failed:", err)
 	}
@@ -350,30 +350,30 @@ func (pm *ProtocolManager) handle(p *peer) error {
 
 	// Register the peer in the downloader. If the downloader considers it banned, we disconnect
 	glog.V(logger.Debug).Infof("LES: register peer %v", p.id)
-	if pm.lightSync {
-		requestHeadersByHash := func(origin common.Hash, amount int, skip int, reverse bool) error {
-			reqID := pm.odr.getNextReqID()
-			cost := p.GetRequestCost(GetBlockHeadersMsg, amount)
-			p.fcServer.SendRequest(reqID, cost)
-			return p.RequestHeadersByHash(reqID, cost, origin, amount, skip, reverse)
-		}
-		requestHeadersByNumber := func(origin uint64, amount int, skip int, reverse bool) error {
-			reqID := pm.odr.getNextReqID()
-			cost := p.GetRequestCost(GetBlockHeadersMsg, amount)
-			p.fcServer.SendRequest(reqID, cost)
-			return p.RequestHeadersByNumber(reqID, cost, origin, amount, skip, reverse)
-		}
-		if err := pm.downloader.RegisterPeer(p.id, ethVersion, p.HeadAndTd,
-			requestHeadersByHash, requestHeadersByNumber, nil, nil, nil); err != nil {
-			return err
-		}
-		pm.odr.RegisterPeer(p)
-		if pm.txrelay != nil {
-			pm.txrelay.addPeer(p)
-		}
-
-		pm.fetcher.notify(p, nil)
-	}
+	//if pm.lightSync {
+	//	requestHeadersByHash := func(origin common.Hash, amount int, skip int, reverse bool) error {
+	//		reqID := pm.odr.getNextReqID()
+	//		cost := p.GetRequestCost(GetBlockHeadersMsg, amount)
+	//		p.fcServer.SendRequest(reqID, cost)
+	//		return p.RequestHeadersByHash(reqID, cost, origin, amount, skip, reverse)
+	//	}
+	//	requestHeadersByNumber := func(origin uint64, amount int, skip int, reverse bool) error {
+	//		reqID := pm.odr.getNextReqID()
+	//		cost := p.GetRequestCost(GetBlockHeadersMsg, amount)
+	//		p.fcServer.SendRequest(reqID, cost)
+	//		return p.RequestHeadersByNumber(reqID, cost, origin, amount, skip, reverse)
+	//	}
+	//	if err := pm.downloader.RegisterPeer(p.id, ethVersion, p.HeadAndTd,
+	//		requestHeadersByHash, requestHeadersByNumber, nil, nil, nil); err != nil {
+	//		return err
+	//	}
+	//	pm.odr.RegisterPeer(p)
+	//	if pm.txrelay != nil {
+	//		pm.txrelay.addPeer(p)
+	//	}
+	//
+	//	pm.fetcher.notify(p, nil)
+	//}
 
 	stop := make(chan struct{})
 	defer close(stop)

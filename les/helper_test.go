@@ -150,7 +150,7 @@ func newTestProtocolManager(lightSync bool, blocks int, generator func(int, *cor
 		chain = blockchain
 	}
 
-	pm, err := NewProtocolManager(chainConfig, lightSync, NetworkId, evmux, pow, chain, nil, db, odr, nil)
+	pm, err := NewProtocolManager(chainConfig, lightSync, NetworkId, evmux, pow, chain, nil, db, odr)
 	if err != nil {
 		return nil, nil, nil, err
 	}

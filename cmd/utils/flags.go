@@ -39,7 +39,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/les"
+	//"github.com/ethereum/go-ethereum/les"
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -787,10 +787,10 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 	//} else {
 		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 			fullNode, err := eth.New(ctx, ethConf)
-			if fullNode != nil && ethConf.LightServ > 0 {
-				ls, _ := les.NewLesServer(fullNode, ethConf)
-				fullNode.AddLesServer(ls)
-			}
+			//if fullNode != nil && ethConf.LightServ > 0 {
+			//	ls, _ := les.NewLesServer(fullNode, ethConf)
+			//	fullNode.AddLesServer(ls)
+			//}
 			return fullNode, err
 		}); err != nil {
 			Fatalf("Failed to register the Ethereum full node service: %v", err)

@@ -12,10 +12,10 @@
 GOBIN = build/bin
 GO ?= latest
 
-geth:
-	build/env.sh go run build/ci.go install ./cmd/geth
+siotchain:
+	build/env.sh go run build/ci.go install ./cmd/siotchain
 	@echo "Done building."
-	@echo "Run \"$(GOBIN)/geth\" to launch geth."
+	@echo "Run \"$(GOBIN)/siotchain\" to launch siotchain."
 
 evm:
 	build/env.sh go run build/ci.go install ./cmd/evm

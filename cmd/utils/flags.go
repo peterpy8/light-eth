@@ -40,7 +40,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	//"github.com/ethereum/go-ethereum/les"
-	"github.com/ethereum/go-ethereum/light"
+	//"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/metrics"
@@ -758,13 +758,13 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		}
 		ethConf.Genesis = core.OlympicGenesisBlock()
 
-	case ctx.GlobalBool(TestNetFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			ethConf.NetworkId = 2
-		}
-		ethConf.Genesis = core.TestNetGenesisBlock()
-		state.StartingNonce = 1048576 // (2**20)
-		light.StartingNonce = 1048576 // (2**20)
+	//case ctx.GlobalBool(TestNetFlag.Name):
+	//	if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
+	//		ethConf.NetworkId = 2
+	//	}
+	//	ethConf.Genesis = core.TestNetGenesisBlock()
+	//	state.StartingNonce = 1048576 // (2**20)
+	//	light.StartingNonce = 1048576 // (2**20)
 
 	case ctx.GlobalBool(DevModeFlag.Name):
 		ethConf.Genesis = core.OlympicGenesisBlock()

@@ -32,7 +32,7 @@ import (
 )
 
 func tmpdir(t *testing.T) string {
-	dir, err := ioutil.TempDir("", "geth-test")
+	dir, err := ioutil.TempDir("", "siotchain-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func init() {
 	}
 }
 
-// spawns geth with the given command line args. If the args don't set --datadir, the
+// spawns siotchain with the given command line args. If the args don't set --datadir, the
 // child g gets a temporary data directory.
 func runGeth(t *testing.T, args ...string) *testgeth {
 	tt := &testgeth{T: t, Executable: os.Args[0]}
@@ -94,7 +94,7 @@ func runGeth(t *testing.T, args ...string) *testgeth {
 		}()
 	}
 
-	// Boot "geth". This actually runs the test binary but the init function
+	// Boot "siotchain". This actually runs the test binary but the init function
 	// will prevent any tests from running.
 	tt.stderr = &testlogger{t: t}
 	tt.cmd = exec.Command(os.Args[0], args...)
@@ -117,7 +117,7 @@ func runGeth(t *testing.T, args ...string) *testgeth {
 // InputLine writes the given text to the childs stdin.
 // This method can also be called from an expect template, e.g.:
 //
-//     geth.expect(`Passphrase: {{.InputLine "password"}}`)
+//     siotchain.expect(`Passphrase: {{.InputLine "password"}}`)
 func (tt *testgeth) InputLine(s string) string {
 	io.WriteString(tt.stdin, s+"\n")
 	return ""

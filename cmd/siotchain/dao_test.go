@@ -179,9 +179,9 @@ func testDAOForkBlockNewChain(t *testing.T, testnet bool, genesis string, votes 
 		geth.cmd.Wait()
 	}
 	// Retrieve the DAO config flag from the database
-	path := filepath.Join(datadir, "geth", "chaindata")
+	path := filepath.Join(datadir, "siotchain", "chaindata")
 	if testnet && genesis == "" {
-		path = filepath.Join(datadir, "testnet", "geth", "chaindata")
+		path = filepath.Join(datadir, "testnet", "siotchain", "chaindata")
 	}
 	db, err := ethdb.NewLDBDatabase(path, 0, 0)
 	if err != nil {

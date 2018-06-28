@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
 
-// geth is the official command-line client for Ethereum.
+// siotchain is the official command-line client for Ethereum.
 package main
 
 import (
@@ -45,7 +45,7 @@ import (
 )
 
 const (
-	clientIdentifier = "geth" // Client identifier to advertise over the network
+	clientIdentifier = "siotchain"//"siotchain" // Client identifier to advertise over the network
 )
 
 var (
@@ -59,7 +59,7 @@ var (
 
 func init() {
 	// Initialize the CLI app and start Geth
-	app.Action = geth
+	app.Action = siotchain    //siotchain
 	app.HideVersion = true // we have a command to print the version
 	app.Copyright = "Copyright 2013-2016 The go-ethereum Authors"
 	app.Commands = []cli.Command{
@@ -218,10 +218,10 @@ func main() {
 	}
 }
 
-// geth is the main entry point into the system if no special subcommand is ran.
+// siotchain is the main entry point into the system if no special subcommand is ran.
 // It creates a default node based on the command line arguments and runs it in
 // blocking mode, waiting for it to be shut down.
-func geth(ctx *cli.Context) error {
+func siotchain(ctx *cli.Context) error {
 	node := makeFullNode(ctx)
 	startNode(ctx, node)
 	node.Wait()
@@ -260,6 +260,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	stack := utils.MakeNode(ctx, clientIdentifier, gitCommit)
 	utils.RegisterEthService(ctx, stack, utils.MakeDefaultExtraData(clientIdentifier))
 
+	// Wei: remove here as we removed struct Config in release package
 	// Add the release oracle service so it boots along with node.
 	//if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 	//	config := release.Config{
@@ -309,7 +310,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 func makedag(ctx *cli.Context) error {
 	args := ctx.Args()
 	wrongArgs := func() {
-		utils.Fatalf(`Usage: geth makedag <block number> <outputdir>`)
+		utils.Fatalf(`Usage: siotchain makedag <block number> <outputdir>`)
 	}
 	switch {
 	case len(args) == 2:
@@ -363,7 +364,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with geth. If not, see <http://www.gnu.org/licenses/>.
+along with siotchain. If not, see <http://www.gnu.org/licenses/>.
 `)
 	return nil
 }

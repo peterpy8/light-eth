@@ -10,7 +10,7 @@ function sleep(milliseconds) {
 function interaction() {
     console.log("[peermode]: peer count: " + net.peerCount)
     console.log("[peermode]: connect to [::]:30303")
-    admin.addPeer("enode://@127.0.0.1:30303")
+    admin.addPeer("enode://bdcaccaf23e43a3849bf9f80ae7b63cc3320335e064f5d41dd9c4a3d6c11e1068fcb21c6ae7b621aa0433b40735be06689118d3344ca2f6bd3b6c8cd1bc405ae@127.0.0.1:30303")
     while (net.peerCount == 0)
     {
         sleep(1000)
@@ -30,7 +30,7 @@ function interaction() {
 
     while (1) {
         balance = web3.fromWei(web3.eth.getBalance(acc0))
-        if (balance > 0) {
+        if (balance > 1) {
             personal.unlockAccount(acc0, "123456")
             eth.sendTransaction({from:acc0,to:acc1,value:web3.toWei(1,"ether")})
             while (1) {

@@ -25,13 +25,13 @@ function interaction() {
         personal.unlockAccount(acc0, "123456")
         eth.sendTransaction({from:acc0,to:acc1,value:web3.toWei(1,"ether")})
 	      while (1) {
-		  balance0 = web3.fromWei(web3.eth.getBalance(acc0))
-	  	  balance1 = web3.fromWei(web3.eth.getBalance(acc1))
-		  if (balance0 >0 && balance1 > 0) {
-		      miner.stop()
-                      break
+              balance0 = web3.fromWei(web3.eth.getBalance(acc0))
+              balance1 = web3.fromWei(web3.eth.getBalance(acc1))
+              if (balance1 > 0) {
+                  miner.stop()
+                  break
 		  }
-               }  
+		       }
         break 
      }
   }

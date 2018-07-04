@@ -268,7 +268,7 @@ func CalcDifficulty(config *params.ChainConfig, time, parentTime uint64, parentN
 	//} else {
 	//	return calcDifficultyFrontier(time, parentTime, parentNumber, parentDiff)
 	//}
-	return big.NewInt(0x200)
+	return big.NewInt(0x2000)
 }
 
 func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {

@@ -95,15 +95,15 @@ func CollectProcessMetrics(refresh time.Duration) {
 	memInuse := metrics.GetOrRegisterMeter("system/memory/inuse", metrics.DefaultRegistry)
 	memPauses := metrics.GetOrRegisterMeter("system/memory/pauses", metrics.DefaultRegistry)
 
-	var diskReads, diskReadBytes, diskWrites, diskWriteBytes metrics.Meter
-	if err := ReadDiskStats(diskstats[0]); err == nil {
-		diskReads = metrics.GetOrRegisterMeter("system/disk/readcount", metrics.DefaultRegistry)
-		diskReadBytes = metrics.GetOrRegisterMeter("system/disk/readdata", metrics.DefaultRegistry)
-		diskWrites = metrics.GetOrRegisterMeter("system/disk/writecount", metrics.DefaultRegistry)
-		diskWriteBytes = metrics.GetOrRegisterMeter("system/disk/writedata", metrics.DefaultRegistry)
-	} else {
-		glog.V(logger.Debug).Infof("failed to read disk metrics: %v", err)
-	}
+	// var diskReads, diskReadBytes, diskWrites, diskWriteBytes metrics.Meter
+	// if err := ReadDiskStats(diskstats[0]); err == nil {
+	// 	diskReads = metrics.GetOrRegisterMeter("system/disk/readcount", metrics.DefaultRegistry)
+	// 	diskReadBytes = metrics.GetOrRegisterMeter("system/disk/readdata", metrics.DefaultRegistry)
+	// 	diskWrites = metrics.GetOrRegisterMeter("system/disk/writecount", metrics.DefaultRegistry)
+	// 	diskWriteBytes = metrics.GetOrRegisterMeter("system/disk/writedata", metrics.DefaultRegistry)
+	// } else {
+	// 	glog.V(logger.Debug).Infof("failed to read disk metrics: %v", err)
+	// }
 	// Iterate loading the different stats and updating the meters
 	for i := 1; ; i++ {
 		runtime.ReadMemStats(memstats[i%2])
@@ -112,12 +112,12 @@ func CollectProcessMetrics(refresh time.Duration) {
 		memInuse.Mark(int64(memstats[i%2].Alloc - memstats[(i-1)%2].Alloc))
 		memPauses.Mark(int64(memstats[i%2].PauseTotalNs - memstats[(i-1)%2].PauseTotalNs))
 
-		if ReadDiskStats(diskstats[i%2]) == nil {
-			diskReads.Mark(int64(diskstats[i%2].ReadCount - diskstats[(i-1)%2].ReadCount))
-			diskReadBytes.Mark(int64(diskstats[i%2].ReadBytes - diskstats[(i-1)%2].ReadBytes))
-			diskWrites.Mark(int64(diskstats[i%2].WriteCount - diskstats[(i-1)%2].WriteCount))
-			diskWriteBytes.Mark(int64(diskstats[i%2].WriteBytes - diskstats[(i-1)%2].WriteBytes))
-		}
+		// if ReadDiskStats(diskstats[i%2]) == nil {
+		// 	diskReads.Mark(int64(diskstats[i%2].ReadCount - diskstats[(i-1)%2].ReadCount))
+		// 	diskReadBytes.Mark(int64(diskstats[i%2].ReadBytes - diskstats[(i-1)%2].ReadBytes))
+		// 	diskWrites.Mark(int64(diskstats[i%2].WriteCount - diskstats[(i-1)%2].WriteCount))
+		// 	diskWriteBytes.Mark(int64(diskstats[i%2].WriteBytes - diskstats[(i-1)%2].WriteBytes))
+		// }
 		time.Sleep(refresh)
 	}
 }

@@ -8,13 +8,13 @@ function sleep(milliseconds) {
 }
 
 function interaction() {
-    console.log("[peermode]: peer count: " + net.peerCount)
+    console.log("[peermode]: peer count: " + web3.net.peerCount)
     console.log("[peermode]: connect to [::]:30303")
-    admin.addPeer("enode://@127.0.0.1:30303")
-    while (net.peerCount == 0)
+    admin.addPeer("enode://1f907edbabed2100d564ac0e104f5d3a0aa319de86b573697c6e63df665c110115443f353372142d1b64e0cfaf670c32af40885c299882bbac5c9b1b48e9eb3d@127.0.0.1:30303")
+    while (web3.net.peerCount == 0)
     {
         sleep(1000)
-        console.log("[peermode]: peer count: " + net.peerCount)
+        console.log("[peermode]: peer count: " + web3.net.peerCount)
     }
 
     personal.newAccount("123456")
@@ -30,13 +30,13 @@ function interaction() {
 
     while (1) {
         balance = web3.fromWei(web3.eth.getBalance(acc0))
-        if (balance > 0) {
+        if (balance > 1) {
             personal.unlockAccount(acc0, "123456")
             eth.sendTransaction({from:acc0,to:acc1,value:web3.toWei(1,"ether")})
             while (1) {
                 balance0 = web3.fromWei(web3.eth.getBalance(acc0))
                 balance1 = web3.fromWei(web3.eth.getBalance(acc1))
-                if (balance0 >0 && balance1 > 0) {
+                if (balance1 > 0) {
                     miner.stop()
                     break
                 }

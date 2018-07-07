@@ -22,9 +22,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
@@ -51,7 +49,6 @@ type Backend interface {
 	GetBlock(ctx context.Context, blockHash common.Hash) (*types.Block, error)
 	GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error)
 	GetTd(blockHash common.Hash) *big.Int
-	GetVMEnv(ctx context.Context, msg core.Message, state State, header *types.Header) (vm.Environment, func() error, error)
 	// TxPool API
 	SendTx(ctx context.Context, signedTx *types.Transaction) error
 	RemoveTx(txHash common.Hash)

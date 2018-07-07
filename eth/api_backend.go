@@ -24,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/eth/gasprice"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -104,14 +103,6 @@ func (b *EthApiBackend) GetReceipts(ctx context.Context, blockHash common.Hash) 
 
 func (b *EthApiBackend) GetTd(blockHash common.Hash) *big.Int {
 	return b.eth.blockchain.GetTdByHash(blockHash)
-}
-
-func (b *EthApiBackend) GetVMEnv(ctx context.Context, msg core.Message, state ethapi.State, header *types.Header) (vm.Environment, func() error, error) {
-	statedb := state.(EthApiState).state
-	from := statedb.GetOrNewStateObject(msg.From())
-	from.SetBalance(common.MaxBig)
-	vmError := func() error { return nil }
-	return core.NewEnv(statedb, b.eth.chainConfig, b.eth.blockchain, msg, header, vm.Config{}), vmError, nil
 }
 
 func (b *EthApiBackend) SendTx(ctx context.Context, signedTx *types.Transaction) error {

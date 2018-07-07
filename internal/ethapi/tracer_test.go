@@ -32,19 +32,16 @@ import (
 type Env struct {
 	gasLimit *big.Int
 	depth    int
-	evm      *vm.EVM
 }
 
-func NewEnv(config *vm.Config) *Env {
+func NewEnv() *Env {
 	env := &Env{gasLimit: big.NewInt(10000), depth: 0}
-	env.evm = vm.New(env, *config)
 	return env
 }
 
 func (self *Env) ChainConfig() *params.ChainConfig {
 	return params.TestChainConfig
 }
-func (self *Env) Vm() vm.Vm              { return self.evm }
 func (self *Env) Origin() common.Address { return common.Address{} }
 func (self *Env) BlockNumber() *big.Int  { return big.NewInt(0) }
 

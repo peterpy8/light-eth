@@ -519,7 +519,7 @@ type CallArgs struct {
 func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber) (string, *big.Int, error) {
 	defer func(start time.Time) { glog.V(logger.Debug).Infof("call took %v", time.Since(start)) }(time.Now())
 
-	state, header, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return "0x", common.Big0, err
 	}
@@ -548,19 +548,22 @@ func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr
 	msg := types.NewMessage(addr, args.To, 0, args.Value.BigInt(), gas, gasPrice, common.FromHex(args.Data), false)
 
 	// Execute the call and return
-	vmenv, vmError, err := s.b.GetVMEnv(ctx, msg, state, header)
-	if err != nil {
-		return "0x", common.Big0, err
-	}
-	gp := new(core.GasPool).AddGas(common.MaxBig)
-	res, gas, err := core.ApplyMessage(vmenv, msg, gp)
-	if err := vmError(); err != nil {
-		return "0x", common.Big0, err
-	}
-	if len(res) == 0 { // backwards compatability
-		return "0x", gas, err
-	}
-	return common.ToHex(res), gas, err
+	/*
+		vmenv, vmError, err := s.b.GetVMEnv(ctx, msg, state, header)
+		if err != nil {
+			return "0x", common.Big0, err
+		}
+			gp := new(core.GasPool).AddGas(common.MaxBig)
+			res, gas, err := core.ApplyMessage(vmenv, msg, gp)
+			if err := vmError(); err != nil {
+				return "0x", common.Big0, err
+			}
+			if len(res) == 0 { // backwards compatability
+				return "0x", gas, err
+			}
+	*/
+
+	return common.ToHex(msg.Data()), gas, err
 }
 
 // Call executes the given transaction on the state for the given block number.

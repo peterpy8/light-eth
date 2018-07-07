@@ -19,6 +19,7 @@ package core
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -57,7 +58,7 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain) *StateProcess
 // Process returns the receipts and logs accumulated during the process and
 // returns the amount of gas that was used in the process. If any of the
 // transactions failed to execute due to insufficient gas it will return an error.
-func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg vm.Config) (types.Receipts, vm.Logs, *big.Int, error) {
+func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB) (types.Receipts, vm.Logs, *big.Int, error) {
 	var (
 		receipts     types.Receipts
 		totalUsedGas = big.NewInt(0)
@@ -73,7 +74,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {
 		statedb.StartRecord(tx.Hash(), block.Hash(), i)
-		receipt, logs, _, err := ApplyTransaction(p.config, p.bc, gp, statedb, header, tx, totalUsedGas, cfg)
+		receipt, logs, _, err := ApplyTransaction(p.config, p.bc, gp, statedb, header, tx, totalUsedGas)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -90,16 +91,19 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 //
 // ApplyTransactions returns the generated receipts and vm logs during the
 // execution of the state transition phase.
-func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *big.Int, cfg vm.Config) (*types.Receipt, vm.Logs, *big.Int, error) {
+func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *big.Int) (*types.Receipt, vm.Logs, *big.Int, error) {
 	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	_, gas, err := ApplyMessage(NewEnv(statedb, config, bc, msg, header, cfg), msg, gp)
-	if err != nil {
-		return nil, nil, nil, err
-	}
+	/*
+		_, gas, err := ApplyMessage(NewEnv(statedb, config, bc, msg, header), msg, gp)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	*/
+	gas := common.Big1
 
 	// Update the state with pending changes
 	usedGas.Add(usedGas, gas)

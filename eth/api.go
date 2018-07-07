@@ -399,20 +399,12 @@ func (api *PrivateDebugAPI) traceBlock(block *types.Block, logConfig *vm.LogConf
 
 	structLogger := vm.NewStructLogger(logConfig)
 
-	config := vm.Config{
-		Debug:  true,
-		Tracer: structLogger,
-	}
-
-	if err := core.ValidateHeader(api.config, blockchain.AuxValidator(), block.Header(), blockchain.GetHeader(block.ParentHash(), block.NumberU64()-1), true, false); err != nil {
-		return false, structLogger.StructLogs(), err
-	}
 	statedb, err := blockchain.StateAt(blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1).Root())
 	if err != nil {
 		return false, structLogger.StructLogs(), err
 	}
 
-	receipts, _, usedGas, err := processor.Process(block, statedb, config)
+	receipts, _, usedGas, err := processor.Process(block, statedb)
 	if err != nil {
 		return false, structLogger.StructLogs(), err
 	}
@@ -511,23 +503,19 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.
 	// Mutate the state and trace the selected transaction
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message
-		msg, err := tx.AsMessage(signer)
+		_, err := tx.AsMessage(signer)
 		if err != nil {
 			return nil, fmt.Errorf("sender retrieval failed: %v", err)
 		}
 		// Mutate the state if we haven't reached the tracing transaction yet
 		if uint64(idx) < txIndex {
-			vmenv := core.NewEnv(stateDb, api.config, api.eth.BlockChain(), msg, block.Header(), vm.Config{})
-			_, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
-			if err != nil {
-				return nil, fmt.Errorf("mutation failed: %v", err)
-			}
 			stateDb.DeleteSuicides()
 			continue
 		}
 		// Otherwise trace the transaction and return
-		vmenv := core.NewEnv(stateDb, api.config, api.eth.BlockChain(), msg, block.Header(), vm.Config{Debug: true, Tracer: tracer})
-		ret, gas, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
+		gas := tx.Gas()
+		ret := "Success"
+
 		if err != nil {
 			return nil, fmt.Errorf("tracing failed: %v", err)
 		}

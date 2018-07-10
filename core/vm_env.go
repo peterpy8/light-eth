@@ -44,7 +44,6 @@ func GetHashFn(ref common.Hash, chain *BlockChain) func(n uint64) common.Hash {
 type VMEnv struct {
 	chainConfig *params.ChainConfig // Chain configuration
 	state       *state.StateDB      // State to use for executing
-	evm         *vm.EVM             // The Ethereum Virtual Machine
 	depth       int                 // Current execution depth
 	msg         Message             // Message appliod
 
@@ -53,7 +52,7 @@ type VMEnv struct {
 	getHashFn func(uint64) common.Hash // getHashFn callback is used to retrieve block hashes
 }
 
-func NewEnv(state *state.StateDB, chainConfig *params.ChainConfig, chain *BlockChain, msg Message, header *types.Header, cfg vm.Config) *VMEnv {
+func NewEnv(state *state.StateDB, chainConfig *params.ChainConfig, chain *BlockChain, msg Message, header *types.Header) *VMEnv {
 	env := &VMEnv{
 		chainConfig: chainConfig,
 		chain:       chain,
@@ -63,12 +62,10 @@ func NewEnv(state *state.StateDB, chainConfig *params.ChainConfig, chain *BlockC
 		getHashFn:   GetHashFn(header.ParentHash, chain),
 	}
 
-	env.evm = vm.New(env, cfg)
 	return env
 }
 
 func (self *VMEnv) ChainConfig() *params.ChainConfig { return self.chainConfig }
-func (self *VMEnv) Vm() vm.Vm                        { return self.evm }
 func (self *VMEnv) Origin() common.Address           { return self.msg.From() }
 func (self *VMEnv) BlockNumber() *big.Int            { return self.header.Number }
 func (self *VMEnv) Coinbase() common.Address         { return self.header.Coinbase }

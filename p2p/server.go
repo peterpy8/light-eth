@@ -745,8 +745,8 @@ func (srv *Server) runPeer(p *Peer) {
 // NodeInfo represents a short summary of the information known about the host.
 type NodeInfo struct {
 	ID    string `json:"id"`    // Unique node identifier (also the encryption key)
-	Name  string `json:"name"`  // Name of the node, including client type, version, OS, custom data
-	Enode string `json:"enode"` // Enode URL for adding this peer from remote peers
+	//Name  string `json:"name"`  // Name of the node, including client type, version, OS, custom data
+	Siot string `json:"siot"` // Enode URL for adding this peer from remote peers
 	IP    string `json:"ip"`    // IP address of the node
 	Ports struct {
 		Discovery int `json:"discovery"` // UDP listening port for discovery protocol
@@ -756,14 +756,21 @@ type NodeInfo struct {
 	Protocols  map[string]interface{} `json:"protocols"`
 }
 
+type NodeInfoDisplay struct {
+	ID    string `json:"id"`    // Unique node identifier (also the encryption key)
+	URL   string  `json:"url"`
+	ListenAddr string   `json:"listenAddr"`
+	SiotNetwork string 	`json:"siotNetwork"`
+}
+
 // NodeInfo gathers and returns a collection of metadata known about the host.
 func (srv *Server) NodeInfo() *NodeInfo {
 	node := srv.Self()
 
 	// Gather and assemble the generic node infos
 	info := &NodeInfo{
-		Name:       srv.Name,
-		Enode:      node.String(),
+		//Name:       srv.Name,
+		Siot:      node.String(),
 		ID:         node.ID.String(),
 		IP:         node.IP.String(),
 		ListenAddr: srv.ListenAddr,
@@ -774,6 +781,7 @@ func (srv *Server) NodeInfo() *NodeInfo {
 
 	// Gather all the running protocol infos (only once per protocol type)
 	for _, proto := range srv.Protocols {
+		proto.Name = "siot"
 		if _, ok := info.Protocols[proto.Name]; !ok {
 			nodeInfo := interface{}("unknown")
 			if query := proto.NodeInfo; query != nil {

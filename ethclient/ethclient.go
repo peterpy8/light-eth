@@ -29,6 +29,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"golang.org/x/net/context"
+	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/ethereum/go-ethereum/internal/ethapi"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
@@ -235,7 +237,36 @@ func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header)
 }
 
 // State Access
+// TODO WEI: add client api to handle rpc call
+func (ec *Client) NodeInfoAt(ctx context.Context) (*p2p.NodeInfo, error) {
+	var result p2p.NodeInfo
+	err := ec.c.CallContext(ctx, &result, "admin_nodeInfo")
+	return (*p2p.NodeInfo)(&result), err
+}
 
+func (ec *Client) ListAccountsAt(ctx context.Context) ([]rpc.HexBytes, error) {
+	var result []rpc.HexBytes
+	err := ec.c.CallContext(ctx, &result, "personal_listAccounts")
+	return result, err
+}
+
+func (ec *Client) NewAccount(ctx context.Context, password string) (rpc.HexBytes, error) {
+	var result rpc.HexBytes
+	err := ec.c.CallContext(ctx, &result, "personal_newAccount", password)
+	return result, err
+}
+
+func (ec *Client) UnlockAccount(ctx context.Context, account common.Address, password string) (bool, error) {
+	var result bool
+	err := ec.c.CallContext(ctx, &result, "personal_unlockAccount", account, password)
+	return result, err
+}
+
+func (ec *Client) LockAccount(ctx context.Context) (common.Address, error) {
+	var result common.Address
+	err := ec.c.CallContext(ctx, &result, "personal_lockAccount")
+	return result, err
+}
 // BalanceAt returns the wei balance of the given account.
 // The block number can be nil, in which case the balance is taken from the latest known block.
 func (ec *Client) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
@@ -243,6 +274,46 @@ func (ec *Client) BalanceAt(ctx context.Context, account common.Address, blockNu
 	err := ec.c.CallContext(ctx, &result, "eth_getBalance", account, toBlockNumArg(blockNumber))
 	return (*big.Int)(&result), err
 }
+
+func (ec *Client) SendAsset(ctx context.Context, sender common.Address, receiver common.Address, value *big.Int) (rpc.HexBytes, error) {
+	var result rpc.HexBytes
+	value.Mul(value, big.NewInt(1000000000000))
+	args := ethapi.SendTxArgs{From: sender, To: &receiver, Value: rpc.NewHexNumber(value), Data: ""}
+	err := ec.c.CallContext(ctx, &result, "eth_sendTransaction", args)
+	return result, err
+}
+
+func (ec *Client) AddPeer(ctx context.Context, url string) (bool, error) {
+	var result bool
+	err := ec.c.CallContext(ctx, &result, "admin_addPeer", url)
+	return result, err
+}
+
+func (ec *Client) GetPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
+	var result []*p2p.PeerInfo
+	err := ec.c.CallContext(ctx, &result, "admin_peers")
+	return result, err
+}
+
+func (ec *Client) SetMiner(ctx context.Context, account common.Address) (bool, error) {
+	var result bool
+	err := ec.c.CallContext(ctx, &result, "miner_setEtherbase", account)
+	return result, err
+}
+
+func (ec *Client) StartMining(ctx context.Context) (bool, error) {
+	var result bool
+	err := ec.c.CallContext(ctx, &result, "miner_start")
+	return result, err
+}
+
+func (ec *Client) StopMining(ctx context.Context) (bool, error) {
+	var result bool
+	err := ec.c.CallContext(ctx, &result, "miner_stop")
+	return result, err
+}
+
+
 
 // StorageAt returns the value of key in the contract storage of the given account.
 // The block number can be nil, in which case the value is taken from the latest known block.

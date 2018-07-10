@@ -44,6 +44,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
+
 const (
 	clientIdentifier = "siotchain"//"siotchain" // Client identifier to advertise over the network
 )
@@ -71,32 +72,31 @@ func init() {
 		monitorCommand,
 		accountCommand,
 		walletCommand,
+		cliCommand,
 		consoleCommand,
-		attachCommand,
-		javascriptCommand,
-		{
-			Action:    makedag,
-			Name:      "makedag",
-			Usage:     "Generate ethash DAG (for testing)",
-			ArgsUsage: "<blockNum> <outputDir>",
-			Category:  "MISCELLANEOUS COMMANDS",
-			Description: `
-The makedag command generates an ethash DAG in /tmp/dag.
-
-This command exists to support the system testing project.
-Regular users do not need to execute it.
-`,
-		},
-		{
-			Action:    version,
-			Name:      "version",
-			Usage:     "Print version numbers",
-			ArgsUsage: " ",
-			Category:  "MISCELLANEOUS COMMANDS",
-			Description: `
-The output of this command is supposed to be machine-readable.
-`,
-		},
+		//{
+//			Action:    makedag,
+//			Name:      "makedag",
+//			Usage:     "Generate ethash DAG (for testing)",
+//			ArgsUsage: "<blockNum> <outputDir>",
+//			Category:  "MISCELLANEOUS COMMANDS",
+//			Description: `
+//The makedag command generates an ethash DAG in /tmp/dag.
+//
+//This command exists to support the system testing project.
+//Regular users do not need to execute it.
+//`,
+//		},
+//		{
+//			Action:    version,
+//			Name:      "version",
+//			Usage:     "Print version numbers",
+//			ArgsUsage: " ",
+//			Category:  "MISCELLANEOUS COMMANDS",
+//			Description: `
+//The output of this command is supposed to be machine-readable.
+//`,
+//		},
 		{
 			Action:    initGenesis,
 			Name:      "init",
@@ -109,13 +109,13 @@ This is a destructive action and changes the network in which you will be
 participating.
 `,
 		},
-		{
-			Action:    license,
-			Name:      "license",
-			Usage:     "Display license information",
-			ArgsUsage: " ",
-			Category:  "MISCELLANEOUS COMMANDS",
-		},
+		//{
+		//	Action:    license,
+		//	Name:      "license",
+		//	Usage:     "Display license information",
+		//	ArgsUsage: " ",
+		//	Category:  "MISCELLANEOUS COMMANDS",
+		//},
 	}
 
 	app.Flags = []cli.Flag{
@@ -152,7 +152,10 @@ participating.
 		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
 		utils.RPCEnabledFlag,
+		// TODO
 		utils.RPCListenAddrFlag,
+		// TODO
+		utils.RequestFlag,
 		utils.RPCPortFlag,
 		utils.RPCApiFlag,
 		utils.WSEnabledFlag,

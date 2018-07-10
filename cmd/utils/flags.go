@@ -118,6 +118,11 @@ var (
 		Usage: "Network identifier (integer, 0=Olympic, 1=Frontier, 2=Morden)",
 		Value: eth.NetworkId,
 	}
+	IPFlag = cli.StringFlag{
+		Name:  "IP",
+		Usage: "IP address (integer, 0=Olympic, 1=Frontier, 2=Morden)",
+		Value: eth.IP,
+	}
 	OlympicFlag = cli.BoolFlag{
 		Name:  "olympic",
 		Usage: "Olympic network: pre-configured pre-release test network",
@@ -260,7 +265,7 @@ var (
 		Usage: "Enable the HTTP-RPC server",
 	}
 	RPCListenAddrFlag = cli.StringFlag{
-		Name:  "rpcaddr",
+		Name:  "rpcip",
 		Usage: "HTTP-RPC server listening interface",
 		Value: node.DefaultHTTPHost,
 	}
@@ -268,6 +273,11 @@ var (
 		Name:  "rpcport",
 		Usage: "HTTP-RPC server listening port",
 		Value: node.DefaultHTTPPort,
+	}
+	RequestFlag = cli.StringFlag{
+		Name:  "request",
+		Usage: "JSON RPC request command",
+		Value: rpc.DefaultRPCRequest,
 	}
 	RPCCORSDomainFlag = cli.StringFlag{
 		Name:  "rpccorsdomain",
@@ -344,7 +354,7 @@ var (
 	}
 	BootnodesFlag = cli.StringFlag{
 		Name:  "bootnodes",
-		Usage: "Comma separated enode URLs for P2P discovery bootstrap",
+		Usage: "Comma separated siot node URLs for P2P discovery bootstrap",
 		Value: "",
 	}
 	NodeKeyFileFlag = cli.StringFlag{

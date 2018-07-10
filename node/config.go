@@ -252,7 +252,7 @@ func (c *Config) NodeName() string {
 	name := c.name()
 	// Backwards compatibility: previous versions used title-cased "Geth", keep that.
 	if name == "siotchain" || name == "siotchain-testnet" {
-		name = "Geth"
+		name = "Siotchain"
 	}
 	if c.UserIdent != "" {
 		name += "/" + c.UserIdent
@@ -353,12 +353,12 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	return key
 }
 
-// StaticNodes returns a list of node enode URLs configured as static nodes.
+// StaticNodes returns a list of node siot node URLs configured as static nodes.
 func (c *Config) StaticNodes() []*discover.Node {
 	return c.parsePersistentNodes(c.resolvePath(datadirStaticNodes))
 }
 
-// TrusterNodes returns a list of node enode URLs configured as trusted nodes.
+// TrusterNodes returns a list of node siot node URLs configured as trusted nodes.
 func (c *Config) TrusterNodes() []*discover.Node {
 	return c.parsePersistentNodes(c.resolvePath(datadirTrustedNodes))
 }

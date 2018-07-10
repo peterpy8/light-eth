@@ -1,0 +1,1 @@
+build/bin/siotchain cli  --ip "localhost" --port 8544 --request "hello"

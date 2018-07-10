@@ -10,7 +10,7 @@ function sleep(milliseconds) {
 function interaction() {
     console.log("[peermode]: peer count: " + web3.net.peerCount)
     console.log("[peermode]: connect to [::]:30303")
-    admin.addPeer("enode://1f907edbabed2100d564ac0e104f5d3a0aa319de86b573697c6e63df665c110115443f353372142d1b64e0cfaf670c32af40885c299882bbac5c9b1b48e9eb3d@127.0.0.1:30303")
+    admin.addPeer("siot://4eeade3187bf60789cf2e96220b07bb1282c6940da248c80a5f202f23cb7e503b8d0167dddce87ba7d73f1209e279161c8511da4391a13cbde14168aecae7487@127.0.0.1:30303")
     while (web3.net.peerCount == 0)
     {
         sleep(1000)

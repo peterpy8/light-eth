@@ -57,7 +57,7 @@ func sendBadBlockReport(block *types.Block, err error) {
 	}
 	if p, ok := block.ReceivedFrom.(*peer); ok {
 		params["receivedFrom"] = map[string]interface{}{
-			"enode":           fmt.Sprintf("enode://%x@%v", p.ID(), p.RemoteAddr()),
+			"siot":           fmt.Sprintf("siot://%x@%v", p.ID(), p.RemoteAddr()),
 			"name":            p.Name(),
 			"protocolVersion": p.version,
 		}

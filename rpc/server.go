@@ -33,7 +33,8 @@ const (
 
 	MetadataApi     = "rpc"
 	DefaultIPCApis  = "admin,debug,eth,miner,net,personal,shh,txpool,web3"
-	DefaultHTTPApis = "eth,net,web3"
+	DefaultHTTPApis = "admin,eth,net,web3,admin,personal,miner"
+	DefaultRPCRequest = ""
 )
 
 // CodecOption specifies which type of messages this codec supports

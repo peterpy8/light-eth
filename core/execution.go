@@ -61,10 +61,10 @@ func Call(env vm.Environment, caller vm.ContractRef, addr common.Address, input 
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
 	contract := vm.NewContract(caller, to, value, gas, gasPrice)
-	contract.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
+	//contract.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
 	defer contract.Finalise()
 
-	ret, err = env.Vm().Run(contract, input)
+	//ret, err = env.Vm().Run(contract, input)
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
@@ -73,7 +73,8 @@ func Call(env vm.Environment, caller vm.ContractRef, addr common.Address, input 
 
 		env.RevertToSnapshot(snapshotPreTransfer)
 	}
-	return ret, err
+	//return ret, err
+	return nil, nil
 }
 
 // CallCode executes the given address' code as the given contract address
@@ -99,17 +100,17 @@ func CallCode(env vm.Environment, caller vm.ContractRef, addr common.Address, in
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
 	contract := vm.NewContract(caller, to, value, gas, gasPrice)
-	contract.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
+	//contract.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
 	defer contract.Finalise()
 
-	ret, err = env.Vm().Run(contract, input)
+	//ret, err = env.Vm().Run(contract, input)
 	if err != nil {
 		contract.UseGas(contract.Gas)
 
 		env.RevertToSnapshot(snapshotPreTransfer)
 	}
 
-	return ret, err
+	return nil, nil
 }
 
 // Create creates a new contract with the given code
@@ -146,10 +147,10 @@ func Create(env vm.Environment, caller vm.ContractRef, code []byte, gas, gasPric
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
 	contract := vm.NewContract(caller, to, value, gas, gasPrice)
-	contract.SetCallCode(&addr, crypto.Keccak256Hash(code), code)
+	//contract.SetCallCode(&addr, crypto.Keccak256Hash(code), code)
 	defer contract.Finalise()
 
-	ret, err = env.Vm().Run(contract, nil)
+	//ret, err = env.Vm().Run(contract, nil)
 	// check whether the max code size has been exceeded
 	maxCodeSizeExceeded := len(ret) > params.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
@@ -178,7 +179,8 @@ func Create(env vm.Environment, caller vm.ContractRef, code []byte, gas, gasPric
 		return nil, addr, err
 	}
 
-	return ret, addr, err
+	//return ret, addr, err
+	return nil, addr, nil
 }
 
 // DelegateCall is equivalent to CallCode except that sender and value propagates from parent scope to child scope
@@ -197,17 +199,18 @@ func DelegateCall(env vm.Environment, caller vm.ContractRef, addr common.Address
 
 	// Iinitialise a new contract and make initialise the delegate values
 	contract := vm.NewContract(caller, to, caller.Value(), gas, gasPrice).AsDelegate()
-	contract.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
+	//contract.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
 	defer contract.Finalise()
 
-	ret, err = env.Vm().Run(contract, input)
+	//ret, err = env.Vm().Run(contract, input)
 	if err != nil {
 		contract.UseGas(contract.Gas)
 
 		env.RevertToSnapshot(snapshot)
 	}
 
-	return ret, err
+	//return ret, err
+	return nil, nil
 }
 
 // generic transfer method

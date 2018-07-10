@@ -55,7 +55,7 @@ type Environment interface {
 	// Adds a LOG to the state
 	AddLog(*Log)
 	// Type of the VM
-	Vm() Vm
+	//Vm() Vm
 	// Get the curret calling depth
 	Depth() int
 	// Set the current calling depth

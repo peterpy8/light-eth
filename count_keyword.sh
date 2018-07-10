@@ -5,6 +5,6 @@ for dir in $dirlist
 do
   cd $dir
   echo $dir
-  grep -i eth -r | wc -l  
+  grep -i $1 -r | wc -l  
   cd ..
 done

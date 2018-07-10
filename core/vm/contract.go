@@ -27,8 +27,8 @@ type ContractRef interface {
 	ReturnGas(*big.Int, *big.Int)
 	Address() common.Address
 	Value() *big.Int
-	SetCode(common.Hash, []byte)
-	ForEachStorage(callback func(key, value common.Hash) bool)
+	//SetCode(common.Hash, []byte)
+	//ForEachStorage(callback func(key, value common.Hash) bool)
 }
 
 // Contract represents an ethereum contract in the state database. It contains
@@ -41,12 +41,12 @@ type Contract struct {
 	caller        ContractRef
 	self          ContractRef
 
-	jumpdests destinations // result of JUMPDEST analysis.
-
-	Code     []byte
-	CodeHash common.Hash
-	CodeAddr *common.Address
-	Input    []byte
+	//jumpdests destinations // result of JUMPDEST analysis.
+	//
+	//Code     []byte
+	//CodeHash common.Hash
+	//CodeAddr *common.Address
+	//Input    []byte
 
 	value, Gas, UsedGas, Price *big.Int
 
@@ -57,14 +57,15 @@ type Contract struct {
 
 // NewContract returns a new contract environment for the execution of EVM.
 func NewContract(caller ContractRef, object ContractRef, value, gas, price *big.Int) *Contract {
+	//c := &Contract{CallerAddress: caller.Address(), caller: caller, self: object, Args: nil}
 	c := &Contract{CallerAddress: caller.Address(), caller: caller, self: object, Args: nil}
 
-	if parent, ok := caller.(*Contract); ok {
-		// Reuse JUMPDEST analysis from parent context if available.
-		c.jumpdests = parent.jumpdests
-	} else {
-		c.jumpdests = make(destinations)
-	}
+	//if parent, ok := caller.(*Contract); ok {
+	//	// Reuse JUMPDEST analysis from parent context if available.
+	//	c.jumpdests = parent.jumpdests
+	//} else {
+	//	c.jumpdests = make(destinations)
+	//}
 
 	// Gas should be a pointer so it can safely be reduced through the run
 	// This pointer will be off the state transition
@@ -89,18 +90,18 @@ func (c *Contract) AsDelegate() *Contract {
 }
 
 // GetOp returns the n'th element in the contract's byte array
-func (c *Contract) GetOp(n uint64) OpCode {
-	return OpCode(c.GetByte(n))
-}
+//func (c *Contract) GetOp(n uint64) OpCode {
+//	return OpCode(c.GetByte(n))
+//}
 
 // GetByte returns the n'th byte in the contract's byte array
-func (c *Contract) GetByte(n uint64) byte {
-	if n < uint64(len(c.Code)) {
-		return c.Code[n]
-	}
-
-	return 0
-}
+//func (c *Contract) GetByte(n uint64) byte {
+//	if n < uint64(len(c.Code)) {
+//		return c.Code[n]
+//	}
+//
+//	return 0
+//}
 
 // Caller returns the caller of the contract.
 //
@@ -144,21 +145,21 @@ func (c *Contract) Value() *big.Int {
 }
 
 // SetCode sets the code to the contract
-func (self *Contract) SetCode(hash common.Hash, code []byte) {
-	self.Code = code
-	self.CodeHash = hash
-}
+//func (self *Contract) SetCode(hash common.Hash, code []byte) {
+//	self.Code = code
+//	self.CodeHash = hash
+//}
 
 // SetCallCode sets the code of the contract and address of the backing data
 // object
-func (self *Contract) SetCallCode(addr *common.Address, hash common.Hash, code []byte) {
-	self.Code = code
-	self.CodeHash = hash
-	self.CodeAddr = addr
-}
+//func (self *Contract) SetCallCode(addr *common.Address, hash common.Hash, code []byte) {
+//	self.Code = code
+//	self.CodeHash = hash
+//	self.CodeAddr = addr
+//}
 
 // EachStorage iterates the contract's storage and calls a method for every key
 // value pair.
-func (self *Contract) ForEachStorage(cb func(key, value common.Hash) bool) {
-	self.caller.ForEachStorage(cb)
-}
+//func (self *Contract) ForEachStorage(cb func(key, value common.Hash) bool) {
+//	self.caller.ForEachStorage(cb)
+//}

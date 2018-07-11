@@ -74,29 +74,6 @@ func init() {
 		walletCommand,
 		cliCommand,
 		consoleCommand,
-		//{
-//			Action:    makedag,
-//			Name:      "makedag",
-//			Usage:     "Generate ethash DAG (for testing)",
-//			ArgsUsage: "<blockNum> <outputDir>",
-//			Category:  "MISCELLANEOUS COMMANDS",
-//			Description: `
-//The makedag command generates an ethash DAG in /tmp/dag.
-//
-//This command exists to support the system testing project.
-//Regular users do not need to execute it.
-//`,
-//		},
-//		{
-//			Action:    version,
-//			Name:      "version",
-//			Usage:     "Print version numbers",
-//			ArgsUsage: " ",
-//			Category:  "MISCELLANEOUS COMMANDS",
-//			Description: `
-//The output of this command is supposed to be machine-readable.
-//`,
-//		},
 		{
 			Action:    initGenesis,
 			Name:      "init",
@@ -109,13 +86,6 @@ This is a destructive action and changes the network in which you will be
 participating.
 `,
 		},
-		//{
-		//	Action:    license,
-		//	Name:      "license",
-		//	Usage:     "Display license information",
-		//	ArgsUsage: " ",
-		//	Category:  "MISCELLANEOUS COMMANDS",
-		//},
 	}
 
 	app.Flags = []cli.Flag{
@@ -262,23 +232,6 @@ func initGenesis(ctx *cli.Context) error {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack := utils.MakeNode(ctx, clientIdentifier, gitCommit)
 	utils.RegisterEthService(ctx, stack, utils.MakeDefaultExtraData(clientIdentifier))
-
-	// Wei: remove here as we removed struct Config in release package
-	// Add the release oracle service so it boots along with node.
-	//if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-	//	config := release.Config{
-	//		Oracle: relOracle,
-	//		Major:  uint32(utils.VersionMajor),
-	//		Minor:  uint32(utils.VersionMinor),
-	//		Patch:  uint32(utils.VersionPatch),
-	//	}
-	//	commit, _ := hex.DecodeString(gitCommit)
-	//	copy(config.Commit[:], commit)
-	//	return release.NewReleaseService(ctx, config)
-	//}); err != nil {
-	//	utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
-	//}
-
 	return stack
 }
 

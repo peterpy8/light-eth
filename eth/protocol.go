@@ -43,7 +43,7 @@ var ProtocolLengths = []uint64{17, 8}
 
 const (
 	IP				   = "localhost"
-	NetworkId          = 1
+	NetworkId          = 9876
 	ProtocolMaxMsgSize = 10 * 1024 * 1024 // Maximum cap on the size of a protocol message
 )
 

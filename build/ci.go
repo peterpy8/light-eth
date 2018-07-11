@@ -72,6 +72,7 @@ var (
 		executablePath("abigen"),
 		executablePath("evm"),
 		executablePath("siotchain"),
+		executablePath("siotchain_cli"),
 		executablePath("rlpdump"),
 	}
 
@@ -79,7 +80,11 @@ var (
 	debExecutables = []debExecutable{
 		{
 			Name:        "siotchain",
-			Description: "Ethereum CLI client.",
+			Description: "Siotchain node.",
+		},
+		{
+			Name:        "siotchain_cli",
+			Description: "Siotchain CLI client.",
 		},
 		{
 			Name:        "rlpdump",

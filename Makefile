@@ -23,7 +23,9 @@ evm:
 	@echo "Run \"$(GOBIN)/evm to start the evm."
 
 all:
-	build/env.sh go run build/ci.go install
+	build/env.sh go run build/ci.go install ./cmd/siotchain
+	build/env.sh go run build/ci.go install ./cmd/siotchain_cli
+	#build/env.sh go run build/ci.go install
 
 test: all
 	build/env.sh go run build/ci.go test

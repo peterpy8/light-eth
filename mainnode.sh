@@ -11,4 +11,4 @@ echo "node datadir cleared"
 echo "main node init"
 
 build/bin/siotchain --datadir $Datadir0 init genesis.json
-build/bin/siotchain --datadir $Datadir0 --port 30303 --rpc --rpcport 8888 --networkid 9876 console
+build/bin/siotchain --datadir $Datadir0 --port 30303 --rpc --rpcport 8888 --networkid 9876

@@ -39,24 +39,24 @@ echo `build/bin/siotchain --rpcport 8888 --request "getbalance $acct1" siotchain
 echo "test case 10: set acct1 as miner"
 echo `build/bin/siotchain --rpcport 8888 --request "setMiner $acct1" siotchain-cli`
 
-echo "test case 10: start mining ----------------"
+echo "test case 11: start mining ----------------"
 echo `build/bin/siotchain --rpcport 8888 --request "StartMine" siotchain-cli`
 
 sleep 5s
 
-echo "test case 11: stop mining -----------------"
+echo "test case 12: stop mining -----------------"
 echo `build/bin/siotchain --rpcport 8888 --request "stopMine" siotchain-cli`
 
-echo "test case 12: get acct1 balance after mining -------------"
+echo "test case 13: get acct1 balance after mining -------------"
 echo `build/bin/siotchain --rpcport 8888 --request "getbalance $acct1" siotchain-cli`
 
-echo "test case 13: send asset of 1000000 from acct1 to acct2 -------------"
+echo "test case 14: send asset of 1000000 from acct1 to acct2 -------------"
 echo `build/bin/siotchain --rpcport 8888 --request "sendAsset $acct1 $acct2 1000000" siotchain-cli`
 
-echo "test case 14: mining to record transaction"
+echo "test case 15: mining to record transaction"
 echo `build/bin/siotchain --rpcport 8888 --request "StartMine" siotchain-cli`
 sleep 5s
 echo `build/bin/siotchain --rpcport 8888 --request "stopMine" siotchain-cli`
 
-echo "test case 15: get acct2 balance after transaction committed to the block, should be 1000000 -------------"
+echo "test case 16: get acct2 balance after transaction committed to the block, should be 1000000 -------------"
 echo `build/bin/siotchain --rpcport 8888 --request "getbalance $acct2 " siotchain-cli`

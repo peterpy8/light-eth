@@ -23,13 +23,13 @@ echo `build/bin/siotchain --rpcport 8887 --request "getbalance $acct" siotchain-
 # get the account address of mainnode acct2
 mainnode_acct2=`build/bin/siotchain --rpcport 8888 --request "getLastAccount" siotchain-cli`
 echo $mainnode_acct2
-echo "test case 7: incorrect input format for sendAsset ----------------"
+echo "test case 6: incorrect input format for sendAsset ----------------"
 echo `build/bin/siotchain --rpcport 8888 --request "sendAsset $mainnode_acct2 $acct" siotchain-cli`
 
-echo "test case 8: send asset from mainnode acct2 to peernode acct ----------------"
+echo "test case 7: send asset from mainnode acct2 to peernode acct ----------------"
 echo `build/bin/siotchain --rpcport 8888 --request "sendAsset $mainnode_acct2 $acct 900000" siotchain-cli`
 
-echo "test case 9: set mainnode acct2 as miner"
+echo "test case 8: set mainnode acct2 as miner"
 echo `build/bin/siotchain --rpcport 8888 --request "setMiner $mainnode_acct2" siotchain-cli`
 
 echo "test case 9: mining to record transaction"

@@ -26,9 +26,9 @@ import (
 const (
 	DefaultIPCSocket = "siotchain.ipc"  // Default (relative) name of the IPC RPC socket
 	DefaultHTTPHost  = "localhost" // Default host interface for the HTTP RPC server
-	DefaultHTTPPort  = 8544        // Default TCP port for the HTTP RPC server
+	DefaultHTTPPort  = 8800        // Default TCP port for the HTTP RPC server
 	DefaultWSHost    = "localhost" // Default host interface for the websocket RPC server
-	DefaultWSPort    = 8546        // Default TCP port for the websocket RPC server
+	DefaultWSPort    = 8800        // Default TCP port for the websocket RPC server
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
@@ -38,11 +38,11 @@ func DefaultDataDir() string {
 	home := homeDir()
 	if home != "" {
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "Ethereum")
+			return filepath.Join(home, "Library", "Siotchain")
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", "Ethereum")
+			return filepath.Join(home, "AppData", "Roaming", "Siotchain")
 		} else {
-			return filepath.Join(home, ".ethereum")
+			return filepath.Join(home, ".siotchain")
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later

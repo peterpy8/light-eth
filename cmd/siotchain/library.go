@@ -19,15 +19,6 @@
 
 package main
 
-// #ifdef __cplusplus
-// extern "C" {
-// #endif
-//
-// extern int run(const char*);
-//
-// #ifdef __cplusplus
-// }
-// #endif
 import "C"
 import (
 	"fmt"

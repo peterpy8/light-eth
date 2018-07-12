@@ -20,15 +20,11 @@ package main
 import (
 	//"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/ethereum/ethash"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/console"
@@ -42,6 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/node"
 	"gopkg.in/urfave/cli.v1"
+	"github.com/ethereum/go-ethereum/accounts"
 )
 
 
@@ -55,7 +52,7 @@ var (
 	// Ethereum address of the Geth release oracle.
 	relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
 	// The app that holds all commands and flags.
-	app = utils.NewApp(gitCommit, "the go-ethereum command line interface")
+	app = utils.NewApp(gitCommit, "the siotchain command line interface")
 )
 
 func init() {
@@ -64,20 +61,10 @@ func init() {
 	app.HideVersion = true // we have a command to print the version
 	app.Copyright = "Copyright 2013-2016 The go-ethereum Authors"
 	app.Commands = []cli.Command{
-		importCommand,
-		exportCommand,
-		upgradedbCommand,
-		removedbCommand,
-		dumpCommand,
-		monitorCommand,
-		accountCommand,
-		walletCommand,
-		cliCommand,
-		consoleCommand,
 		{
 			Action:    initGenesis,
 			Name:      "init",
-			Usage:     "Bootstrap and initialize a new genesis block",
+			Usage:     "Initialize a new genesis block",
 			ArgsUsage: "<genesisPath>",
 			Category:  "BLOCKCHAIN COMMANDS",
 			Description: `
@@ -87,7 +74,6 @@ participating.
 `,
 		},
 	}
-
 	app.Flags = []cli.Flag{
 		utils.IdentityFlag,
 		utils.UnlockedAccountFlag,
@@ -97,13 +83,6 @@ participating.
 		utils.KeyStoreDirFlag,
 		utils.OlympicFlag,
 		utils.FastSyncFlag,
-		utils.LightModeFlag,
-		utils.LightServFlag,
-		utils.LightPeersFlag,
-		utils.LightKDFFlag,
-		utils.CacheFlag,
-		utils.TrieCacheGenFlag,
-		utils.JSpathFlag,
 		utils.ListenPortFlag,
 		utils.MaxPeersFlag,
 		utils.MaxPendingPeersFlag,
@@ -122,9 +101,7 @@ participating.
 		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
 		utils.RPCEnabledFlag,
-		// TODO
 		utils.RPCListenAddrFlag,
-		// TODO
 		utils.RequestFlag,
 		utils.RPCPortFlag,
 		utils.RPCApiFlag,
@@ -263,64 +240,89 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	}
 }
 
-func makedag(ctx *cli.Context) error {
-	args := ctx.Args()
-	wrongArgs := func() {
-		utils.Fatalf(`Usage: siotchain makedag <block number> <outputdir>`)
+// tries unlocking the specified account a few times.
+func unlockAccount(ctx *cli.Context, accman *accounts.Manager, address string, i int, passwords []string) (accounts.Account, string) {
+	account, err := utils.MakeAddress(accman, address)
+	if err != nil {
+		utils.Fatalf("Could not list accounts: %v", err)
 	}
-	switch {
-	case len(args) == 2:
-		blockNum, err := strconv.ParseUint(args[0], 0, 64)
-		dir := args[1]
-		if err != nil {
-			wrongArgs()
-		} else {
-			dir = filepath.Clean(dir)
-			// seems to require a trailing slash
-			if !strings.HasSuffix(dir, "/") {
-				dir = dir + "/"
-			}
-			_, err = ioutil.ReadDir(dir)
-			if err != nil {
-				utils.Fatalf("Can't find dir")
-			}
-			fmt.Println("making DAG, this could take awhile...")
-			ethash.MakeDAG(blockNum, dir)
+	for trials := 0; trials < 3; trials++ {
+		prompt := fmt.Sprintf("Unlocking account %s | Attempt %d/%d", address, trials+1, 3)
+		password := getPassPhrase(prompt, false, i, passwords)
+		err = accman.Unlock(account, password)
+		if err == nil {
+			glog.V(logger.Info).Infof("Unlocked account %x", account.Address)
+			return account, password
 		}
-	default:
-		wrongArgs()
+		if err, ok := err.(*accounts.AmbiguousAddrError); ok {
+			glog.V(logger.Info).Infof("Unlocked account %x", account.Address)
+			return ambiguousAddrRecovery(accman, err, password), password
+		}
+		if err != accounts.ErrDecrypt {
+			// No need to prompt again if the error is not decryption-related.
+			break
+		}
 	}
-	return nil
+	// All trials expended to unlock account, bail out
+	utils.Fatalf("Failed to unlock account %s (%v)", address, err)
+	return accounts.Account{}, ""
 }
 
-func version(ctx *cli.Context) error {
-	fmt.Println(strings.Title(clientIdentifier))
-	fmt.Println("Version:", utils.Version)
-	if gitCommit != "" {
-		fmt.Println("Git Commit:", gitCommit)
+// getPassPhrase retrieves the passwor associated with an account, either fetched
+// from a list of preloaded passphrases, or requested interactively from the user.
+func getPassPhrase(prompt string, confirmation bool, i int, passwords []string) string {
+	// If a list of passwords was supplied, retrieve from them
+	if len(passwords) > 0 {
+		if i < len(passwords) {
+			return passwords[i]
+		}
+		return passwords[len(passwords)-1]
 	}
-	fmt.Println("Protocol Versions:", eth.ProtocolVersions)
-	fmt.Println("Network Id:", ctx.GlobalInt(utils.NetworkIdFlag.Name))
-	fmt.Println("Go Version:", runtime.Version())
-	fmt.Println("OS:", runtime.GOOS)
-	fmt.Printf("GOPATH=%s\n", os.Getenv("GOPATH"))
-	fmt.Printf("GOROOT=%s\n", runtime.GOROOT())
-	return nil
+	// Otherwise prompt the user for the password
+	if prompt != "" {
+		fmt.Println(prompt)
+	}
+	password, err := console.Stdin.PromptPassword("Passphrase: ")
+	if err != nil {
+		utils.Fatalf("Failed to read passphrase: %v", err)
+	}
+	if confirmation {
+		confirm, err := console.Stdin.PromptPassword("Repeat passphrase: ")
+		if err != nil {
+			utils.Fatalf("Failed to read passphrase confirmation: %v", err)
+		}
+		if password != confirm {
+			utils.Fatalf("Passphrases do not match")
+		}
+	}
+	return password
 }
 
-func license(_ *cli.Context) error {
-	fmt.Println(`Geth is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Geth is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with siotchain. If not, see <http://www.gnu.org/licenses/>.
-`)
-	return nil
+func ambiguousAddrRecovery(am *accounts.Manager, err *accounts.AmbiguousAddrError, auth string) accounts.Account {
+	fmt.Printf("Multiple key files exist for address %x:\n", err.Addr)
+	for _, a := range err.Matches {
+		fmt.Println("  ", a.File)
+	}
+	fmt.Println("Testing your passphrase against all of them...")
+	var match *accounts.Account
+	for _, a := range err.Matches {
+		if err := am.Unlock(a, auth); err == nil {
+			match = &a
+			break
+		}
+	}
+	if match == nil {
+		utils.Fatalf("None of the listed files could be unlocked.")
+	}
+	fmt.Printf("Your passphrase unlocked %s\n", match.File)
+	fmt.Println("In order to avoid this warning, you need to remove the following duplicate key files:")
+	for _, a := range err.Matches {
+		if a != *match {
+			fmt.Println("  ", a.File)
+		}
+	}
+	return *match
 }
+
+
+

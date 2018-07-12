@@ -88,9 +88,6 @@ func NewApp(gitCommit, usage string) *cli.App {
 	//app.Authors = nil
 	app.Email = ""
 	app.Version = Version
-	if gitCommit != "" {
-		app.Version += "-" + gitCommit[:8]
-	}
 	app.Usage = usage
 	return app
 }
@@ -105,8 +102,8 @@ func NewApp(gitCommit, usage string) *cli.App {
 var (
 	// General settings
 	DataDirFlag = DirectoryFlag{
-		Name:  "datadir",
-		Usage: "Data directory for the databases and keystore",
+		Name:  "dir",
+		Usage: "Target directory to save the databases and account keystore",
 		Value: DirectoryString{node.DefaultDataDir()},
 	}
 	KeyStoreDirFlag = DirectoryFlag{
@@ -114,8 +111,8 @@ var (
 		Usage: "Directory for the keystore (default = inside the datadir)",
 	}
 	NetworkIdFlag = cli.IntFlag{
-		Name:  "networkid",
-		Usage: "Network identifier (integer, 0=Olympic, 1=Frontier, 2=Morden)",
+		Name:  "chainnetwork",
+		Usage: "Network identifier",
 		Value: eth.NetworkId,
 	}
 	IPFlag = cli.StringFlag{
@@ -152,24 +149,24 @@ var (
 		Name:  "fast",
 		Usage: "Enable fast syncing through state downloads",
 	}
-	LightModeFlag = cli.BoolFlag{
-		Name:  "light",
-		Usage: "Enable light client mode",
-	}
-	LightServFlag = cli.IntFlag{
-		Name:  "lightserv",
-		Usage: "Maximum percentage of time allowed for serving LES requests (0-90)",
-		Value: 0,
-	}
-	LightPeersFlag = cli.IntFlag{
-		Name:  "lightpeers",
-		Usage: "Maximum number of LES client peers",
-		Value: 20,
-	}
-	LightKDFFlag = cli.BoolFlag{
-		Name:  "lightkdf",
-		Usage: "Reduce key-derivation RAM & CPU usage at some expense of KDF strength",
-	}
+	//LightModeFlag = cli.BoolFlag{
+	//	Name:  "light",
+	//	Usage: "Enable light client mode",
+	//}
+	//LightServFlag = cli.IntFlag{
+	//	Name:  "lightserv",
+	//	Usage: "Maximum percentage of time allowed for serving LES requests (0-90)",
+	//	Value: 0,
+	//}
+	//LightPeersFlag = cli.IntFlag{
+	//	Name:  "lightpeers",
+	//	Usage: "Maximum number of LES client peers",
+	//	Value: 20,
+	//}
+	//LightKDFFlag = cli.BoolFlag{
+	//	Name:  "lightkdf",
+	//	Usage: "Reduce key-derivation RAM & CPU usage at some expense of KDF strength",
+	//}
 	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
 		Name:  "cache",
@@ -276,7 +273,7 @@ var (
 	}
 	RequestFlag = cli.StringFlag{
 		Name:  "request",
-		Usage: "JSON RPC request command",
+		Usage: "Request for JSON RPC call, if no request specified, will go into the interactive mode",
 		Value: rpc.DefaultRPCRequest,
 	}
 	RPCCORSDomainFlag = cli.StringFlag{
@@ -348,9 +345,9 @@ var (
 		Value: 0,
 	}
 	ListenPortFlag = cli.IntFlag{
-		Name:  "port",
+		Name:  "networkport",
 		Usage: "Network listening port",
-		Value: 30303,
+		Value: 10000,
 	}
 	BootnodesFlag = cli.StringFlag{
 		Name:  "bootnodes",
@@ -662,20 +659,17 @@ func MakePasswordList(ctx *cli.Context) []string {
 // MakeNode configures a node with no services from command line flags.
 func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 	vsn := Version
-	if gitCommit != "" {
-		vsn += "-" + gitCommit[:8]
-	}
 
 	config := &node.Config{
 		DataDir:           MakeDataDir(ctx),
 		KeyStoreDir:       ctx.GlobalString(KeyStoreDirFlag.Name),
-		UseLightweightKDF: ctx.GlobalBool(LightKDFFlag.Name),
+		//UseLightweightKDF: ctx.GlobalBool(LightKDFFlag.Name),
 		PrivateKey:        MakeNodeKey(ctx),
 		Name:              name,
 		Version:           vsn,
 		UserIdent:         makeNodeUserIdent(ctx),
-		NoDiscovery:       ctx.GlobalBool(NoDiscoverFlag.Name) || ctx.GlobalBool(LightModeFlag.Name),
-		DiscoveryV5:       ctx.GlobalBool(DiscoveryV5Flag.Name) || ctx.GlobalBool(LightModeFlag.Name) || ctx.GlobalInt(LightServFlag.Name) > 0,
+		//NoDiscovery:       ctx.GlobalBool(NoDiscoverFlag.Name) || ctx.GlobalBool(LightModeFlag.Name),
+		//DiscoveryV5:       ctx.GlobalBool(DiscoveryV5Flag.Name) || ctx.GlobalBool(LightModeFlag.Name) || ctx.GlobalInt(LightServFlag.Name) > 0,
 		DiscoveryV5Addr:   MakeDiscoveryV5Address(ctx),
 		BootstrapNodes:    MakeBootstrapNodes(ctx),
 		BootstrapNodesV5:  MakeBootstrapNodesV5(ctx),
@@ -736,9 +730,9 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		Etherbase:               MakeEtherbase(stack.AccountManager(), ctx),
 		ChainConfig:             MakeChainConfig(ctx, stack),
 		FastSync:                ctx.GlobalBool(FastSyncFlag.Name),
-		LightMode:               ctx.GlobalBool(LightModeFlag.Name),
-		LightServ:               ctx.GlobalInt(LightServFlag.Name),
-		LightPeers:              ctx.GlobalInt(LightPeersFlag.Name),
+		//LightMode:               ctx.GlobalBool(LightModeFlag.Name),
+		//LightServ:               ctx.GlobalInt(LightServFlag.Name),
+		//LightPeers:              ctx.GlobalInt(LightPeersFlag.Name),
 		MaxPeers:                ctx.GlobalInt(MaxPeersFlag.Name),
 		DatabaseCache:           ctx.GlobalInt(CacheFlag.Name),
 		DatabaseHandles:         MakeDatabaseHandles(),
@@ -925,11 +919,11 @@ func MakeChainConfigFromDb(ctx *cli.Context, db ethdb.Database) *params.ChainCon
 }
 
 func ChainDbName(ctx *cli.Context) string {
-	if ctx.GlobalBool(LightModeFlag.Name) {
-		return "lightchaindata"
-	} else {
+	//if ctx.GlobalBool(LightModeFlag.Name) {
+	//	return "lightchaindata"
+	//} else {
 		return "chaindata"
-	}
+	//}
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.

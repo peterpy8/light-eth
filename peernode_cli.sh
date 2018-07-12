@@ -4,7 +4,7 @@ mainNodeId=`build/bin/siotchain_cli --rpcport 8888 --request " getNodeId"`
 echo "test case 1: get main node id ---------------"
 echo $mainNodeId
 
-url="siot://$mainNodeId@127.0.0.1:30303"
+url="siot://$mainNodeId@127.0.0.1:10000"
 echo $url
 echo "test case 2: connect peernode to mainnode --------------"
 echo `build/bin/siotchain_cli --rpcport 8887 --request "connectPeer $url"`

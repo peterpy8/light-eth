@@ -25,7 +25,7 @@ evm:
 all:
 	build/env.sh go run build/ci.go install ./cmd/siotchain
 	build/env.sh go run build/ci.go install ./cmd/siotchain_cli
-	#build/env.sh go run build/ci.go install
+	@echo "Done building."
 
 test: all
 	build/env.sh go run build/ci.go test

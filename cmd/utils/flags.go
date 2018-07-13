@@ -1,19 +1,3 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of go-ethereum.
-//
-// go-ethereum is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// go-ethereum is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
-
 package utils
 
 import (
@@ -39,8 +23,6 @@ import (
 	"github.com/ethereum/go-ethereum/siot"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
-	//"github.com/ethereum/go-ethereum/les"
-	//"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/metrics"
@@ -206,7 +188,7 @@ var (
 		Name:  "autodag",
 		Usage: "Enable automatic DAG pregeneration",
 	}
-	EtherbaseFlag = cli.StringFlag{
+	MinerFlag = cli.StringFlag{
 		Name:  "etherbase",
 		Usage: "Public address for block mining rewards (default = first account created)",
 		Value: "0",
@@ -374,17 +356,6 @@ var (
 	DiscoveryV5Flag = cli.BoolFlag{
 		Name:  "v5disc",
 		Usage: "Enables the experimental RLPx V5 (Topic Discovery) mechanism",
-	}
-	// ATM the url is left to the user and deployment to
-	JSpathFlag = cli.StringFlag{
-		Name:  "jspath",
-		Usage: "JavaScript root path for `loadScript` and document root for `admin.httpGet`",
-		Value: ".",
-	}
-	SolcPathFlag = cli.StringFlag{
-		Name:  "solc",
-		Usage: "Solidity compiler command to be used",
-		Value: "solc",
 	}
 
 	// Gas price oracle settings
@@ -579,7 +550,7 @@ func MakeWSRpcHost(ctx *cli.Context) string {
 }
 
 // MakeDatabaseHandles raises out the number of allowed file handles per process
-// for Geth and returns half of the allowance to assign to the database.
+// for Siotchain and returns half of the allowance to assign to the database.
 func MakeDatabaseHandles() int {
 	if err := raiseFdLimit(2048); err != nil {
 		Fatalf("Failed to raise file descriptor allowance: %v", err)
@@ -613,18 +584,18 @@ func MakeAddress(accman *accounts.Manager, account string) (accounts.Account, er
 // command line flags or from the keystore if CLI indexed.
 func MakeEtherbase(accman *accounts.Manager, ctx *cli.Context) common.Address {
 	accounts := accman.Accounts()
-	if !ctx.GlobalIsSet(EtherbaseFlag.Name) && len(accounts) == 0 {
+	if !ctx.GlobalIsSet(MinerFlag.Name) && len(accounts) == 0 {
 		glog.V(logger.Error).Infoln("WARNING: No etherbase set and no accounts found as default")
 		return common.Address{}
 	}
-	etherbase := ctx.GlobalString(EtherbaseFlag.Name)
+	etherbase := ctx.GlobalString(MinerFlag.Name)
 	if etherbase == "" {
 		return common.Address{}
 	}
 	// If the specified etherbase is a valid address, return it
 	account, err := MakeAddress(accman, etherbase)
 	if err != nil {
-		Fatalf("Option %q: %v", EtherbaseFlag.Name, err)
+		Fatalf("Option %q: %v", MinerFlag.Name, err)
 	}
 	return account.Address
 }
@@ -702,9 +673,9 @@ func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 	return stack
 }
 
-// RegisterEthService configures siot.Ethereum from command line flags and adds it to the
+// RegisterSiotService configures siot.Siotchain from command line flags and adds it to the
 // given node.
-func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
+func RegisterSiotService(ctx *cli.Context, stack *node.Node, extra []byte) {
 	// Avoid conflicting network flags
 	networks, netFlags := 0, []cli.BoolFlag{DevModeFlag, TestNetFlag, OlympicFlag}
 	for _, flag := range netFlags {
@@ -730,9 +701,6 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		Etherbase:               MakeEtherbase(stack.AccountManager(), ctx),
 		ChainConfig:             MakeChainConfig(ctx, stack),
 		FastSync:                ctx.GlobalBool(FastSyncFlag.Name),
-		//LightMode:               ctx.GlobalBool(LightModeFlag.Name),
-		//LightServ:               ctx.GlobalInt(LightServFlag.Name),
-		//LightPeers:              ctx.GlobalInt(LightPeersFlag.Name),
 		MaxPeers:                ctx.GlobalInt(MaxPeersFlag.Name),
 		DatabaseCache:           ctx.GlobalInt(CacheFlag.Name),
 		DatabaseHandles:         MakeDatabaseHandles(),
@@ -750,7 +718,6 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		GpobaseStepDown:         ctx.GlobalInt(GpobaseStepDownFlag.Name),
 		GpobaseStepUp:           ctx.GlobalInt(GpobaseStepUpFlag.Name),
 		GpobaseCorrectionFactor: ctx.GlobalInt(GpobaseCorrectionFactorFlag.Name),
-		SolcPath:                ctx.GlobalString(SolcPathFlag.Name),
 		AutoDAG:                 ctx.GlobalBool(AutoDAGFlag.Name) || ctx.GlobalBool(MiningEnabledFlag.Name),
 	}
 
@@ -762,14 +729,6 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		}
 		ethConf.Genesis = core.OlympicGenesisBlock()
 
-	//case ctx.GlobalBool(TestNetFlag.Name):
-	//	if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-	//		ethConf.NetworkId = 2
-	//	}
-	//	ethConf.Genesis = core.TestNetGenesisBlock()
-	//	state.StartingNonce = 1048576 // (2**20)
-	//	light.StartingNonce = 1048576 // (2**20)
-
 	case ctx.GlobalBool(DevModeFlag.Name):
 		ethConf.Genesis = core.OlympicGenesisBlock()
 		if !ctx.GlobalIsSet(GasPriceFlag.Name) {
@@ -777,29 +736,21 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		}
 		ethConf.PowTest = true
 	}
-	// Override any global options pertaining to the Ethereum protocol
+	// Override any global options pertaining to the Siotchain protocol
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {
 		state.MaxTrieCacheGen = uint16(gen)
 	}
 
-	//if ethConf.LightMode {
-	//	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-	//		return les.New(ctx, ethConf)
-	//	}); err != nil {
-	//		Fatalf("Failed to register the Ethereum light node service: %v", err)
-	//	}
-	//} else {
-		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := siot.New(ctx, ethConf)
-			//if fullNode != nil && ethConf.LightServ > 0 {
-			//	ls, _ := les.NewLesServer(fullNode, ethConf)
-			//	fullNode.AddLesServer(ls)
-			//}
-			return fullNode, err
-		}); err != nil {
-			Fatalf("Failed to register the Ethereum full node service: %v", err)
-		}
-	//}
+	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+		fullNode, err := siot.New(ctx, ethConf)
+		//if fullNode != nil && ethConf.LightServ > 0 {
+		//	ls, _ := les.NewLesServer(fullNode, ethConf)
+		//	fullNode.AddLesServer(ls)
+		//}
+		return fullNode, err
+	}); err != nil {
+		Fatalf("Failed to register the Siotchain full node service: %v", err)
+	}
 }
 
 // SetupNetwork configures the system for either the main net or some test network.
@@ -963,21 +914,4 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 		Fatalf("Could not start chainmanager: %v", err)
 	}
 	return chain, chainDb
-}
-
-// MakeConsolePreloads retrieves the absolute paths for the console JavaScript
-// scripts to preload before starting.
-func MakeConsolePreloads(ctx *cli.Context) []string {
-	// Skip preloading if there's nothing to preload
-	if ctx.GlobalString(PreloadJSFlag.Name) == "" {
-		return nil
-	}
-	// Otherwise resolve absolute paths and return them
-	preloads := []string{}
-
-	assets := ctx.GlobalString(JSpathFlag.Name)
-	for _, file := range strings.Split(ctx.GlobalString(PreloadJSFlag.Name), ",") {
-		preloads = append(preloads, common.AbsolutePath(assets, strings.TrimSpace(file)))
-	}
-	return preloads
 }

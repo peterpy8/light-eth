@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package siot implements the Ethereum protocol.
+// Package siot implements the Siotchain protocol.
 package siot
 
 import (
@@ -110,8 +110,8 @@ type LesServer interface {
 	Protocols() []p2p.Protocol
 }
 
-// Ethereum implements the Ethereum full node service.
-type Ethereum struct {
+// Siotchain implements the Siotchain full node service.
+type Siotchain struct {
 	chainConfig *params.ChainConfig
 	// Channel for shutting down the service
 	shutdownChan  chan bool // Channel for shutting down the ethereum
@@ -146,13 +146,13 @@ type Ethereum struct {
 	netRPCService *ethapi.PublicNetAPI
 }
 
-func (s *Ethereum) AddLesServer(ls LesServer) {
+func (s *Siotchain) AddLesServer(ls LesServer) {
 	s.lesServer = ls
 }
 
-// New creates a new Ethereum object (including the
-// initialisation of the common Ethereum object)
-func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
+// New creates a new Siotchain object (including the
+// initialisation of the common Siotchain object)
+func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 	chainDb, err := CreateDB(ctx, config, "chaindata")
 	if err != nil {
 		return nil, err
@@ -166,7 +166,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		return nil, err
 	}
 
-	eth := &Ethereum{
+	eth := &Siotchain{
 		chainDb:        chainDb,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
@@ -269,7 +269,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (siotdb.Dat
 	return db, err
 }
 
-// SetupGenesisBlock initializes the genesis block for an Ethereum service
+// SetupGenesisBlock initializes the genesis block for an Siotchain service
 func SetupGenesisBlock(chainDb *siotdb.Database, config *Config) error {
 	// Load up any custom genesis block if requested
 	if len(config.Genesis) > 0 {
@@ -292,7 +292,7 @@ func SetupGenesisBlock(chainDb *siotdb.Database, config *Config) error {
 	return nil
 }
 
-// CreatePoW creates the required type of PoW instance for an Ethereum service
+// CreatePoW creates the required type of PoW instance for an Siotchain service
 func CreatePoW(config *Config) (*ethash.Ethash, error) {
 	switch {
 	case config.PowTest:
@@ -309,7 +309,7 @@ func CreatePoW(config *Config) (*ethash.Ethash, error) {
 
 // APIs returns the collection of RPC services the ethereum package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
-func (s *Ethereum) APIs() []rpc.API {
+func (s *Siotchain) APIs() []rpc.API {
 	return append(ethapi.GetAPIs(s.ApiBackend, s.solcPath), []rpc.API{
 		{
 			Namespace: "siot",
@@ -362,11 +362,11 @@ func (s *Ethereum) APIs() []rpc.API {
 	}...)
 }
 
-func (s *Ethereum) ResetWithGenesisBlock(gb *types.Block) {
+func (s *Siotchain) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Ethereum) Etherbase() (eb common.Address, err error) {
+func (s *Siotchain) Etherbase() (eb common.Address, err error) {
 	eb = s.etherbase
 	if (eb == common.Address{}) {
 		firstAccount, err := s.AccountManager().AccountByIndex(0)
@@ -379,12 +379,12 @@ func (s *Ethereum) Etherbase() (eb common.Address, err error) {
 }
 
 // set in js console via admin interface or wrapper from cli flags
-func (self *Ethereum) SetEtherbase(etherbase common.Address) {
+func (self *Siotchain) SetEtherbase(etherbase common.Address) {
 	self.etherbase = etherbase
 	self.miner.SetEtherbase(etherbase)
 }
 
-func (s *Ethereum) StartMining(threads int) error {
+func (s *Siotchain) StartMining(threads int) error {
 	eb, err := s.Etherbase()
 	if err != nil {
 		err = fmt.Errorf("Cannot start mining without etherbase address: %v", err)
@@ -395,24 +395,24 @@ func (s *Ethereum) StartMining(threads int) error {
 	return nil
 }
 
-func (s *Ethereum) StopMining()         { s.miner.Stop() }
-func (s *Ethereum) IsMining() bool      { return s.miner.Mining() }
-func (s *Ethereum) Miner() *miner.Miner { return s.miner }
+func (s *Siotchain) StopMining()         { s.miner.Stop() }
+func (s *Siotchain) IsMining() bool      { return s.miner.Mining() }
+func (s *Siotchain) Miner() *miner.Miner { return s.miner }
 
-func (s *Ethereum) AccountManager() *accounts.Manager  { return s.accountManager }
-func (s *Ethereum) BlockChain() *core.BlockChain       { return s.blockchain }
-func (s *Ethereum) TxPool() *core.TxPool               { return s.txPool }
-func (s *Ethereum) EventMux() *event.TypeMux           { return s.eventMux }
-func (s *Ethereum) Pow() *ethash.Ethash                { return s.pow }
-func (s *Ethereum) ChainDb() siotdb.Database           { return s.chainDb }
-func (s *Ethereum) IsListening() bool                  { return true } // Always listening
-func (s *Ethereum) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
-func (s *Ethereum) NetVersion() int                    { return s.netVersionId }
-func (s *Ethereum) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
+func (s *Siotchain) AccountManager() *accounts.Manager  { return s.accountManager }
+func (s *Siotchain) BlockChain() *core.BlockChain       { return s.blockchain }
+func (s *Siotchain) TxPool() *core.TxPool               { return s.txPool }
+func (s *Siotchain) EventMux() *event.TypeMux           { return s.eventMux }
+func (s *Siotchain) Pow() *ethash.Ethash                { return s.pow }
+func (s *Siotchain) ChainDb() siotdb.Database           { return s.chainDb }
+func (s *Siotchain) IsListening() bool                  { return true } // Always listening
+func (s *Siotchain) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
+func (s *Siotchain) NetVersion() int                    { return s.netVersionId }
+func (s *Siotchain) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
-func (s *Ethereum) Protocols() []p2p.Protocol {
+func (s *Siotchain) Protocols() []p2p.Protocol {
 	if s.lesServer == nil {
 		return s.protocolManager.SubProtocols
 	} else {
@@ -421,8 +421,8 @@ func (s *Ethereum) Protocols() []p2p.Protocol {
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
-// Ethereum protocol implementation.
-func (s *Ethereum) Start(srvr *p2p.Server) error {
+// Siotchain protocol implementation.
+func (s *Siotchain) Start(srvr *p2p.Server) error {
 	s.netRPCService = ethapi.NewPublicNetAPI(srvr, s.NetVersion())
 	if s.AutoDAG {
 		s.StartAutoDAG()
@@ -435,8 +435,8 @@ func (s *Ethereum) Start(srvr *p2p.Server) error {
 }
 
 // Stop implements node.Service, terminating all internal goroutines used by the
-// Ethereum protocol.
-func (s *Ethereum) Stop() error {
+// Siotchain protocol.
+func (s *Siotchain) Stop() error {
 	if s.stopDbUpgrade != nil {
 		s.stopDbUpgrade()
 	}
@@ -458,7 +458,7 @@ func (s *Ethereum) Stop() error {
 }
 
 // This function will wait for a shutdown and resumes main thread execution
-func (s *Ethereum) WaitForShutdown() {
+func (s *Siotchain) WaitForShutdown() {
 	<-s.shutdownChan
 }
 
@@ -471,7 +471,7 @@ func (s *Ethereum) WaitForShutdown() {
 // stop any number of times.
 // For any more sophisticated pattern of DAG generation, use CLI subcommand
 // makedag
-func (self *Ethereum) StartAutoDAG() {
+func (self *Siotchain) StartAutoDAG() {
 	if self.autodagquit != nil {
 		return // already started
 	}
@@ -517,7 +517,7 @@ func (self *Ethereum) StartAutoDAG() {
 }
 
 // stopAutoDAG stops automatic DAG pregeneration by quitting the loop
-func (self *Ethereum) StopAutoDAG() {
+func (self *Siotchain) StopAutoDAG() {
 	if self.autodagquit != nil {
 		close(self.autodagquit)
 		self.autodagquit = nil
@@ -527,7 +527,7 @@ func (self *Ethereum) StopAutoDAG() {
 
 // HTTPClient returns the light http client used for fetching offchain docs
 // (natspec, source for verification)
-func (self *Ethereum) HTTPClient() *httpclient.HTTPClient {
+func (self *Siotchain) HTTPClient() *httpclient.HTTPClient {
 	return self.httpclient
 }
 

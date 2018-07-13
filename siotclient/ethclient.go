@@ -59,7 +59,7 @@ func NewClient(c *rpc.Client) *Client {
 // Note that loading full blocks requires two requests. Use HeaderByHash
 // if you don't need all transactions or uncle headers.
 func (ec *Client) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
-	return ec.getBlock(ctx, "eth_getBlockByHash", hash, true)
+	return ec.getBlock(ctx, "siot_getBlockByHash", hash, true)
 }
 
 // BlockByNumber returns a block from the current canonical chain. If number is nil, the
@@ -68,7 +68,7 @@ func (ec *Client) BlockByHash(ctx context.Context, hash common.Hash) (*types.Blo
 // Note that loading full blocks requires two requests. Use HeaderByNumber
 // if you don't need all transactions or uncle headers.
 func (ec *Client) BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error) {
-	return ec.getBlock(ctx, "eth_getBlockByNumber", toBlockNumArg(number), true)
+	return ec.getBlock(ctx, "siot_getBlockByNumber", toBlockNumArg(number), true)
 }
 
 type rpcBlock struct {
@@ -112,7 +112,7 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 		reqs := make([]rpc.BatchElem, len(body.UncleHashes))
 		for i := range reqs {
 			reqs[i] = rpc.BatchElem{
-				Method: "eth_getUncleByBlockHashAndIndex",
+				Method: "siot_getUncleByBlockHashAndIndex",
 				Args:   []interface{}{body.Hash, fmt.Sprintf("%#x", i)},
 				Result: &uncles[i],
 			}
@@ -132,7 +132,7 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 // HeaderByHash returns the block header with the given hash.
 func (ec *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
 	var head *types.Header
-	err := ec.c.CallContext(ctx, &head, "eth_getBlockByHash", hash, false)
+	err := ec.c.CallContext(ctx, &head, "siot_getBlockByHash", hash, false)
 	return head, err
 }
 
@@ -140,14 +140,14 @@ func (ec *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*types.He
 // nil, the latest known header is returned.
 func (ec *Client) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 	var head *types.Header
-	err := ec.c.CallContext(ctx, &head, "eth_getBlockByNumber", toBlockNumArg(number), false)
+	err := ec.c.CallContext(ctx, &head, "siot_getBlockByNumber", toBlockNumArg(number), false)
 	return head, err
 }
 
 // TransactionByHash returns the transaction with the given hash.
 func (ec *Client) TransactionByHash(ctx context.Context, hash common.Hash) (*types.Transaction, error) {
 	var tx *types.Transaction
-	err := ec.c.CallContext(ctx, &tx, "eth_getTransactionByHash", hash)
+	err := ec.c.CallContext(ctx, &tx, "siot_getTransactionByHash", hash)
 	if err == nil {
 		if _, r, _ := tx.RawSignatureValues(); r == nil {
 			return nil, fmt.Errorf("server returned transaction without signature")
@@ -159,14 +159,14 @@ func (ec *Client) TransactionByHash(ctx context.Context, hash common.Hash) (*typ
 // TransactionCount returns the total number of transactions in the given block.
 func (ec *Client) TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error) {
 	var num rpc.HexNumber
-	err := ec.c.CallContext(ctx, &num, "eth_getBlockTransactionCountByHash", blockHash)
+	err := ec.c.CallContext(ctx, &num, "siot_getBlockTransactionCountByHash", blockHash)
 	return num.Uint(), err
 }
 
 // TransactionInBlock returns a single transaction at index in the given block.
 func (ec *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*types.Transaction, error) {
 	var tx *types.Transaction
-	err := ec.c.CallContext(ctx, &tx, "eth_getTransactionByBlockHashAndIndex", blockHash, index)
+	err := ec.c.CallContext(ctx, &tx, "siot_getTransactionByBlockHashAndIndex", blockHash, index)
 	if err == nil {
 		var signer types.Signer = types.HomesteadSigner{}
 		if tx.Protected() {
@@ -183,7 +183,7 @@ func (ec *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash,
 // Note that the receipt is not available for pending transactions.
 func (ec *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 	var r *types.Receipt
-	err := ec.c.CallContext(ctx, &r, "eth_getTransactionReceipt", txHash)
+	err := ec.c.CallContext(ctx, &r, "siot_getTransactionReceipt", txHash)
 	if err == nil && r != nil && len(r.PostState) == 0 {
 		return nil, fmt.Errorf("server returned receipt without post state")
 	}
@@ -209,7 +209,7 @@ type rpcProgress struct {
 // no sync currently running, it returns nil.
 func (ec *Client) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error) {
 	var raw json.RawMessage
-	if err := ec.c.CallContext(ctx, &raw, "eth_syncing"); err != nil {
+	if err := ec.c.CallContext(ctx, &raw, "siot_syncing"); err != nil {
 		return nil, err
 	}
 	// Handle the possible response types
@@ -271,7 +271,7 @@ func (ec *Client) LockAccount(ctx context.Context) (common.Address, error) {
 // The block number can be nil, in which case the balance is taken from the latest known block.
 func (ec *Client) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 	var result rpc.HexNumber
-	err := ec.c.CallContext(ctx, &result, "eth_getBalance", account, toBlockNumArg(blockNumber))
+	err := ec.c.CallContext(ctx, &result, "siot_getBalance", account, toBlockNumArg(blockNumber))
 	return (*big.Int)(&result), err
 }
 
@@ -279,7 +279,7 @@ func (ec *Client) SendAsset(ctx context.Context, sender common.Address, receiver
 	var result rpc.HexBytes
 	value.Mul(value, big.NewInt(1000000000000))
 	args := ethapi.SendTxArgs{From: sender, To: &receiver, Value: rpc.NewHexNumber(value), Data: ""}
-	err := ec.c.CallContext(ctx, &result, "eth_sendTransaction", args)
+	err := ec.c.CallContext(ctx, &result, "siot_sendTransaction", args)
 	return result, err
 }
 
@@ -319,7 +319,7 @@ func (ec *Client) StopMining(ctx context.Context) (bool, error) {
 // The block number can be nil, in which case the value is taken from the latest known block.
 func (ec *Client) StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
 	var result rpc.HexBytes
-	err := ec.c.CallContext(ctx, &result, "eth_getStorageAt", account, key, toBlockNumArg(blockNumber))
+	err := ec.c.CallContext(ctx, &result, "siot_getStorageAt", account, key, toBlockNumArg(blockNumber))
 	return result, err
 }
 
@@ -327,7 +327,7 @@ func (ec *Client) StorageAt(ctx context.Context, account common.Address, key com
 // The block number can be nil, in which case the code is taken from the latest known block.
 func (ec *Client) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
 	var result rpc.HexBytes
-	err := ec.c.CallContext(ctx, &result, "eth_getCode", account, toBlockNumArg(blockNumber))
+	err := ec.c.CallContext(ctx, &result, "siot_getCode", account, toBlockNumArg(blockNumber))
 	return result, err
 }
 
@@ -335,7 +335,7 @@ func (ec *Client) CodeAt(ctx context.Context, account common.Address, blockNumbe
 // The block number can be nil, in which case the nonce is taken from the latest known block.
 func (ec *Client) NonceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error) {
 	var result rpc.HexNumber
-	err := ec.c.CallContext(ctx, &result, "eth_getTransactionCount", account, toBlockNumArg(blockNumber))
+	err := ec.c.CallContext(ctx, &result, "siot_getTransactionCount", account, toBlockNumArg(blockNumber))
 	return result.Uint64(), err
 }
 
@@ -344,7 +344,7 @@ func (ec *Client) NonceAt(ctx context.Context, account common.Address, blockNumb
 // FilterLogs executes a filter query.
 func (ec *Client) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]vm.Log, error) {
 	var result []vm.Log
-	err := ec.c.CallContext(ctx, &result, "eth_getLogs", toFilterArg(q))
+	err := ec.c.CallContext(ctx, &result, "siot_getLogs", toFilterArg(q))
 	return result, err
 }
 
@@ -371,21 +371,21 @@ func toFilterArg(q ethereum.FilterQuery) interface{} {
 // PendingBalanceAt returns the wei balance of the given account in the pending state.
 func (ec *Client) PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error) {
 	var result rpc.HexNumber
-	err := ec.c.CallContext(ctx, &result, "eth_getBalance", account, "pending")
+	err := ec.c.CallContext(ctx, &result, "siot_getBalance", account, "pending")
 	return (*big.Int)(&result), err
 }
 
 // PendingStorageAt returns the value of key in the contract storage of the given account in the pending state.
 func (ec *Client) PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error) {
 	var result rpc.HexBytes
-	err := ec.c.CallContext(ctx, &result, "eth_getStorageAt", account, key, "pending")
+	err := ec.c.CallContext(ctx, &result, "siot_getStorageAt", account, key, "pending")
 	return result, err
 }
 
 // PendingCodeAt returns the contract code of the given account in the pending state.
 func (ec *Client) PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error) {
 	var result rpc.HexBytes
-	err := ec.c.CallContext(ctx, &result, "eth_getCode", account, "pending")
+	err := ec.c.CallContext(ctx, &result, "siot_getCode", account, "pending")
 	return result, err
 }
 
@@ -393,14 +393,14 @@ func (ec *Client) PendingCodeAt(ctx context.Context, account common.Address) ([]
 // This is the nonce that should be used for the next transaction.
 func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
 	var result rpc.HexNumber
-	err := ec.c.CallContext(ctx, &result, "eth_getTransactionCount", account, "pending")
+	err := ec.c.CallContext(ctx, &result, "siot_getTransactionCount", account, "pending")
 	return result.Uint64(), err
 }
 
 // PendingTransactionCount returns the total number of transactions in the pending state.
 func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 	var num rpc.HexNumber
-	err := ec.c.CallContext(ctx, &num, "eth_getBlockTransactionCountByNumber", "pending")
+	err := ec.c.CallContext(ctx, &num, "siot_getBlockTransactionCountByNumber", "pending")
 	return num.Uint(), err
 }
 
@@ -416,7 +416,7 @@ func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 // blocks might not be available.
 func (ec *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex string
-	err := ec.c.CallContext(ctx, &hex, "eth_call", toCallArg(msg), toBlockNumArg(blockNumber))
+	err := ec.c.CallContext(ctx, &hex, "siot_call", toCallArg(msg), toBlockNumArg(blockNumber))
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +427,7 @@ func (ec *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockN
 // The state seen by the contract call is the pending state.
 func (ec *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
 	var hex string
-	err := ec.c.CallContext(ctx, &hex, "eth_call", toCallArg(msg), "pending")
+	err := ec.c.CallContext(ctx, &hex, "siot_call", toCallArg(msg), "pending")
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func (ec *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg)
 // execution of a transaction.
 func (ec *Client) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
 	var hex rpc.HexNumber
-	if err := ec.c.CallContext(ctx, &hex, "eth_gasPrice"); err != nil {
+	if err := ec.c.CallContext(ctx, &hex, "siot_gasPrice"); err != nil {
 		return nil, err
 	}
 	return (*big.Int)(&hex), nil
@@ -450,7 +450,7 @@ func (ec *Client) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
 // but it should provide a basis for setting a reasonable default.
 func (ec *Client) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (*big.Int, error) {
 	var hex rpc.HexNumber
-	err := ec.c.CallContext(ctx, &hex, "eth_estimateGas", toCallArg(msg))
+	err := ec.c.CallContext(ctx, &hex, "siot_estimateGas", toCallArg(msg))
 	if err != nil {
 		return nil, err
 	}
@@ -466,7 +466,7 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	if err != nil {
 		return err
 	}
-	return ec.c.CallContext(ctx, nil, "eth_sendRawTransaction", common.ToHex(data))
+	return ec.c.CallContext(ctx, nil, "siot_sendRawTransaction", common.ToHex(data))
 }
 
 func toCallArg(msg ethereum.CallMsg) interface{} {

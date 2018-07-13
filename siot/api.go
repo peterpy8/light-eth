@@ -45,14 +45,14 @@ import (
 
 const defaultTraceTimeout = 5 * time.Second
 
-// PublicEthereumAPI provides an API to access Ethereum full node-related
+// PublicEthereumAPI provides an API to access Siotchain full node-related
 // information.
 type PublicEthereumAPI struct {
-	e *Ethereum
+	e *Siotchain
 }
 
 // NewPublicEthereumAPI creates a new Etheruem protocol API for full nodes.
-func NewPublicEthereumAPI(e *Ethereum) *PublicEthereumAPI {
+func NewPublicEthereumAPI(e *Siotchain) *PublicEthereumAPI {
 	return &PublicEthereumAPI{e}
 }
 
@@ -74,12 +74,12 @@ func (s *PublicEthereumAPI) Hashrate() *rpc.HexNumber {
 // PublicMinerAPI provides an API to control the miner.
 // It offers only methods that operate on data that pose no security risk when it is publicly accessible.
 type PublicMinerAPI struct {
-	e     *Ethereum
+	e     *Siotchain
 	agent *miner.RemoteAgent
 }
 
 // NewPublicMinerAPI create a new PublicMinerAPI instance.
-func NewPublicMinerAPI(e *Ethereum) *PublicMinerAPI {
+func NewPublicMinerAPI(e *Siotchain) *PublicMinerAPI {
 	agent := miner.NewRemoteAgent()
 	e.Miner().Register(agent)
 
@@ -125,11 +125,11 @@ func (s *PublicMinerAPI) SubmitHashrate(hashrate rpc.HexNumber, id common.Hash) 
 // PrivateMinerAPI provides private RPC methods to control the miner.
 // These methods can be abused by external users and must be considered insecure for use by untrusted users.
 type PrivateMinerAPI struct {
-	e *Ethereum
+	e *Siotchain
 }
 
 // NewPrivateMinerAPI create a new RPC service which controls the miner of this node.
-func NewPrivateMinerAPI(e *Ethereum) *PrivateMinerAPI {
+func NewPrivateMinerAPI(e *Siotchain) *PrivateMinerAPI {
 	return &PrivateMinerAPI{e: e}
 }
 
@@ -199,12 +199,12 @@ func (s *PrivateMinerAPI) MakeDAG(blockNr rpc.BlockNumber) (bool, error) {
 // PrivateAdminAPI is the collection of Etheruem full node-related APIs
 // exposed over the private admin endpoint.
 type PrivateAdminAPI struct {
-	eth *Ethereum
+	eth *Siotchain
 }
 
 // NewPrivateAdminAPI creates a new API definition for the full node private
-// admin methods of the Ethereum service.
-func NewPrivateAdminAPI(eth *Ethereum) *PrivateAdminAPI {
+// admin methods of the Siotchain service.
+func NewPrivateAdminAPI(eth *Siotchain) *PrivateAdminAPI {
 	return &PrivateAdminAPI{eth: eth}
 }
 
@@ -279,12 +279,12 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 // PublicDebugAPI is the collection of Etheruem full node APIs exposed
 // over the public debugging endpoint.
 type PublicDebugAPI struct {
-	eth *Ethereum
+	eth *Siotchain
 }
 
 // NewPublicDebugAPI creates a new API definition for the full node-
-// related public debug methods of the Ethereum service.
-func NewPublicDebugAPI(eth *Ethereum) *PublicDebugAPI {
+// related public debug methods of the Siotchain service.
+func NewPublicDebugAPI(eth *Siotchain) *PublicDebugAPI {
 	return &PublicDebugAPI{eth: eth}
 }
 
@@ -305,12 +305,12 @@ func (api *PublicDebugAPI) DumpBlock(number uint64) (state.Dump, error) {
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
 	config *params.ChainConfig
-	eth    *Ethereum
+	eth    *Siotchain
 }
 
 // NewPrivateDebugAPI creates a new API definition for the full node-related
-// private debug methods of the Ethereum service.
-func NewPrivateDebugAPI(config *params.ChainConfig, eth *Ethereum) *PrivateDebugAPI {
+// private debug methods of the Siotchain service.
+func NewPrivateDebugAPI(config *params.ChainConfig, eth *Siotchain) *PrivateDebugAPI {
 	return &PrivateDebugAPI{config: config, eth: eth}
 }
 

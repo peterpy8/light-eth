@@ -28,8 +28,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/console"
-
 	"github.com/ethereum/go-ethereum/siot"
 	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/logger"
@@ -112,7 +110,7 @@ func init() {
 	app.After = func(ctx *cli.Context) error {
 		logger.Flush()
 		debug.Exit()
-		console.Stdin.Close() // Resets terminal mode.
+		utils.Stdin.Close() // Resets terminal mode.
 		return nil
 	}
 }

@@ -31,7 +31,7 @@ import (
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -60,7 +60,7 @@ var (
 	qosConfidenceCap = 10   // Number of peers above which not to modify RTT confidence
 	qosTuningImpact  = 0.25 // Impact that a new tuning target has on the previous value
 
-	maxQueuedHeaders  = 32 * 1024 // [eth/62] Maximum number of headers to queue for import (DOS protection)
+	maxQueuedHeaders  = 32 * 1024 // [siot/62] Maximum number of headers to queue for import (DOS protection)
 	maxHeadersProcess = 2048      // Number of header download results to import at once into the chain
 	maxResultsProcess = 2048      // Number of content download results to import at once into the chain
 
@@ -139,14 +139,14 @@ type Downloader struct {
 
 	// Channels
 	newPeerCh     chan *peer
-	headerCh      chan dataPack        // [eth/62] Channel receiving inbound block headers
-	bodyCh        chan dataPack        // [eth/62] Channel receiving inbound block bodies
-	receiptCh     chan dataPack        // [eth/63] Channel receiving inbound receipts
-	stateCh       chan dataPack        // [eth/63] Channel receiving inbound node state data
-	bodyWakeCh    chan bool            // [eth/62] Channel to signal the block body fetcher of new tasks
-	receiptWakeCh chan bool            // [eth/63] Channel to signal the receipt fetcher of new tasks
-	stateWakeCh   chan bool            // [eth/63] Channel to signal the state fetcher of new tasks
-	headerProcCh  chan []*types.Header // [eth/62] Channel to feed the header processor new tasks
+	headerCh      chan dataPack        // [siot/62] Channel receiving inbound block headers
+	bodyCh        chan dataPack        // [siot/62] Channel receiving inbound block bodies
+	receiptCh     chan dataPack        // [siot/63] Channel receiving inbound receipts
+	stateCh       chan dataPack        // [siot/63] Channel receiving inbound node state data
+	bodyWakeCh    chan bool            // [siot/62] Channel to signal the block body fetcher of new tasks
+	receiptWakeCh chan bool            // [siot/63] Channel to signal the receipt fetcher of new tasks
+	stateWakeCh   chan bool            // [siot/63] Channel to signal the state fetcher of new tasks
+	headerProcCh  chan []*types.Header // [siot/62] Channel to feed the header processor new tasks
 
 	// Cancellation and termination
 	cancelPeer string        // Identifier of the peer currently being used as the master (cancel on drop)
@@ -164,7 +164,7 @@ type Downloader struct {
 }
 
 // New creates a new downloader to fetch hashes and blocks from remote peers.
-func New(mode SyncMode, stateDb ethdb.Database, mux *event.TypeMux, hasHeader headerCheckFn, hasBlockAndState blockAndStateCheckFn,
+func New(mode SyncMode, stateDb siotdb.Database, mux *event.TypeMux, hasHeader headerCheckFn, hasBlockAndState blockAndStateCheckFn,
 	getHeader headerRetrievalFn, getBlock blockRetrievalFn, headHeader headHeaderRetrievalFn, headBlock headBlockRetrievalFn,
 	headFastBlock headFastBlockRetrievalFn, commitHeadBlock headBlockCommitterFn, getTd tdRetrievalFn, insertHeaders headerChainInsertFn,
 	insertBlocks blockChainInsertFn, insertReceipts receiptChainInsertFn, rollback chainRollbackFn, dropPeer peerDropFn) *Downloader {
@@ -388,7 +388,7 @@ func (d *Downloader) syncWithPeer(p *peer, hash common.Hash, td *big.Int) (err e
 		return errTooOld
 	}
 
-	glog.V(logger.Debug).Infof("Synchronising with the network using: %s [eth/%d]", p.id, p.version)
+	glog.V(logger.Debug).Infof("Synchronising with the network using: %s [siot/%d]", p.id, p.version)
 	defer func(start time.Time) {
 		glog.V(logger.Debug).Infof("Synchronisation terminated after %v", time.Since(start))
 	}(time.Now())

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package eth
+package siot
 
 import (
 	"math/big"
@@ -29,7 +29,7 @@ import (
 )
 
 // ContractBackend implements bind.ContractBackend with direct calls to Ethereum
-// internals to support operating on contracts within subprotocols like eth and
+// internals to support operating on contracts within subprotocols like siot and
 // swarm.
 //
 // Internally this backend uses the already exposed API endpoints of the Ethereum

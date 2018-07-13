@@ -23,7 +23,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -54,7 +54,7 @@ type GpoParams struct {
 // blocks.
 type GasPriceOracle struct {
 	chain         *core.BlockChain
-	db            ethdb.Database
+	db            siotdb.Database
 	evmux         *event.TypeMux
 	params        *GpoParams
 	initOnce      sync.Once
@@ -69,7 +69,7 @@ type GasPriceOracle struct {
 }
 
 // NewGasPriceOracle returns a new oracle.
-func NewGasPriceOracle(chain *core.BlockChain, db ethdb.Database, evmux *event.TypeMux, params *GpoParams) *GasPriceOracle {
+func NewGasPriceOracle(chain *core.BlockChain, db siotdb.Database, evmux *event.TypeMux, params *GpoParams) *GasPriceOracle {
 	minprice := params.GpoMinGasPrice
 	if minprice == nil {
 		minprice = big.NewInt(gpoDefaultMinGasPrice)

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package eth implements the Ethereum protocol.
-package eth
+// Package siot implements the Ethereum protocol.
+package siot
 
 import (
 	"errors"
@@ -35,10 +35,10 @@ import (
 	//"github.com/ethereum/go-ethereum/common/registrar/ethreg"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/eth/filters"
-	"github.com/ethereum/go-ethereum/eth/gasprice"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/siot/downloader"
+	"github.com/ethereum/go-ethereum/siot/filters"
+	"github.com/ethereum/go-ethereum/siot/gasprice"
+	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
 	"github.com/ethereum/go-ethereum/logger"
@@ -100,8 +100,8 @@ type Config struct {
 	EnableJit bool
 	ForceJit  bool
 
-	TestGenesisBlock *types.Block   // Genesis block to seed the chain database with (testing only!)
-	TestGenesisState ethdb.Database // Genesis state to seed the database with (testing only!)
+	TestGenesisBlock *types.Block    // Genesis block to seed the chain database with (testing only!)
+	TestGenesisState siotdb.Database // Genesis state to seed the database with (testing only!)
 }
 
 type LesServer interface {
@@ -123,7 +123,7 @@ type Ethereum struct {
 	protocolManager *ProtocolManager
 	lesServer       LesServer
 	// DB interfaces
-	chainDb ethdb.Database // Block chain database
+	chainDb siotdb.Database // Block chain database
 
 	eventMux       *event.TypeMux
 	pow            *ethash.Ethash
@@ -261,16 +261,16 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 }
 
 // CreateDB creates the chain database.
-func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Database, error) {
+func CreateDB(ctx *node.ServiceContext, config *Config, name string) (siotdb.Database, error) {
 	db, err := ctx.OpenDatabase(name, config.DatabaseCache, config.DatabaseHandles)
-	if db, ok := db.(*ethdb.LDBDatabase); ok {
-		db.Meter("eth/db/chaindata/")
+	if db, ok := db.(*siotdb.LDBDatabase); ok {
+		db.Meter("siot/db/chaindata/")
 	}
 	return db, err
 }
 
 // SetupGenesisBlock initializes the genesis block for an Ethereum service
-func SetupGenesisBlock(chainDb *ethdb.Database, config *Config) error {
+func SetupGenesisBlock(chainDb *siotdb.Database, config *Config) error {
 	// Load up any custom genesis block if requested
 	if len(config.Genesis) > 0 {
 		block, err := core.WriteGenesisBlock(*chainDb, strings.NewReader(config.Genesis))
@@ -312,17 +312,17 @@ func CreatePoW(config *Config) (*ethash.Ethash, error) {
 func (s *Ethereum) APIs() []rpc.API {
 	return append(ethapi.GetAPIs(s.ApiBackend, s.solcPath), []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "siot",
 			Version:   "1.0",
 			Service:   NewPublicEthereumAPI(s),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "siot",
 			Version:   "1.0",
 			Service:   NewPublicMinerAPI(s),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "siot",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
 			Public:    true,
@@ -332,7 +332,7 @@ func (s *Ethereum) APIs() []rpc.API {
 			Service:   NewPrivateMinerAPI(s),
 			Public:    false,
 		}, {
-			Namespace: "eth",
+			Namespace: "siot",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
 			Public:    true,
@@ -404,7 +404,7 @@ func (s *Ethereum) BlockChain() *core.BlockChain       { return s.blockchain }
 func (s *Ethereum) TxPool() *core.TxPool               { return s.txPool }
 func (s *Ethereum) EventMux() *event.TypeMux           { return s.eventMux }
 func (s *Ethereum) Pow() *ethash.Ethash                { return s.pow }
-func (s *Ethereum) ChainDb() ethdb.Database            { return s.chainDb }
+func (s *Ethereum) ChainDb() siotdb.Database           { return s.chainDb }
 func (s *Ethereum) IsListening() bool                  { return true } // Always listening
 func (s *Ethereum) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
 func (s *Ethereum) NetVersion() int                    { return s.netVersionId }

@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -82,7 +82,7 @@ type BlockChain struct {
 	config *params.ChainConfig // chain & network configuration
 
 	hc           *HeaderChain
-	chainDb      ethdb.Database
+	chainDb      siotdb.Database
 	eventMux     *event.TypeMux
 	genesisBlock *types.Block
 
@@ -114,7 +114,7 @@ type BlockChain struct {
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialiser the default Ethereum Validator and
 // Processor.
-func NewBlockChain(chainDb ethdb.Database, config *params.ChainConfig, pow pow.PoW, mux *event.TypeMux) (*BlockChain, error) {
+func NewBlockChain(chainDb siotdb.Database, config *params.ChainConfig, pow pow.PoW, mux *event.TypeMux) (*BlockChain, error) {
 	bodyCache, _ := lru.New(bodyCacheLimit)
 	bodyRLPCache, _ := lru.New(bodyCacheLimit)
 	blockCache, _ := lru.New(blockCacheLimit)
@@ -546,7 +546,7 @@ func (self *BlockChain) GetBlockByNumber(number uint64) *types.Block {
 	return self.GetBlock(hash, number)
 }
 
-// [deprecated by eth/62]
+// [deprecated by siot/62]
 // GetBlocksFromHash returns the block corresponding to hash and up to n-1 ancestors.
 func (self *BlockChain) GetBlocksFromHash(hash common.Hash, n int) (blocks []*types.Block) {
 	number := self.hc.GetBlockNumber(hash)

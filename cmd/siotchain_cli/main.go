@@ -30,12 +30,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/console"
 
-	"github.com/ethereum/go-ethereum/eth"
+	"github.com/ethereum/go-ethereum/siot"
 	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/metrics"
 	"gopkg.in/urfave/cli.v1"
-	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/siotclient"
 	"math/big"
 	"encoding/hex"
 	"github.com/fatih/color"
@@ -103,7 +103,7 @@ func init() {
 		// because it is not intended to run while testing.
 		// In addition to this check, bad block reports are sent only
 		// for chains with the main network genesis block and network id 1.
-		eth.EnableBadBlockReporting = true
+		siot.EnableBadBlockReporting = true
 
 		utils.SetupNetwork(ctx)
 		return nil
@@ -133,7 +133,7 @@ func siotchain_cli(ctx *cli.Context) error {
 	urlChunks := []string{"http://", host, ":", port}
 	url := strings.Join(urlChunks,"")
 	//fmt.Println(url)
-	client, _:= ethclient.Dial(url)
+	client, _:= siotclient.Dial(url)
 	requestString := ctx.GlobalString(utils.RequestFlag.Name)
 
 	if  requestString != "" {
@@ -147,7 +147,7 @@ func siotchain_cli(ctx *cli.Context) error {
 	return nil
 }
 
-func readInput(ctx *cli.Context, client *ethclient.Client) error {
+func readInput(ctx *cli.Context, client *siotclient.Client) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	for true {
 		var input string
@@ -174,7 +174,7 @@ func readInput(ctx *cli.Context, client *ethclient.Client) error {
 	return nil
 }
 
-func handleRequest(cliCtx *cli.Context, client *ethclient.Client, input string) error {
+func handleRequest(cliCtx *cli.Context, client *siotclient.Client, input string) error {
 	green := color.New(color.FgGreen).PrintfFunc()
 	inputUppercase := strings.ToLower(strings.TrimSpace(input))
 	chunks := strings.Split(inputUppercase, " ")

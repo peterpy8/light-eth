@@ -263,7 +263,7 @@ func (self *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *b
 }
 
 func (self *StateTransition) refundGas() {
-	// Return eth for remaining gas to the sender account,
+	// Return siot for remaining gas to the sender account,
 	// exchanged at the original rate.
 	sender := self.from() // err already checked
 	remaining := new(big.Int).Mul(self.gas, self.gasPrice)

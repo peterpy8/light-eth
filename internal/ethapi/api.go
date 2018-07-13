@@ -32,7 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/p2p"
@@ -790,7 +790,7 @@ func NewPublicTransactionPoolAPI(b Backend) *PublicTransactionPoolAPI {
 	return &PublicTransactionPoolAPI{b}
 }
 
-func getTransaction(chainDb ethdb.Database, b Backend, txHash common.Hash) (*types.Transaction, bool, error) {
+func getTransaction(chainDb siotdb.Database, b Backend, txHash common.Hash) (*types.Transaction, bool, error) {
 	txData, err := chainDb.Get(txHash.Bytes())
 	isPending := false
 	tx := new(types.Transaction)
@@ -871,7 +871,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionCount(ctx context.Context, addr
 
 // getTransactionBlockData fetches the meta data for the given transaction from the chain database. This is useful to
 // retrieve block information for a hash. It returns the block hash, block index and transaction index.
-func getTransactionBlockData(chainDb ethdb.Database, txHash common.Hash) (common.Hash, uint64, uint64, error) {
+func getTransactionBlockData(chainDb siotdb.Database, txHash common.Hash) (common.Hash, uint64, uint64, error) {
 	var txBlock struct {
 		BlockHash  common.Hash
 		BlockIndex uint64

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package eth implements the Ethereum protocol.
-package eth
+// Package siot implements the Ethereum protocol.
+package siot
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -39,7 +39,7 @@ var useSequentialKeys = []byte("dbUpgrade_20160530sequentialKeys")
 // starts a background process to make upgrades if necessary.
 // Returns a stop function that blocks until the process has
 // been safely stopped.
-func upgradeSequentialKeys(db ethdb.Database) (stopFn func()) {
+func upgradeSequentialKeys(db siotdb.Database) (stopFn func()) {
 	data, _ := db.Get(useSequentialKeys)
 	if len(data) > 0 && data[0] == 42 {
 		return nil // already converted
@@ -90,9 +90,9 @@ func upgradeSequentialKeys(db ethdb.Database) (stopFn func()) {
 
 // upgradeSequentialCanonicalNumbers reads all old format canonical numbers from
 // the database, writes them in new format and deletes the old ones if successful.
-func upgradeSequentialCanonicalNumbers(db ethdb.Database, stopFn func() bool) (error, bool) {
+func upgradeSequentialCanonicalNumbers(db siotdb.Database, stopFn func() bool) (error, bool) {
 	prefix := []byte("block-num-")
-	it := db.(*ethdb.LDBDatabase).NewIterator()
+	it := db.(*siotdb.LDBDatabase).NewIterator()
 	defer func() {
 		it.Release()
 	}()
@@ -104,7 +104,7 @@ func upgradeSequentialCanonicalNumbers(db ethdb.Database, stopFn func() bool) (e
 			cnt++
 			if cnt%100000 == 0 {
 				it.Release()
-				it = db.(*ethdb.LDBDatabase).NewIterator()
+				it = db.(*siotdb.LDBDatabase).NewIterator()
 				it.Seek(keyPtr)
 				glog.V(logger.Info).Infof("converting %d canonical numbers...", cnt)
 			}
@@ -133,9 +133,9 @@ func upgradeSequentialCanonicalNumbers(db ethdb.Database, stopFn func() bool) (e
 // upgradeSequentialBlocks reads all old format block headers, bodies, TDs and block
 // receipts from the database, writes them in new format and deletes the old ones
 // if successful.
-func upgradeSequentialBlocks(db ethdb.Database, stopFn func() bool) (error, bool) {
+func upgradeSequentialBlocks(db siotdb.Database, stopFn func() bool) (error, bool) {
 	prefix := []byte("block-")
-	it := db.(*ethdb.LDBDatabase).NewIterator()
+	it := db.(*siotdb.LDBDatabase).NewIterator()
 	defer func() {
 		it.Release()
 	}()
@@ -147,7 +147,7 @@ func upgradeSequentialBlocks(db ethdb.Database, stopFn func() bool) (error, bool
 			cnt++
 			if cnt%10000 == 0 {
 				it.Release()
-				it = db.(*ethdb.LDBDatabase).NewIterator()
+				it = db.(*siotdb.LDBDatabase).NewIterator()
 				it.Seek(keyPtr)
 				glog.V(logger.Info).Infof("converting %d blocks...", cnt)
 			}
@@ -184,9 +184,9 @@ func upgradeSequentialBlocks(db ethdb.Database, stopFn func() bool) (error, bool
 
 // upgradeSequentialOrphanedReceipts removes any old format block receipts from the
 // database that did not have a corresponding block
-func upgradeSequentialOrphanedReceipts(db ethdb.Database, stopFn func() bool) (error, bool) {
+func upgradeSequentialOrphanedReceipts(db siotdb.Database, stopFn func() bool) (error, bool) {
 	prefix := []byte("receipts-block-")
-	it := db.(*ethdb.LDBDatabase).NewIterator()
+	it := db.(*siotdb.LDBDatabase).NewIterator()
 	defer it.Release()
 	it.Seek(prefix)
 	cnt := 0
@@ -211,7 +211,7 @@ func upgradeSequentialOrphanedReceipts(db ethdb.Database, stopFn func() bool) (e
 
 // upgradeSequentialBlockData upgrades the header, body, td and block receipts
 // database entries belonging to a single hash (doesn't delete old data).
-func upgradeSequentialBlockData(db ethdb.Database, hash []byte) error {
+func upgradeSequentialBlockData(db siotdb.Database, hash []byte) error {
 	// get old chain data and block number
 	headerRLP, _ := db.Get(append(append([]byte("block-"), hash...), []byte("-header")...))
 	if len(headerRLP) == 0 {
@@ -255,7 +255,7 @@ func upgradeSequentialBlockData(db ethdb.Database, hash []byte) error {
 
 // upgradeChainDatabase ensures that the chain database stores block split into
 // separate header and body entries.
-func upgradeChainDatabase(db ethdb.Database) error {
+func upgradeChainDatabase(db siotdb.Database) error {
 	// Short circuit if the head block is stored already as separate header and body
 	data, err := db.Get([]byte("LastBlock"))
 	if err != nil {
@@ -269,7 +269,7 @@ func upgradeChainDatabase(db ethdb.Database) error {
 	// At least some of the database is still the old format, upgrade (skip the head block!)
 	glog.V(logger.Info).Info("Old database detected, upgrading...")
 
-	if db, ok := db.(*ethdb.LDBDatabase); ok {
+	if db, ok := db.(*siotdb.LDBDatabase); ok {
 		blockPrefix := []byte("block-hash-")
 		for it := db.NewIterator(); it.Next(); {
 			// Skip anything other than a combined block
@@ -312,7 +312,7 @@ func upgradeChainDatabase(db ethdb.Database) error {
 	return nil
 }
 
-func addMipmapBloomBins(db ethdb.Database) (err error) {
+func addMipmapBloomBins(db siotdb.Database) (err error) {
 	const mipmapVersion uint = 2
 
 	// check if the version is set. We ignore data for now since there's

@@ -1,52 +1,55 @@
 ./metrics
-17
-./console
-72
-./core
-654
-./params
-58
-./compression
-7
-./rlp
-38
-./vendor
-3535
-./event
-5
-./node
-94
-./rpc
-256
-./miner
-90
-./ethclient
-54
-./accounts
-74
-./p2p
-259
-./internal
-750
-./errs
-7
-./eth
-846
-./crypto
-87
-./ethdb
-22
-./build
-111
-./.git
-19
-./trie
-82
-./logger
-105
-./common
-117
-./pow
-31
+      17
 ./cmd
-243
+     164
+./crypto
+      72
+./siot
+     524
+./pow
+      29
+./core
+     486
+./logger
+      51
+./siotclient
+      53
+./siotdb
+      19
+./internal
+     657
+./rlp
+      34
+./common
+     105
+./trie
+      79
+./errs
+       7
+./accounts
+      62
+./params
+      39
+./p2p
+     249
+./compression
+       6
+./build
+grep: warning: .//_workspace/src/github.com/ethereum/go-ethereum/build: recursive directory loop
+    4422
+./node
+      82
+./.git
+      12
+./rpc
+     233
+./event
+       5
+./vendor
+    1074
+./console
+      57
+./.idea
+       3
+./miner
+      77

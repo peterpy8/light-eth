@@ -43,7 +43,7 @@ COMMANDS:
    {{end}}
 SIOTCHAIN-CLI OPTIONS:
   --rpcport value			HTTP-RPC server listening port (default: 8800)
-  --request value      		Request for JSON RPC call, if no request specified, will go into the interactive mode
+  --request value			Request for JSON RPC call, if no request specified, will go into the interactive mode
 REQUESTS SUPPORTED IN INTERACTIVE MODE:
 	getNodeInfo					Get information of the node
 	getAccounts					Get the address lists of all accounts of the node

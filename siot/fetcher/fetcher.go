@@ -79,8 +79,8 @@ type announce struct {
 
 	origin string // Identifier of the peer originating the notification
 
-	fetchHeader headerRequesterFn // [eth/62] Fetcher function to retrieve the header of an announced block
-	fetchBodies bodyRequesterFn   // [eth/62] Fetcher function to retrieve the body of an announced block
+	fetchHeader headerRequesterFn // [siot/62] Fetcher function to retrieve the header of an announced block
+	fetchBodies bodyRequesterFn   // [siot/62] Fetcher function to retrieve the body of an announced block
 }
 
 // headerFilterTask represents a batch of headers needing fetcher filtering.
@@ -140,9 +140,9 @@ type Fetcher struct {
 	// Testing hooks
 	announceChangeHook func(common.Hash, bool) // Method to call upon adding or deleting a hash from the announce list
 	queueChangeHook    func(common.Hash, bool) // Method to call upon adding or deleting a block from the import queue
-	fetchingHook       func([]common.Hash)     // Method to call upon starting a block (eth/61) or header (eth/62) fetch
-	completingHook     func([]common.Hash)     // Method to call upon starting a block body fetch (eth/62)
-	importedHook       func(*types.Block)      // Method to call upon successful block import (both eth/61 and eth/62)
+	fetchingHook       func([]common.Hash)     // Method to call upon starting a block (siot/61) or header (siot/62) fetch
+	completingHook     func([]common.Hash)     // Method to call upon starting a block body fetch (siot/62)
+	importedHook       func(*types.Block)      // Method to call upon successful block import (both siot/61 and siot/62)
 }
 
 // New creates a block fetcher to retrieve blocks based on hash announcements.
@@ -221,7 +221,7 @@ func (f *Fetcher) Enqueue(peer string, block *types.Block) error {
 // FilterHeaders extracts all the headers that were explicitly requested by the fetcher,
 // returning those that should be handled differently.
 func (f *Fetcher) FilterHeaders(headers []*types.Header, time time.Time) []*types.Header {
-	glog.V(logger.Detail).Infof("[eth/62] filtering %d headers", len(headers))
+	glog.V(logger.Detail).Infof("[siot/62] filtering %d headers", len(headers))
 
 	// Send the filter channel to the fetcher
 	filter := make(chan *headerFilterTask)
@@ -249,7 +249,7 @@ func (f *Fetcher) FilterHeaders(headers []*types.Header, time time.Time) []*type
 // FilterBodies extracts all the block bodies that were explicitly requested by
 // the fetcher, returning those that should be handled differently.
 func (f *Fetcher) FilterBodies(transactions [][]*types.Transaction, uncles [][]*types.Header, time time.Time) ([][]*types.Transaction, [][]*types.Header) {
-	glog.V(logger.Detail).Infof("[eth/62] filtering %d:%d bodies", len(transactions), len(uncles))
+	glog.V(logger.Detail).Infof("[siot/62] filtering %d:%d bodies", len(transactions), len(uncles))
 
 	// Send the filter channel to the fetcher
 	filter := make(chan *bodyFilterTask)
@@ -331,7 +331,7 @@ func (f *Fetcher) loop() {
 			// If we have a valid block number, check that it's potentially useful
 			if notification.number > 0 {
 				if dist := int64(notification.number) - int64(f.chainHeight()); dist < -maxUncleDist || dist > maxQueueDist {
-					glog.V(logger.Debug).Infof("[eth/62] Peer %s: discarded announcement #%d [%x…], distance %d", notification.origin, notification.number, notification.hash[:4], dist)
+					glog.V(logger.Debug).Infof("[siot/62] Peer %s: discarded announcement #%d [%x…], distance %d", notification.origin, notification.number, notification.hash[:4], dist)
 					propAnnounceDropMeter.Mark(1)
 					break
 				}
@@ -387,7 +387,7 @@ func (f *Fetcher) loop() {
 						list += fmt.Sprintf("%x…, ", hash[:4])
 					}
 					list = list[:len(list)-2] + "]"
-					glog.V(logger.Detail).Infof("[eth/62] Peer %s: fetching headers %s", peer, list)
+					glog.V(logger.Detail).Infof("[siot/62] Peer %s: fetching headers %s", peer, list)
 				}
 				// Create a closure of the fetch and schedule in on a new thread
 				fetchHeader, hashes := f.fetching[hashes[0]].fetchHeader, hashes
@@ -428,7 +428,7 @@ func (f *Fetcher) loop() {
 					}
 					list = list[:len(list)-2] + "]"
 
-					glog.V(logger.Detail).Infof("[eth/62] Peer %s: fetching bodies %s", peer, list)
+					glog.V(logger.Detail).Infof("[siot/62] Peer %s: fetching bodies %s", peer, list)
 				}
 				// Create a closure of the fetch and schedule in on a new thread
 				if f.completingHook != nil {
@@ -462,7 +462,7 @@ func (f *Fetcher) loop() {
 				if announce := f.fetching[hash]; announce != nil && f.fetched[hash] == nil && f.completing[hash] == nil && f.queued[hash] == nil {
 					// If the delivered header does not match the promised number, drop the announcer
 					if header.Number.Uint64() != announce.number {
-						glog.V(logger.Detail).Infof("[eth/62] Peer %s: invalid block number for [%x…]: announced %d, provided %d", announce.origin, header.Hash().Bytes()[:4], announce.number, header.Number.Uint64())
+						glog.V(logger.Detail).Infof("[siot/62] Peer %s: invalid block number for [%x…]: announced %d, provided %d", announce.origin, header.Hash().Bytes()[:4], announce.number, header.Number.Uint64())
 						f.dropPeer(announce.origin)
 						f.forgetHash(hash)
 						continue
@@ -474,7 +474,7 @@ func (f *Fetcher) loop() {
 
 						// If the block is empty (header only), short circuit into the final import queue
 						if header.TxHash == types.DeriveSha(types.Transactions{}) && header.UncleHash == types.CalcUncleHash([]*types.Header{}) {
-							glog.V(logger.Detail).Infof("[eth/62] Peer %s: block #%d [%x…] empty, skipping body retrieval", announce.origin, header.Number.Uint64(), header.Hash().Bytes()[:4])
+							glog.V(logger.Detail).Infof("[siot/62] Peer %s: block #%d [%x…] empty, skipping body retrieval", announce.origin, header.Number.Uint64(), header.Hash().Bytes()[:4])
 
 							block := types.NewBlockWithHeader(header)
 							block.ReceivedAt = task.time
@@ -486,7 +486,7 @@ func (f *Fetcher) loop() {
 						// Otherwise add to the list of blocks needing completion
 						incomplete = append(incomplete, announce)
 					} else {
-						glog.V(logger.Detail).Infof("[eth/62] Peer %s: block #%d [%x…] already imported, discarding header", announce.origin, header.Number.Uint64(), header.Hash().Bytes()[:4])
+						glog.V(logger.Detail).Infof("[siot/62] Peer %s: block #%d [%x…] already imported, discarding header", announce.origin, header.Number.Uint64(), header.Hash().Bytes()[:4])
 						f.forgetHash(hash)
 					}
 				} else {

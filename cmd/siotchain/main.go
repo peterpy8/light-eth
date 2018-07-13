@@ -31,7 +31,7 @@ import (
 	//"github.com/ethereum/go-ethereum/contracts/release"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/eth"
+	"github.com/ethereum/go-ethereum/siot"
 	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -147,7 +147,7 @@ participating.
 		// because it is not intended to run while testing.
 		// In addition to this check, bad block reports are sent only
 		// for chains with the main network genesis block and network id 1.
-		eth.EnableBadBlockReporting = true
+		siot.EnableBadBlockReporting = true
 
 		utils.SetupNetwork(ctx)
 		return nil
@@ -230,7 +230,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	}
 	// Start auxiliary services if enabled
 	if ctx.GlobalBool(utils.MiningEnabledFlag.Name) {
-		var ethereum *eth.Ethereum
+		var ethereum *siot.Ethereum
 		if err := stack.Service(&ethereum); err != nil {
 			utils.Fatalf("ethereum service not running: %v", err)
 		}

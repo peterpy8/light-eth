@@ -41,7 +41,7 @@ const (
 // Head hash and total difficulty retriever for
 type currentHeadRetrievalFn func() (common.Hash, *big.Int)
 
-// Block header and body fetchers belonging to eth/62 and above
+// Block header and body fetchers belonging to siot/62 and above
 type relativeHeaderFetcherFn func(common.Hash, int, int, bool) error
 type absoluteHeaderFetcherFn func(uint64, int, int, bool) error
 type blockBodyFetcherFn func([]common.Hash) error
@@ -79,12 +79,12 @@ type peer struct {
 
 	currentHead currentHeadRetrievalFn // Method to fetch the currently known head of the peer
 
-	getRelHeaders  relativeHeaderFetcherFn // [eth/62] Method to retrieve a batch of headers from an origin hash
-	getAbsHeaders  absoluteHeaderFetcherFn // [eth/62] Method to retrieve a batch of headers from an absolute position
-	getBlockBodies blockBodyFetcherFn      // [eth/62] Method to retrieve a batch of block bodies
+	getRelHeaders  relativeHeaderFetcherFn // [siot/62] Method to retrieve a batch of headers from an origin hash
+	getAbsHeaders  absoluteHeaderFetcherFn // [siot/62] Method to retrieve a batch of headers from an absolute position
+	getBlockBodies blockBodyFetcherFn      // [siot/62] Method to retrieve a batch of block bodies
 
-	getReceipts receiptFetcherFn // [eth/63] Method to retrieve a batch of block transaction receipts
-	getNodeData stateFetcherFn   // [eth/63] Method to retrieve a batch of state trie data
+	getReceipts receiptFetcherFn // [siot/63] Method to retrieve a batch of block transaction receipts
+	getNodeData stateFetcherFn   // [siot/63] Method to retrieve a batch of state trie data
 
 	version int // Eth protocol version number to switch strategies
 	lock    sync.RWMutex
@@ -133,7 +133,7 @@ func (p *peer) Reset() {
 func (p *peer) FetchHeaders(from uint64, count int) error {
 	// Sanity check the protocol version
 	if p.version < 62 {
-		panic(fmt.Sprintf("header fetch [eth/62+] requested on eth/%d", p.version))
+		panic(fmt.Sprintf("header fetch [siot/62+] requested on siot/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.headerIdle, 0, 1) {
@@ -151,7 +151,7 @@ func (p *peer) FetchHeaders(from uint64, count int) error {
 func (p *peer) FetchBodies(request *fetchRequest) error {
 	// Sanity check the protocol version
 	if p.version < 62 {
-		panic(fmt.Sprintf("body fetch [eth/62+] requested on eth/%d", p.version))
+		panic(fmt.Sprintf("body fetch [siot/62+] requested on siot/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.blockIdle, 0, 1) {
@@ -173,7 +173,7 @@ func (p *peer) FetchBodies(request *fetchRequest) error {
 func (p *peer) FetchReceipts(request *fetchRequest) error {
 	// Sanity check the protocol version
 	if p.version < 63 {
-		panic(fmt.Sprintf("body fetch [eth/63+] requested on eth/%d", p.version))
+		panic(fmt.Sprintf("body fetch [siot/63+] requested on siot/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.receiptIdle, 0, 1) {
@@ -195,7 +195,7 @@ func (p *peer) FetchReceipts(request *fetchRequest) error {
 func (p *peer) FetchNodeData(request *fetchRequest) error {
 	// Sanity check the protocol version
 	if p.version < 63 {
-		panic(fmt.Sprintf("node data fetch [eth/63+] requested on eth/%d", p.version))
+		panic(fmt.Sprintf("node data fetch [siot/63+] requested on siot/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.stateIdle, 0, 1) {

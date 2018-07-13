@@ -36,8 +36,8 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/siot"
+	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	//"github.com/ethereum/go-ethereum/les"
 	//"github.com/ethereum/go-ethereum/light"
@@ -113,12 +113,12 @@ var (
 	NetworkIdFlag = cli.IntFlag{
 		Name:  "chainnetwork",
 		Usage: "Network identifier",
-		Value: eth.NetworkId,
+		Value: siot.NetworkId,
 	}
 	IPFlag = cli.StringFlag{
 		Name:  "IP",
 		Usage: "IP address (integer, 0=Olympic, 1=Frontier, 2=Morden)",
-		Value: eth.IP,
+		Value: siot.IP,
 	}
 	OlympicFlag = cli.BoolFlag{
 		Name:  "olympic",
@@ -702,7 +702,7 @@ func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 	return stack
 }
 
-// RegisterEthService configures eth.Ethereum from command line flags and adds it to the
+// RegisterEthService configures siot.Ethereum from command line flags and adds it to the
 // given node.
 func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 	// Avoid conflicting network flags
@@ -726,7 +726,7 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		glog.V(logger.Info).Infoln("You're one of the lucky few that will try out the JIT VM (random). If you get a consensus failure please be so kind to report this incident with the block hash that failed. You can switch to the regular VM by setting --jitvm=false")
 	}
 
-	ethConf := &eth.Config{
+	ethConf := &siot.Config{
 		Etherbase:               MakeEtherbase(stack.AccountManager(), ctx),
 		ChainConfig:             MakeChainConfig(ctx, stack),
 		FastSync:                ctx.GlobalBool(FastSyncFlag.Name),
@@ -790,7 +790,7 @@ func RegisterEthService(ctx *cli.Context, stack *node.Node, extra []byte) {
 	//	}
 	//} else {
 		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := eth.New(ctx, ethConf)
+			fullNode, err := siot.New(ctx, ethConf)
 			//if fullNode != nil && ethConf.LightServ > 0 {
 			//	ls, _ := les.NewLesServer(fullNode, ethConf)
 			//	fullNode.AddLesServer(ls)
@@ -826,7 +826,7 @@ func MakeChainConfig(ctx *cli.Context, stack *node.Node) *params.ChainConfig {
 }
 
 // MakeChainConfigFromDb reads the chain configuration from the given database.
-func MakeChainConfigFromDb(ctx *cli.Context, db ethdb.Database) *params.ChainConfig {
+func MakeChainConfigFromDb(ctx *cli.Context, db siotdb.Database) *params.ChainConfig {
 	// If the chain is already initialized, use any existing chain configs
 	config := new(params.ChainConfig)
 
@@ -927,7 +927,7 @@ func ChainDbName(ctx *cli.Context) string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) ethdb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) siotdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name)
 		handles = MakeDatabaseHandles()
@@ -942,7 +942,7 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) ethdb.Database {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb ethdb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb siotdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 

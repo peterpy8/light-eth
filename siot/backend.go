@@ -40,7 +40,7 @@ import (
 	"github.com/ethereum/go-ethereum/siot/gasprice"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/miner"
@@ -130,7 +130,7 @@ type Siotchain struct {
 	httpclient     *httpclient.HTTPClient
 	accountManager *wallet.Manager
 
-	ApiBackend *EthApiBackend
+	ApiBackend *SiotApiBackend
 
 	miner        *miner.Miner
 	Mining       bool
@@ -143,7 +143,7 @@ type Siotchain struct {
 	NatSpec       bool
 	PowTest       bool
 	netVersionId  int
-	netRPCService *ethapi.PublicNetAPI
+	netRPCService *siotapi.PublicNetAPI
 }
 
 func (s *Siotchain) AddLesServer(ls LesServer) {
@@ -255,7 +255,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		GpobaseCorrectionFactor: config.GpobaseCorrectionFactor,
 	}
 	gpo := gasprice.NewGasPriceOracle(eth.blockchain, chainDb, eth.eventMux, gpoParams)
-	eth.ApiBackend = &EthApiBackend{eth, gpo}
+	eth.ApiBackend = &SiotApiBackend{eth, gpo}
 
 	return eth, nil
 }
@@ -310,7 +310,7 @@ func CreatePoW(config *Config) (*ethash.Ethash, error) {
 // APIs returns the collection of RPC services the ethereum package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *Siotchain) APIs() []rpc.API {
-	return append(ethapi.GetAPIs(s.ApiBackend, s.solcPath), []rpc.API{
+	return append(siotapi.GetAPIs(s.ApiBackend, s.solcPath), []rpc.API{
 		{
 			Namespace: "siot",
 			Version:   "1.0",
@@ -399,14 +399,14 @@ func (s *Siotchain) StopMining()         { s.miner.Stop() }
 func (s *Siotchain) IsMining() bool      { return s.miner.Mining() }
 func (s *Siotchain) Miner() *miner.Miner { return s.miner }
 
-func (s *Siotchain) AccountManager() *wallet.Manager { return s.accountManager }
-func (s *Siotchain) BlockChain() *core.BlockChain    { return s.blockchain }
-func (s *Siotchain) TxPool() *core.TxPool            { return s.txPool }
-func (s *Siotchain) EventMux() *event.TypeMux        { return s.eventMux }
-func (s *Siotchain) Pow() *ethash.Ethash             { return s.pow }
-func (s *Siotchain) ChainDb() siotdb.Database        { return s.chainDb }
-func (s *Siotchain) IsListening() bool               { return true } // Always listening
-func (s *Siotchain) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
+func (s *Siotchain) AccountManager() *wallet.Manager    { return s.accountManager }
+func (s *Siotchain) BlockChain() *core.BlockChain       { return s.blockchain }
+func (s *Siotchain) TxPool() *core.TxPool               { return s.txPool }
+func (s *Siotchain) EventMux() *event.TypeMux           { return s.eventMux }
+func (s *Siotchain) Pow() *ethash.Ethash                { return s.pow }
+func (s *Siotchain) ChainDb() siotdb.Database           { return s.chainDb }
+func (s *Siotchain) IsListening() bool                  { return true } // Always listening
+func (s *Siotchain) SiotVersion() int                   { return int(s.protocolManager.SubProtocols[0].Version) }
 func (s *Siotchain) NetVersion() int                    { return s.netVersionId }
 func (s *Siotchain) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 
@@ -423,7 +423,7 @@ func (s *Siotchain) Protocols() []p2p.Protocol {
 // Start implements node.Service, starting all internal goroutines needed by the
 // Siotchain protocol implementation.
 func (s *Siotchain) Start(srvr *p2p.Server) error {
-	s.netRPCService = ethapi.NewPublicNetAPI(srvr, s.NetVersion())
+	s.netRPCService = siotapi.NewPublicNetAPI(srvr, s.NetVersion())
 	if s.AutoDAG {
 		s.StartAutoDAG()
 	}

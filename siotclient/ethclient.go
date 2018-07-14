@@ -30,7 +30,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"golang.org/x/net/context"
 	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/internal/siotapi"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
@@ -278,7 +278,7 @@ func (ec *Client) BalanceAt(ctx context.Context, account common.Address, blockNu
 func (ec *Client) SendAsset(ctx context.Context, sender common.Address, receiver common.Address, value *big.Int) (rpc.HexBytes, error) {
 	var result rpc.HexBytes
 	value.Mul(value, big.NewInt(1000000000000))
-	args := ethapi.SendTxArgs{From: sender, To: &receiver, Value: rpc.NewHexNumber(value), Data: ""}
+	args := siotapi.SendTxArgs{From: sender, To: &receiver, Value: rpc.NewHexNumber(value), Data: ""}
 	err := ec.c.CallContext(ctx, &result, "siot_sendTransaction", args)
 	return result, err
 }

@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/miner"
@@ -317,9 +317,9 @@ func NewPrivateDebugAPI(config *params.ChainConfig, eth *Siotchain) *PrivateDebu
 // BlockTraceResult is the returned value when replaying a block to check for
 // consensus results and full VM trace logs for all included transactions.
 type BlockTraceResult struct {
-	Validated  bool                  `json:"validated"`
-	StructLogs []ethapi.StructLogRes `json:"structLogs"`
-	Error      string                `json:"error"`
+	Validated  bool                   `json:"validated"`
+	StructLogs []siotapi.StructLogRes `json:"structLogs"`
+	Error      string                 `json:"error"`
 }
 
 // TraceArgs holds extra parameters to trace functions
@@ -341,7 +341,7 @@ func (api *PrivateDebugAPI) TraceBlock(blockRlp []byte, config *vm.LogConfig) Bl
 	validated, logs, err := api.traceBlock(&block, config)
 	return BlockTraceResult{
 		Validated:  validated,
-		StructLogs: ethapi.FormatLogs(logs),
+		StructLogs: siotapi.FormatLogs(logs),
 		Error:      formatError(err),
 	}
 }
@@ -367,7 +367,7 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(number uint64, config *vm.LogConf
 	validated, logs, err := api.traceBlock(block, config)
 	return BlockTraceResult{
 		Validated:  validated,
-		StructLogs: ethapi.FormatLogs(logs),
+		StructLogs: siotapi.FormatLogs(logs),
 		Error:      formatError(err),
 	}
 }
@@ -383,7 +383,7 @@ func (api *PrivateDebugAPI) TraceBlockByHash(hash common.Hash, config *vm.LogCon
 	validated, logs, err := api.traceBlock(block, config)
 	return BlockTraceResult{
 		Validated:  validated,
-		StructLogs: ethapi.FormatLogs(logs),
+		StructLogs: siotapi.FormatLogs(logs),
 		Error:      formatError(err),
 	}
 }
@@ -466,7 +466,7 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.
 		}
 
 		var err error
-		if tracer, err = ethapi.NewJavascriptTracer(*config.Tracer); err != nil {
+		if tracer, err = siotapi.NewJavascriptTracer(*config.Tracer); err != nil {
 			return nil, err
 		}
 
@@ -474,7 +474,7 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.
 		deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
 		go func() {
 			<-deadlineCtx.Done()
-			tracer.(*ethapi.JavascriptTracer).Stop(&timeoutError{})
+			tracer.(*siotapi.JavascriptTracer).Stop(&timeoutError{})
 		}()
 		defer cancel()
 	} else if config == nil {
@@ -529,12 +529,12 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.
 
 		switch tracer := tracer.(type) {
 		case *vm.StructLogger:
-			return &ethapi.ExecutionResult{
+			return &siotapi.ExecutionResult{
 				Gas:         gas,
 				ReturnValue: fmt.Sprintf("%x", ret),
-				StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
+				StructLogs:  siotapi.FormatLogs(tracer.StructLogs()),
 			}, nil
-		case *ethapi.JavascriptTracer:
+		case *siotapi.JavascriptTracer:
 			return tracer.GetResult()
 		}
 	}

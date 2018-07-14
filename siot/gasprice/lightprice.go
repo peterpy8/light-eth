@@ -22,7 +22,7 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/rpc"
 	"golang.org/x/net/context"
 )
@@ -38,7 +38,7 @@ const (
 // LightPriceOracle recommends gas prices based on the content of recent
 // blocks. Suitable for both light and full clients.
 type LightPriceOracle struct {
-	backend   ethapi.Backend
+	backend   siotapi.Backend
 	lastHead  common.Hash
 	lastPrice *big.Int
 	cacheLock sync.RWMutex
@@ -46,7 +46,7 @@ type LightPriceOracle struct {
 }
 
 // NewLightPriceOracle returns a new oracle.
-func NewLightPriceOracle(backend ethapi.Backend) *LightPriceOracle {
+func NewLightPriceOracle(backend siotapi.Backend) *LightPriceOracle {
 	return &LightPriceOracle{
 		backend:   backend,
 		lastPrice: big.NewInt(LpoDefaultPrice),

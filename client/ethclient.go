@@ -1,20 +1,4 @@
-// Copyright 2016 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
-// Package client provides a client for the Ethereum RPC API.
+// Package client provides a client for the Siotchain RPC API.
 package client
 
 import (
@@ -33,7 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/internal/siotapi"
 )
 
-// Client defines typed wrappers for the Ethereum RPC API.
+// Client defines typed wrappers for the Siotchain RPC API.
 type Client struct {
 	c *rpc.Client
 }
@@ -207,7 +191,7 @@ type rpcProgress struct {
 
 // SyncProgress retrieves the current progress of the sync algorithm. If there's
 // no sync currently running, it returns nil.
-func (ec *Client) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error) {
+func (ec *Client) SyncProgress(ctx context.Context) (*siotchain.SyncProgress, error) {
 	var raw json.RawMessage
 	if err := ec.c.CallContext(ctx, &raw, "siot_syncing"); err != nil {
 		return nil, err
@@ -221,7 +205,7 @@ func (ec *Client) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, err
 	if err := json.Unmarshal(raw, &progress); err != nil {
 		return nil, err
 	}
-	return &ethereum.SyncProgress{
+	return &siotchain.SyncProgress{
 		StartingBlock: progress.StartingBlock.Uint64(),
 		CurrentBlock:  progress.CurrentBlock.Uint64(),
 		HighestBlock:  progress.HighestBlock.Uint64(),
@@ -232,8 +216,8 @@ func (ec *Client) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, err
 
 // SubscribeNewHead subscribes to notifications about the current blockchain head
 // on the given channel.
-func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
-	return ec.c.EthSubscribe(ctx, ch, "newHeads", map[string]struct{}{})
+func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (siotchain.Subscription, error) {
+	return ec.c.SiotSubscribe(ctx, ch, "newHeads", map[string]struct{}{})
 }
 
 // State Access
@@ -297,7 +281,7 @@ func (ec *Client) GetPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
 
 func (ec *Client) SetMiner(ctx context.Context, account common.Address) (bool, error) {
 	var result bool
-	err := ec.c.CallContext(ctx, &result, "miner_setEtherbase", account)
+	err := ec.c.CallContext(ctx, &result, "miner_setMiner", account)
 	return result, err
 }
 
@@ -342,18 +326,18 @@ func (ec *Client) NonceAt(ctx context.Context, account common.Address, blockNumb
 // Filters
 
 // FilterLogs executes a filter query.
-func (ec *Client) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]vm.Log, error) {
+func (ec *Client) FilterLogs(ctx context.Context, q siotchain.FilterQuery) ([]vm.Log, error) {
 	var result []vm.Log
 	err := ec.c.CallContext(ctx, &result, "siot_getLogs", toFilterArg(q))
 	return result, err
 }
 
 // SubscribeFilterLogs subscribes to the results of a streaming filter query.
-func (ec *Client) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuery, ch chan<- vm.Log) (ethereum.Subscription, error) {
-	return ec.c.EthSubscribe(ctx, ch, "logs", toFilterArg(q))
+func (ec *Client) SubscribeFilterLogs(ctx context.Context, q siotchain.FilterQuery, ch chan<- vm.Log) (siotchain.Subscription, error) {
+	return ec.c.SiotSubscribe(ctx, ch, "logs", toFilterArg(q))
 }
 
-func toFilterArg(q ethereum.FilterQuery) interface{} {
+func toFilterArg(q siotchain.FilterQuery) interface{} {
 	arg := map[string]interface{}{
 		"fromBlock": toBlockNumArg(q.FromBlock),
 		"toBlock":   toBlockNumArg(q.ToBlock),
@@ -414,7 +398,7 @@ func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 // blockNumber selects the block height at which the call runs. It can be nil, in which
 // case the code is taken from the latest known block. Note that state from very old
 // blocks might not be available.
-func (ec *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (ec *Client) CallContract(ctx context.Context, msg siotchain.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex string
 	err := ec.c.CallContext(ctx, &hex, "siot_call", toCallArg(msg), toBlockNumArg(blockNumber))
 	if err != nil {
@@ -425,7 +409,7 @@ func (ec *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockN
 
 // PendingCallContract executes a message call transaction using the EVM.
 // The state seen by the contract call is the pending state.
-func (ec *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
+func (ec *Client) PendingCallContract(ctx context.Context, msg siotchain.CallMsg) ([]byte, error) {
 	var hex string
 	err := ec.c.CallContext(ctx, &hex, "siot_call", toCallArg(msg), "pending")
 	if err != nil {
@@ -448,7 +432,7 @@ func (ec *Client) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
 // the current pending state of the backend blockchain. There is no guarantee that this is
 // the true gas limit requirement as other transactions may be added or removed by miners,
 // but it should provide a basis for setting a reasonable default.
-func (ec *Client) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (*big.Int, error) {
+func (ec *Client) EstimateGas(ctx context.Context, msg siotchain.CallMsg) (*big.Int, error) {
 	var hex rpc.HexNumber
 	err := ec.c.CallContext(ctx, &hex, "siot_estimateGas", toCallArg(msg))
 	if err != nil {
@@ -469,7 +453,7 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	return ec.c.CallContext(ctx, nil, "siot_sendRawTransaction", common.ToHex(data))
 }
 
-func toCallArg(msg ethereum.CallMsg) interface{} {
+func toCallArg(msg siotchain.CallMsg) interface{} {
 	arg := map[string]interface{}{
 		"from": msg.From,
 		"to":   msg.To,

@@ -22,7 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"golang.org/x/net/context"
@@ -36,18 +36,18 @@ import (
 // object. These should be rewritten to internal Go method calls when the Go API
 // is refactored to support a clean library use.
 type ContractBackend struct {
-	eapi  *ethapi.PublicEthereumAPI        // Wrapper around the Siotchain object to access metadata
-	bcapi *ethapi.PublicBlockChainAPI      // Wrapper around the blockchain to access chain data
-	txapi *ethapi.PublicTransactionPoolAPI // Wrapper around the transaction pool to access transaction data
+	eapi  *siotapi.PublicEthereumAPI        // Wrapper around the Siotchain object to access metadata
+	bcapi *siotapi.PublicBlockChainAPI      // Wrapper around the blockchain to access chain data
+	txapi *siotapi.PublicTransactionPoolAPI // Wrapper around the transaction pool to access transaction data
 }
 
 // NewContractBackend creates a new native contract backend using an existing
 // Etheruem object.
-func NewContractBackend(apiBackend ethapi.Backend) *ContractBackend {
+func NewContractBackend(apiBackend siotapi.Backend) *ContractBackend {
 	return &ContractBackend{
-		eapi:  ethapi.NewPublicEthereumAPI(apiBackend),
-		bcapi: ethapi.NewPublicBlockChainAPI(apiBackend),
-		txapi: ethapi.NewPublicTransactionPoolAPI(apiBackend),
+		eapi:  siotapi.NewPublicEthereumAPI(apiBackend),
+		bcapi: siotapi.NewPublicBlockChainAPI(apiBackend),
+		txapi: siotapi.NewPublicTransactionPoolAPI(apiBackend),
 	}
 }
 
@@ -79,8 +79,8 @@ func (b *ContractBackend) PendingCallContract(ctx context.Context, msg ethereum.
 	return common.FromHex(out), err
 }
 
-func toCallArgs(msg ethereum.CallMsg) ethapi.CallArgs {
-	args := ethapi.CallArgs{
+func toCallArgs(msg ethereum.CallMsg) siotapi.CallArgs {
+	args := siotapi.CallArgs{
 		To:   msg.To,
 		From: msg.From,
 		Data: common.ToHex(msg.Data),

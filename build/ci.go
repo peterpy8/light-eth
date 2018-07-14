@@ -17,9 +17,9 @@
 // +build none
 
 /*
-The ci command is called from Continuous Integration scripts.
+The ci cmd is called from Continuous Integration scripts.
 
-Usage: go run ci.go <command> <command flags/arguments>
+Usage: go run ci.go <cmd> <cmd flags/arguments>
 
 Available commands are:
 
@@ -141,7 +141,7 @@ func main() {
 	case "xgo":
 		doXgo(os.Args[2:])
 	default:
-		log.Fatal("unknown command ", os.Args[1])
+		log.Fatal("unknown cmd ", os.Args[1])
 	}
 }
 

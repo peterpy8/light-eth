@@ -45,13 +45,13 @@ import (
 
 const defaultTraceTimeout = 5 * time.Second
 
-// PublicEthereumAPI provides an API to access Siotchain full node-related
+// PublicSiotchainAPI provides an API to access Siotchain full node-related
 // information.
 type PublicEthereumAPI struct {
 	e *Siotchain
 }
 
-// NewPublicEthereumAPI creates a new Etheruem protocol API for full nodes.
+// NewPublicSiotchainAPI creates a new Etheruem protocol API for full nodes.
 func NewPublicEthereumAPI(e *Siotchain) *PublicEthereumAPI {
 	return &PublicEthereumAPI{e}
 }

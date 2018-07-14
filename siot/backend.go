@@ -130,7 +130,7 @@ type Siotchain struct {
 	httpclient     *httpclient.HTTPClient
 	accountManager *wallet.Manager
 
-	ApiBackend *EthApiBackend
+	ApiBackend *SiotApiBackend
 
 	miner        *miner.Miner
 	Mining       bool
@@ -255,7 +255,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		GpobaseCorrectionFactor: config.GpobaseCorrectionFactor,
 	}
 	gpo := gasprice.NewGasPriceOracle(eth.blockchain, chainDb, eth.eventMux, gpoParams)
-	eth.ApiBackend = &EthApiBackend{eth, gpo}
+	eth.ApiBackend = &SiotApiBackend{eth, gpo}
 
 	return eth, nil
 }
@@ -399,14 +399,14 @@ func (s *Siotchain) StopMining()         { s.miner.Stop() }
 func (s *Siotchain) IsMining() bool      { return s.miner.Mining() }
 func (s *Siotchain) Miner() *miner.Miner { return s.miner }
 
-func (s *Siotchain) AccountManager() *wallet.Manager { return s.accountManager }
-func (s *Siotchain) BlockChain() *core.BlockChain    { return s.blockchain }
-func (s *Siotchain) TxPool() *core.TxPool            { return s.txPool }
-func (s *Siotchain) EventMux() *event.TypeMux        { return s.eventMux }
-func (s *Siotchain) Pow() *ethash.Ethash             { return s.pow }
-func (s *Siotchain) ChainDb() siotdb.Database        { return s.chainDb }
-func (s *Siotchain) IsListening() bool               { return true } // Always listening
-func (s *Siotchain) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
+func (s *Siotchain) AccountManager() *wallet.Manager    { return s.accountManager }
+func (s *Siotchain) BlockChain() *core.BlockChain       { return s.blockchain }
+func (s *Siotchain) TxPool() *core.TxPool               { return s.txPool }
+func (s *Siotchain) EventMux() *event.TypeMux           { return s.eventMux }
+func (s *Siotchain) Pow() *ethash.Ethash                { return s.pow }
+func (s *Siotchain) ChainDb() siotdb.Database           { return s.chainDb }
+func (s *Siotchain) IsListening() bool                  { return true } // Always listening
+func (s *Siotchain) SiotVersion() int                   { return int(s.protocolManager.SubProtocols[0].Version) }
 func (s *Siotchain) NetVersion() int                    { return s.netVersionId }
 func (s *Siotchain) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 

@@ -310,7 +310,7 @@ func CreatePoW(config *Config) (*ethash.Ethash, error) {
 // APIs returns the collection of RPC services the ethereum package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *Siotchain) APIs() []rpc.API {
-	return append(siotapi.GetAPIs(s.ApiBackend, s.solcPath), []rpc.API{
+	return append(siotapi.GetAPIs(s.ApiBackend), []rpc.API{
 		{
 			Namespace: "siot",
 			Version:   "1.0",
@@ -379,9 +379,9 @@ func (s *Siotchain) Etherbase() (eb common.Address, err error) {
 }
 
 // set in js console via admin interface or wrapper from cli flags
-func (self *Siotchain) SetEtherbase(etherbase common.Address) {
+func (self *Siotchain) SetMiner(etherbase common.Address) {
 	self.etherbase = etherbase
-	self.miner.SetEtherbase(etherbase)
+	self.miner.SetMiner(etherbase)
 }
 
 func (s *Siotchain) StartMining(threads int) error {

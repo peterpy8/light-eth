@@ -35,7 +35,7 @@ type DumpAccount struct {
 
 type Dump struct {
 	Root     string                 `json:"root"`
-	Accounts map[string]DumpAccount `json:"accounts"`
+	Accounts map[string]DumpAccount `json:"wallet"`
 }
 
 func (self *StateDB) RawDump() Dump {

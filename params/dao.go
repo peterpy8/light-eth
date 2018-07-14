@@ -45,24 +45,24 @@ var DAOForkExtraRange = big.NewInt(10)
 // DAORefundContract is the address of the refund contract to send DAO balances to.
 var DAORefundContract = common.HexToAddress("0xbf4ed7b27f1d666546e30d74d50d173d20bca754")
 
-// DAODrainList is the list of accounts whose full balances will be moved into a
+// DAODrainList is the list of wallet whose full balances will be moved into a
 // refund contract at the beginning of the dao-fork block.
 var DAODrainList []common.Address
 
 func init() {
-	// Parse the list of DAO accounts to drain
+	// Parse the list of DAO wallet to drain
 	var list []map[string]string
 	if err := json.Unmarshal([]byte(daoDrainListJSON), &list); err != nil {
 		panic(fmt.Errorf("Failed to parse DAO drain list: %v", err))
 	}
-	// Collect all the accounts that need draining
+	// Collect all the wallet that need draining
 	for _, dao := range list {
 		DAODrainList = append(DAODrainList, common.HexToAddress(dao["address"]))
 		DAODrainList = append(DAODrainList, common.HexToAddress(dao["extraBalanceAccount"]))
 	}
 }
 
-// daoDrainListJSON is the JSON encoded list of accounts whose full balances will
+// daoDrainListJSON is the JSON encoded list of wallet whose full balances will
 // be moved into a refund contract at the beginning of the dao-fork block.
 const daoDrainListJSON = `
 [

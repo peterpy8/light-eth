@@ -20,7 +20,7 @@ package ethapi
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -42,7 +42,7 @@ type Backend interface {
 	SuggestPrice(ctx context.Context) (*big.Int, error)
 	ChainDb() siotdb.Database
 	EventMux() *event.TypeMux
-	AccountManager() *accounts.Manager
+	AccountManager() *wallet.Manager
 	// BlockChain API
 	SetHead(number uint64)
 	HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error)

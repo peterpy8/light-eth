@@ -30,7 +30,7 @@ SIOTCHAIN-CLI OPTIONS:
   --request value			Request for JSON RPC call, if no request specified, will go into the interactive mode
 REQUESTS SUPPORTED IN INTERACTIVE MODE:
 	getNodeInfo					Get information of the node
-	getAccounts					Get the address lists of all accounts of the node
+	getAccounts					Get the address lists of all wallet of the node
 	getNewAccount [password]					Create a new account with password
 	unlockAccount [account addr] [password]					Unlock an account with password
 	getBalance [account addr]					Get the current balance of the account

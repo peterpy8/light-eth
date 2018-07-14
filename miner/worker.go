@@ -24,7 +24,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -585,7 +585,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			continue
 		}
 
-		// Ignore any transactions (and accounts subsequently) with low gas limits
+		// Ignore any transactions (and wallet subsequently) with low gas limits
 		if tx.GasPrice().Cmp(gasPrice) < 0 && !env.ownedAccounts.Has(from) {
 			// Pop the current low-priced transaction without shifting in the next from the account
 			glog.V(logger.Info).Infof("Transaction (%x) below gas price (tx=%v ask=%v). All sequential txs from this address(%x) will be ignored\n", tx.Hash().Bytes()[:4], common.CurrencyToString(tx.GasPrice()), common.CurrencyToString(gasPrice), from[:4])
@@ -658,7 +658,7 @@ func gasprice(price *big.Int, pct int64) *big.Int {
 	return p
 }
 
-func accountAddressesSet(accounts []accounts.Account) *set.Set {
+func accountAddressesSet(accounts []wallet.Account) *set.Set {
 	accountSet := set.New()
 	for _, account := range accounts {
 		accountSet.Add(account.Address)

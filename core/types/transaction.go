@@ -472,7 +472,7 @@ func (s *TxByPrice) Pop() interface{} {
 
 // TransactionsByPriceAndNonce represents a set of transactions that can return
 // transactions in a profit-maximising sorted order, while supporting removing
-// entire batches of transactions for non-executable accounts.
+// entire batches of transactions for non-executable wallet.
 type TransactionsByPriceAndNonce struct {
 	txs   map[common.Address]Transactions // Per account nonce-sorted list of transactions
 	heads TxByPrice                       // Next transaction for each unique account (price heap)

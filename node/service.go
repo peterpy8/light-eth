@@ -19,7 +19,7 @@ package node
 import (
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/p2p"
@@ -33,7 +33,7 @@ type ServiceContext struct {
 	config         *Config
 	services       map[reflect.Type]Service // Index of the already constructed services
 	EventMux       *event.TypeMux           // Event multiplexer used for decoupled notifications
-	AccountManager *accounts.Manager        // Account manager created by the node.
+	AccountManager *wallet.Manager          // Account manager created by the node.
 }
 
 // OpenDatabase opens an existing database with the given name (or creates one

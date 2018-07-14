@@ -50,10 +50,10 @@ var (
 
 var (
 	minPendingPerAccount = uint64(16)    // Min number of guaranteed transaction slots per address
-	maxPendingTotal      = uint64(4096)  // Max limit of pending transactions from all accounts (soft)
+	maxPendingTotal      = uint64(4096)  // Max limit of pending transactions from all wallet (soft)
 	maxQueuedPerAccount  = uint64(64)    // Max limit of queued transactions per address
-	maxQueuedInTotal     = uint64(1024)  // Max limit of queued transactions from all accounts
-	maxQueuedLifetime    = 3 * time.Hour // Max amount of time transactions from idle accounts are queued
+	maxQueuedInTotal     = uint64(1024)  // Max limit of queued transactions from all wallet
+	maxQueuedLifetime    = 3 * time.Hour // Max amount of time transactions from idle wallet are queued
 	evictionInterval     = time.Minute   // Time interval to check for evictable transactions
 )
 
@@ -178,7 +178,7 @@ func (pool *TxPool) resetState() {
 	// higher gas price)
 	pool.demoteUnexecutables()
 
-	// Update all accounts to the latest known pending nonce
+	// Update all wallet to the latest known pending nonce
 	for addr, list := range pool.pending {
 		txs := list.Flatten() // Heavy but will be cached and is needed by the miner anyway
 		pool.pendingState.SetNonce(addr, txs[len(txs)-1].Nonce()+1)
@@ -281,7 +281,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 		return ErrInvalidSender
 	}
 
-	// Make sure the account exist. Non existent accounts
+	// Make sure the account exist. Non existent wallet
 	// haven't got funds and well therefor never pass.
 	if !currentState.Exist(from) {
 		return ErrNonExistentAccount
@@ -510,7 +510,7 @@ func (pool *TxPool) promoteExecutables() {
 		glog.Errorf("Could not get current state: %v", err)
 		return
 	}
-	// Iterate over all accounts and promote any executable transactions
+	// Iterate over all wallet and promote any executable transactions
 	queued := uint64(0)
 	for addr, list := range pool.queue {
 		// Drop all transactions that are deemed too old (low nonce)
@@ -563,7 +563,7 @@ func (pool *TxPool) promoteExecutables() {
 		for addr, list := range pool.pending {
 			// Only evict transactions from high rollers
 			if uint64(list.Len()) > minPendingPerAccount {
-				// Skip local accounts as pools should maintain backlogs for themselves
+				// Skip local wallet as pools should maintain backlogs for themselves
 				for _, tx := range list.txs.items {
 					if !pool.localTx.contains(tx.Hash()) {
 						spammers.Push(addr, float32(list.Len()))
@@ -608,7 +608,7 @@ func (pool *TxPool) promoteExecutables() {
 	}
 	// If we've queued more transactions than the hard limit, drop oldest ones
 	if queued > maxQueuedInTotal {
-		// Sort all accounts with queued transactions by heartbeat
+		// Sort all wallet with queued transactions by heartbeat
 		addresses := make(addresssByHeartbeat, 0, len(pool.queue))
 		for addr, _ := range pool.queue {
 			addresses = append(addresses, addressByHeartbeat{addr, pool.beats[addr]})
@@ -652,7 +652,7 @@ func (pool *TxPool) demoteUnexecutables() {
 		glog.V(logger.Info).Infoln("failed to get current state: %v", err)
 		return
 	}
-	// Iterate over all accounts and demote any non-executable transactions
+	// Iterate over all wallet and demote any non-executable transactions
 	for addr, list := range pool.pending {
 		nonce := state.GetNonce(addr)
 
@@ -686,7 +686,7 @@ func (pool *TxPool) demoteUnexecutables() {
 	}
 }
 
-// expirationLoop is a loop that periodically iterates over all accounts with
+// expirationLoop is a loop that periodically iterates over all wallet with
 // queued transactions and drop all that have been inactive for a prolonged amount
 // of time.
 func (pool *TxPool) expirationLoop() {

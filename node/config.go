@@ -26,7 +26,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/logger"
@@ -396,12 +396,12 @@ func (c *Config) parsePersistentNodes(file string) []*discover.Node {
 	return nodes
 }
 
-func makeAccountManager(conf *Config) (am *accounts.Manager, ephemeralKeystore string, err error) {
-	scryptN := accounts.StandardScryptN
-	scryptP := accounts.StandardScryptP
+func makeAccountManager(conf *Config) (am *wallet.Manager, ephemeralKeystore string, err error) {
+	scryptN := wallet.StandardScryptN
+	scryptP := wallet.StandardScryptP
 	if conf.UseLightweightKDF {
-		scryptN = accounts.LightScryptN
-		scryptP = accounts.LightScryptP
+		scryptN = wallet.LightScryptN
+		scryptP = wallet.LightScryptP
 	}
 
 	var keydir string
@@ -428,5 +428,5 @@ func makeAccountManager(conf *Config) (am *accounts.Manager, ephemeralKeystore s
 		return nil, "", err
 	}
 
-	return accounts.NewManager(keydir, scryptN, scryptP), ephemeralKeystore, nil
+	return wallet.NewManager(keydir, scryptN, scryptP), ephemeralKeystore, nil
 }

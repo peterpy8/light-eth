@@ -42,7 +42,7 @@ type (
 		prevbalance *big.Int
 	}
 
-	// Changes to individual accounts.
+	// Changes to individual wallet.
 	balanceChange struct {
 		account *common.Address
 		prev    *big.Int

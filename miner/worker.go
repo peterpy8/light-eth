@@ -155,7 +155,7 @@ func newWorker(config *params.ChainConfig, coinbase common.Address, eth Backend,
 	return worker
 }
 
-func (self *worker) setEtherbase(addr common.Address) {
+func (self *worker) SetMiner(addr common.Address) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	self.coinbase = addr

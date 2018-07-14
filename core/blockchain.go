@@ -60,7 +60,7 @@ const (
 	maxFutureBlocks     = 256
 	maxTimeFutureBlocks = 30
 	// must be bumped when consensus algorithm is changed, this forces the upgradedb
-	// command to be run (forces the blocks to be imported again using the new algorithm)
+	// cmd to be run (forces the blocks to be imported again using the new algorithm)
 	BlockChainVersion = 3
 )
 

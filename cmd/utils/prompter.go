@@ -32,7 +32,7 @@ type UserPrompter interface {
 	SetHistory(history []string)
 
 	// AppendHistory appends an entry to the scrollback history. It should be called
-	// if and only if the prompt to append was a valid command.
+	// if and only if the prompt to append was a valid cmd.
 	AppendHistory(command string)
 
 	// SetWordCompleter sets the completion function that the prompter will call to
@@ -137,7 +137,7 @@ func (p *terminalPrompter) SetHistory(history []string) {
 }
 
 // AppendHistory appends an entry to the scrollback history. It should be called
-// if and only if the prompt to append was a valid command.
+// if and only if the prompt to append was a valid cmd.
 func (p *terminalPrompter) AppendHistory(command string) {
 	p.State.AppendHistory(command)
 }

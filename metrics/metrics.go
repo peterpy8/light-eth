@@ -37,7 +37,7 @@ var Enabled = false
 
 // Init enables or disables the metrics system. Since we need this to run before
 // any other code gets to create meters and timers, we'll actually do an ugly hack
-// and peek into the command line args for the metrics flag.
+// and peek into the cmd line args for the metrics flag.
 func init() {
 	for _, arg := range os.Args {
 		if strings.TrimLeft(arg, "-") == MetricsEnabledFlag {

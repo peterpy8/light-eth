@@ -1,4 +1,4 @@
-// siotchain is the official command-line client for Siotchain.
+// siotchain is the official cmd-line client for Siotchain.
 package main
 
 import (
@@ -34,13 +34,13 @@ var (
 	// Siotchain address of the siot release oracle.
 	relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
 	// The app that holds all commands and flags.
-	app = utils.NewApp(gitCommit, "the siotchain command line interface")
+	app = utils.NewApp(gitCommit, "the siotchain cmd line interface")
 )
 
 func init() {
 	// Initialize the Siotchain app and start node
 	app.Action = siotchain    //siotchain
-	app.HideVersion = true // we have a command to print the version
+	app.HideVersion = true // we have a cmd to print the version
 	app.Copyright = "Copyright 2018 The Siotchain Authors"
 	app.Commands = []cli.Command{
 		{
@@ -50,7 +50,7 @@ func init() {
 			ArgsUsage: "<genesisPath>",
 			Category:  "BLOCKCHAIN COMMANDS",
 			Description: `
-The init command initializes a new genesis block and definition for the network.
+The init cmd initializes a new genesis block and definition for the network.
 This is a destructive action and changes the network in which you will be
 participating.
 `,
@@ -150,7 +150,7 @@ func main() {
 }
 
 // siotchain is the main entry point into the system if no special subcommand is ran.
-// It creates a default node based on the command line arguments and runs it in
+// It creates a default node based on the cmd line arguments and runs it in
 // blocking mode, waiting for it to be shut down.
 func siotchain(ctx *cli.Context) error {
 	node := makeFullNode(ctx)

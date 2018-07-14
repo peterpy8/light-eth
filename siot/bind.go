@@ -36,7 +36,7 @@ import (
 // object. These should be rewritten to internal Go method calls when the Go API
 // is refactored to support a clean library use.
 type ContractBackend struct {
-	eapi  *siotapi.PublicEthereumAPI        // Wrapper around the Siotchain object to access metadata
+	eapi  *siotapi.PublicSiotchainAPI       // Wrapper around the Siotchain object to access metadata
 	bcapi *siotapi.PublicBlockChainAPI      // Wrapper around the blockchain to access chain data
 	txapi *siotapi.PublicTransactionPoolAPI // Wrapper around the transaction pool to access transaction data
 }
@@ -45,7 +45,7 @@ type ContractBackend struct {
 // Etheruem object.
 func NewContractBackend(apiBackend siotapi.Backend) *ContractBackend {
 	return &ContractBackend{
-		eapi:  siotapi.NewPublicEthereumAPI(apiBackend),
+		eapi:  siotapi.NewPublicSiotchainAPI(apiBackend),
 		bcapi: siotapi.NewPublicBlockChainAPI(apiBackend),
 		txapi: siotapi.NewPublicTransactionPoolAPI(apiBackend),
 	}

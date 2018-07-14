@@ -45,24 +45,24 @@ import (
 
 const defaultGas = uint64(90000)
 
-// PublicEthereumAPI provides an API to access Ethereum related information.
+// PublicSiotchainAPI provides an API to access Siotchain related information.
 // It offers only methods that operate on public data that is freely available to anyone.
-type PublicEthereumAPI struct {
+type PublicSiotchainAPI struct {
 	b Backend
 }
 
-// NewPublicEthereumAPI creates a new Etheruem protocol API.
-func NewPublicEthereumAPI(b Backend) *PublicEthereumAPI {
-	return &PublicEthereumAPI{b}
+// NewPublicSiotchainAPI creates a new Siotchain protocol API.
+func NewPublicSiotchainAPI(b Backend) *PublicSiotchainAPI {
+	return &PublicSiotchainAPI{b}
 }
 
 // GasPrice returns a suggestion for a gas price.
-func (s *PublicEthereumAPI) GasPrice(ctx context.Context) (*big.Int, error) {
+func (s *PublicSiotchainAPI) GasPrice(ctx context.Context) (*big.Int, error) {
 	return s.b.SuggestPrice(ctx)
 }
 
-// ProtocolVersion returns the current Ethereum protocol version this node supports
-func (s *PublicEthereumAPI) ProtocolVersion() *rpc.HexNumber {
+// ProtocolVersion returns the current Siotchain protocol version this node supports
+func (s *PublicSiotchainAPI) ProtocolVersion() *rpc.HexNumber {
 	return rpc.NewHexNumber(s.b.ProtocolVersion())
 }
 
@@ -73,7 +73,7 @@ func (s *PublicEthereumAPI) ProtocolVersion() *rpc.HexNumber {
 // - highestBlock:  block number of the highest block header this node has received from peers
 // - pulledStates:  number of state entries processed until now
 // - knownStates:   number of known state entries that still need to be pulled
-func (s *PublicEthereumAPI) Syncing() (interface{}, error) {
+func (s *PublicSiotchainAPI) Syncing() (interface{}, error) {
 	progress := s.b.Downloader().Progress()
 
 	// Return not syncing if the synchronisation already completed
@@ -290,22 +290,20 @@ func (s *PrivateAccountAPI) SendTransaction(ctx context.Context, args SendTxArgs
 
 // signHash is a helper function that calculates a hash for the given message that can be
 // safely used to calculate a signature from. The hash is calulcated with:
-// keccak256("\x19Ethereum Signed Message:\n"${message length}${message}).
+// keccak256("\x19Siotchain Signed Message:\n"${message length}${message}).
 func signHash(message string) []byte {
 	data := common.FromHex(message)
 	// Give context to the signed message. This prevents an adversery to sign a tx.
 	// It has no cryptographic purpose.
-	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	msg := fmt.Sprintf("\x19Siotchain Signed Message:\n%d%s", len(data), data)
 	// Always hash, this prevents choosen plaintext attacks that can extract key information
 	return crypto.Keccak256([]byte(msg))
 }
 
-// Sign calculates an Ethereum ECDSA signature for:
-// keccack256("\x19Ethereum Signed Message:\n" + len(message) + message))
+// Sign calculates an Siotchain ECDSA signature for:
+// keccack256("\x19Siotchain Signed Message:\n" + len(message) + message))
 //
 // The key used to calculate the signature is decrypted with the given password.
-//
-// https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_sign
 func (s *PrivateAccountAPI) Sign(ctx context.Context, message string, addr common.Address, passwd string) (string, error) {
 	hash := signHash(message)
 	signature, err := s.b.AccountManager().SignWithPassphrase(addr, passwd, hash)
@@ -316,12 +314,10 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, message string, addr commo
 }
 
 // EcRecover returns the address for the account that was used to create the signature.
-// Note, this function is compatible with eth_sign and personal_sign. As such it recovers
+// Note, this function is compatible with siot_sign and personal_sign. As such it recovers
 // the address of:
-// hash = keccak256("\x19Ethereum Signed Message:\n"${message length}${message})
+// hash = keccak256("\x19Siotchain Signed Message:\n"${message length}${message})
 // addr = ecrecover(hash, signature)
-//
-// https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_ecRecover
 func (s *PrivateAccountAPI) EcRecover(ctx context.Context, message string, signature string) (common.Address, error) {
 	var (
 		hash = signHash(message)
@@ -354,13 +350,13 @@ func (s *PrivateAccountAPI) SignAndSendTransaction(ctx context.Context, args Sen
 	return s.SendTransaction(ctx, args, passwd)
 }
 
-// PublicBlockChainAPI provides an API to access the Ethereum blockchain.
+// PublicBlockChainAPI provides an API to access the Siotchain.
 // It offers only methods that operate on public data that is freely available to anyone.
 type PublicBlockChainAPI struct {
 	b Backend
 }
 
-// NewPublicBlockChainAPI creates a new Etheruem blockchain API.
+// NewPublicBlockChainAPI creates a new Siotchain blockchain API.
 func NewPublicBlockChainAPI(b Backend) *PublicBlockChainAPI {
 	return &PublicBlockChainAPI{b}
 }
@@ -576,7 +572,7 @@ func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (*
 	return rpc.NewHexNumber(gas), err
 }
 
-// ExecutionResult groups all structured logs emitted by the EVM
+// ExecutionResult groups all structured logs emitted by the Siotchain
 // while replaying a transaction in debug mode as well as the amount of
 // gas used and the return value
 type ExecutionResult struct {
@@ -585,7 +581,7 @@ type ExecutionResult struct {
 	StructLogs  []StructLogRes `json:"structLogs"`
 }
 
-// StructLogRes stores a structured log emitted by the EVM while replaying a
+// StructLogRes stores a structured log emitted by the Siotchain while replaying a
 // transaction in debug mode
 type StructLogRes struct {
 	Pc      uint64            `json:"pc"`
@@ -599,7 +595,7 @@ type StructLogRes struct {
 	Storage map[string]string `json:"storage"`
 }
 
-// formatLogs formats EVM returned structured logs for json output
+// formatLogs formats Siotchain returned structured logs for json output
 func FormatLogs(structLogs []vm.StructLog) []StructLogRes {
 	formattedStructLogs := make([]StructLogRes, len(structLogs))
 	for index, trace := range structLogs {
@@ -1111,11 +1107,8 @@ func (s *PublicTransactionPoolAPI) SendRawTransaction(ctx context.Context, encod
 }
 
 // Sign calculates an ECDSA signature for:
-// keccack256("\x19Ethereum Signed Message:\n" + len(message) + message).
-//
+// keccack256("\x19Siotchain Signed Message:\n" + len(message) + message).
 // The account associated with addr must be unlocked.
-//
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
 func (s *PublicTransactionPoolAPI) Sign(addr common.Address, message string) (string, error) {
 	hash := signHash(message)
 	signature, err := s.b.AccountManager().SignSiotchain(addr, hash)
@@ -1331,14 +1324,14 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, tx Tx, gasPrice, 
 	return common.Hash{}, fmt.Errorf("Transaction %#x not found", tx.Hash)
 }
 
-// PublicDebugAPI is the collection of Etheruem APIs exposed over the public
+// PublicDebugAPI is the collection of Siotchain APIs exposed over the public
 // debugging endpoint.
 type PublicDebugAPI struct {
 	b Backend
 }
 
 // NewPublicDebugAPI creates a new API definition for the public debug methods
-// of the Ethereum service.
+// of the Siotchain service.
 func NewPublicDebugAPI(b Backend) *PublicDebugAPI {
 	return &PublicDebugAPI{b: b}
 }
@@ -1378,14 +1371,14 @@ func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string,
 	return fmt.Sprintf("0x%x", hash), nil
 }
 
-// PrivateDebugAPI is the collection of Etheruem APIs exposed over the private
+// PrivateDebugAPI is the collection of Siotchain APIs exposed over the private
 // debugging endpoint.
 type PrivateDebugAPI struct {
 	b Backend
 }
 
 // NewPrivateDebugAPI creates a new API definition for the private debug methods
-// of the Ethereum service.
+// of the Siotchain service.
 func NewPrivateDebugAPI(b Backend) *PrivateDebugAPI {
 	return &PrivateDebugAPI{b: b}
 }
@@ -1450,7 +1443,7 @@ func (s *PublicNetAPI) PeerCount() *rpc.HexNumber {
 	return rpc.NewHexNumber(s.net.PeerCount())
 }
 
-// Version returns the current ethereum protocol version.
+// Version returns the current Siotchain protocol version.
 func (s *PublicNetAPI) Version() string {
 	return fmt.Sprintf("%d", s.networkVersion)
 }

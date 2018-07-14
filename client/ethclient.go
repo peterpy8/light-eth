@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package siotclient provides a client for the Ethereum RPC API.
-package siotclient
+// Package client provides a client for the Ethereum RPC API.
+package client
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-// Contains the siotchain command usage template and generator.
+// Contains the siotchain cmd usage template and generator.
 
 package main
 
@@ -14,7 +14,7 @@ var AppHelpTemplate = `NAME:
    {{.App.Name}} - {{.App.Usage}}
 
 USAGE:
-   {{.App.HelpName}} [options]{{if .App.Commands}} command [command options]{{end}} {{if .App.ArgsUsage}}{{.App.ArgsUsage}}{{else}}[arguments...]{{end}}
+   {{.App.HelpName}} [options]{{if .App.Commands}} cmd [cmd options]{{end}} {{if .App.ArgsUsage}}{{.App.ArgsUsage}}{{else}}[arguments...]{{end}}
    {{if .App.Version}}
 VERSION:
    {{.App.Version}}
@@ -23,7 +23,7 @@ AUTHOR(S):
    {{range .App.Authors}}{{ . }}{{end}}
    {{end}}{{if .App.Commands}}
 COMMANDS:
-   help, h  Shows a list of commands or help for one command
+   help, h  Shows a list of commands or help for one cmd
    {{end}}
 SIOTCHAIN-CLI OPTIONS:
   --rpcport value			HTTP-RPC server listening port (default: 8800)

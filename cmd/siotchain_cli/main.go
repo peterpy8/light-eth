@@ -1,4 +1,4 @@
-// siotchain-cli is the official command-line client for Siotchain interactive mode.
+// siotchain-cli is the official cmd-line client for Siotchain interactive mode.
 
 package main
 
@@ -18,7 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/metrics"
 	"gopkg.in/urfave/cli.v1"
-	"github.com/ethereum/go-ethereum/siotclient"
+	"github.com/ethereum/go-ethereum/client"
 	"math/big"
 	"encoding/hex"
 	"github.com/fatih/color"
@@ -36,7 +36,7 @@ var (
 	// Siotchain address of the siot release oracle.
 	relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
 	// The app that holds all commands and flags.
-	app = utils.NewApp(gitCommit, "the siotchain interactive mode command line interface")
+	app = utils.NewApp(gitCommit, "the siotchain interactive mode cmd line interface")
 	requestmap = map[string]int{
 		"getnodeinfo": 0,
 		"getnodeid": 0,
@@ -57,7 +57,7 @@ var (
 func init() {
 	// Initialize the SIOT app and start CLI interactive mode
 	app.Action = siotchain_cli   //siotchain
-	app.HideVersion = true // we have a command to print the version
+	app.HideVersion = true // we have a cmd to print the version
 	app.Copyright = "Copyright 2018 The Siotchain Authors"
 	app.Commands = []cli.Command{}
 	app.Flags = []cli.Flag{
@@ -103,7 +103,7 @@ func main() {
 }
 
 // siotchain_cli is the main entry point into the system if no special subcommand is ran.
-// It creates a default node based on the command line arguments and runs it in
+// It creates a default node based on the cmd line arguments and runs it in
 // blocking mode, waiting for it to be shut down.
 func siotchain_cli(ctx *cli.Context) error {
 	host := ctx.GlobalString(utils.RPCListenAddrFlag.Name)
@@ -111,7 +111,7 @@ func siotchain_cli(ctx *cli.Context) error {
 	urlChunks := []string{"http://", host, ":", port}
 	url := strings.Join(urlChunks,"")
 	//fmt.Println(url)
-	client, _:= siotclient.Dial(url)
+	client, _:= client.Dial(url)
 	requestString := ctx.GlobalString(utils.RequestFlag.Name)
 
 	if  requestString != "" {
@@ -125,7 +125,7 @@ func siotchain_cli(ctx *cli.Context) error {
 	return nil
 }
 
-func readInput(ctx *cli.Context, client *siotclient.Client) error {
+func readInput(ctx *cli.Context, client *client.Client) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	for true {
 		var input string
@@ -152,7 +152,7 @@ func readInput(ctx *cli.Context, client *siotclient.Client) error {
 	return nil
 }
 
-func handleRequest(cliCtx *cli.Context, client *siotclient.Client, input string) error {
+func handleRequest(cliCtx *cli.Context, client *client.Client, input string) error {
 	green := color.New(color.FgGreen).PrintfFunc()
 	inputUppercase := strings.ToLower(strings.TrimSpace(input))
 	chunks := strings.Split(inputUppercase, " ")
@@ -390,7 +390,7 @@ func handleRequest(cliCtx *cli.Context, client *siotclient.Client, input string)
 			fmt.Println("incorrect format: should be sendAsset [from] [to] [password]")
 		}
 	default:
-		fmt.Println("undefined command")
+		fmt.Println("undefined cmd")
 	}
 	return nil
 }

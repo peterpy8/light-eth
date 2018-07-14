@@ -1,7 +1,7 @@
 // +build none
 
 /*
-This command generates GPL license headers on top of all source files.
+This cmd generates GPL license headers on top of all source files.
 You can run it once per month, before cutting a release or just
 whenever you feel like it.
 

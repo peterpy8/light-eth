@@ -37,7 +37,7 @@ import (
 )
 
 func init() {
-	cli.AppHelpTemplate = `{{.Name}} {{if .Flags}}[global options] {{end}}command{{if .Flags}} [command options]{{end}} [arguments...]
+	cli.AppHelpTemplate = `{{.Name}} {{if .Flags}}[global options] {{end}}cmd{{if .Flags}} [cmd options]{{end}} [arguments...]
 
 VERSION:
    {{.Version}}
@@ -50,7 +50,7 @@ GLOBAL OPTIONS:
    {{end}}{{end}}
 `
 
-	cli.CommandHelpTemplate = `{{.Name}}{{if .Subcommands}} command{{end}}{{if .Flags}} [command options]{{end}} [arguments...]
+	cli.CommandHelpTemplate = `{{.Name}}{{if .Subcommands}} cmd{{end}}{{if .Flags}} [cmd options]{{end}} [arguments...]
 {{if .Description}}{{.Description}}
 {{end}}{{if .Subcommands}}
 SUBCOMMANDS:
@@ -74,9 +74,9 @@ func NewApp(gitCommit, usage string) *cli.App {
 	return app
 }
 
-// These are all the command line flags we support.
+// These are all the cmd line flags we support.
 // If you add to this list, please remember to include the
-// flag in the appropriate command definition.
+// flag in the appropriate cmd definition.
 //
 // The flags are defined here so their names and help texts
 // are the same for all commands.
@@ -406,7 +406,7 @@ func MakeDataDir(ctx *cli.Context) string {
 	return ""
 }
 
-// MakeIPCPath creates an IPC path configuration from the set command line flags,
+// MakeIPCPath creates an IPC path configuration from the set cmd line flags,
 // returning an empty string if IPC was explicitly disabled, or the set path.
 func MakeIPCPath(ctx *cli.Context) string {
 	if ctx.GlobalBool(IPCDisabledFlag.Name) {
@@ -415,7 +415,7 @@ func MakeIPCPath(ctx *cli.Context) string {
 	return ctx.GlobalString(IPCPathFlag.Name)
 }
 
-// MakeNodeKey creates a node key from set command line flags, either loading it
+// MakeNodeKey creates a node key from set cmd line flags, either loading it
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
 func MakeNodeKey(ctx *cli.Context) *ecdsa.PrivateKey {
@@ -455,7 +455,7 @@ func makeNodeUserIdent(ctx *cli.Context) string {
 	return strings.Join(comps, "/")
 }
 
-// MakeBootstrapNodes creates a list of bootstrap nodes from the command line
+// MakeBootstrapNodes creates a list of bootstrap nodes from the cmd line
 // flags, reverting to pre-configured ones if none have been specified.
 func MakeBootstrapNodes(ctx *cli.Context) []*discover.Node {
 	// Return pre-configured nodes if none were manually requested
@@ -479,7 +479,7 @@ func MakeBootstrapNodes(ctx *cli.Context) []*discover.Node {
 	return bootnodes
 }
 
-// MakeBootstrapNodesV5 creates a list of bootstrap nodes from the command line
+// MakeBootstrapNodesV5 creates a list of bootstrap nodes from the cmd line
 // flags, reverting to pre-configured ones if none have been specified.
 func MakeBootstrapNodesV5(ctx *cli.Context) []*discv5.Node {
 	// Return pre-configured nodes if none were manually requested
@@ -500,19 +500,19 @@ func MakeBootstrapNodesV5(ctx *cli.Context) []*discv5.Node {
 	return bootnodes
 }
 
-// MakeListenAddress creates a TCP listening address string from set command
+// MakeListenAddress creates a TCP listening address string from set cmd
 // line flags.
 func MakeListenAddress(ctx *cli.Context) string {
 	return fmt.Sprintf(":%d", ctx.GlobalInt(ListenPortFlag.Name))
 }
 
-// MakeDiscoveryV5Address creates a UDP listening address string from set command
+// MakeDiscoveryV5Address creates a UDP listening address string from set cmd
 // line flags for the V5 discovery protocol.
 func MakeDiscoveryV5Address(ctx *cli.Context) string {
 	return fmt.Sprintf(":%d", ctx.GlobalInt(ListenPortFlag.Name)+1)
 }
 
-// MakeNAT creates a port mapper from set command line flags.
+// MakeNAT creates a port mapper from set cmd line flags.
 func MakeNAT(ctx *cli.Context) nat.Interface {
 	natif, err := nat.Parse(ctx.GlobalString(NATFlag.Name))
 	if err != nil {
@@ -532,7 +532,7 @@ func MakeRPCModules(input string) []string {
 }
 
 // MakeHTTPRpcHost creates the HTTP RPC listener interface string from the set
-// command line flags, returning empty if the HTTP endpoint is disabled.
+// cmd line flags, returning empty if the HTTP endpoint is disabled.
 func MakeHTTPRpcHost(ctx *cli.Context) string {
 	if !ctx.GlobalBool(RPCEnabledFlag.Name) {
 		return ""
@@ -541,7 +541,7 @@ func MakeHTTPRpcHost(ctx *cli.Context) string {
 }
 
 // MakeWSRpcHost creates the WebSocket RPC listener interface string from the set
-// command line flags, returning empty if the HTTP endpoint is disabled.
+// cmd line flags, returning empty if the HTTP endpoint is disabled.
 func MakeWSRpcHost(ctx *cli.Context) string {
 	if !ctx.GlobalBool(WSEnabledFlag.Name) {
 		return ""
@@ -581,7 +581,7 @@ func MakeAddress(accman *wallet.Manager, account string) (wallet.Account, error)
 }
 
 // MakeEtherbase retrieves the etherbase either from the directly specified
-// command line flags or from the keystore if CLI indexed.
+// cmd line flags or from the keystore if CLI indexed.
 func MakeEtherbase(accman *wallet.Manager, ctx *cli.Context) common.Address {
 	accounts := accman.Accounts()
 	if !ctx.GlobalIsSet(MinerFlag.Name) && len(accounts) == 0 {
@@ -600,7 +600,7 @@ func MakeEtherbase(accman *wallet.Manager, ctx *cli.Context) common.Address {
 	return account.Address
 }
 
-// MakeMinerExtra resolves extradata for the miner from the set command line flags
+// MakeMinerExtra resolves extradata for the miner from the set cmd line flags
 // or returns a default one composed on the client, runtime and OS metadata.
 func MakeMinerExtra(extra []byte, ctx *cli.Context) []byte {
 	if ctx.GlobalIsSet(ExtraDataFlag.Name) {
@@ -627,7 +627,7 @@ func MakePasswordList(ctx *cli.Context) []string {
 	return lines
 }
 
-// MakeNode configures a node with no services from command line flags.
+// MakeNode configures a node with no services from cmd line flags.
 func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 	vsn := Version
 
@@ -673,7 +673,7 @@ func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 	return stack
 }
 
-// RegisterSiotService configures siot.Siotchain from command line flags and adds it to the
+// RegisterSiotService configures siot.Siotchain from cmd line flags and adds it to the
 // given node.
 func RegisterSiotService(ctx *cli.Context, stack *node.Node, extra []byte) {
 	// Avoid conflicting network flags
@@ -892,7 +892,7 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) siotdb.Database {
 	return chainDb
 }
 
-// MakeChain creates a chain manager from set command line flags.
+// MakeChain creates a chain manager from set cmd line flags.
 func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb siotdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)

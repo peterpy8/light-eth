@@ -34,7 +34,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 )
 
-// The starting nonce determines the default nonce when new accounts are being
+// The starting nonce determines the default nonce when new wallet are being
 // created.
 var StartingNonce uint64
 
@@ -208,7 +208,7 @@ func (self *StateDB) AddRefund(gas *big.Int) {
 }
 
 // Exist reports whether the given account address exists in the state.
-// Notably this also returns true for suicided accounts.
+// Notably this also returns true for suicided wallet.
 func (self *StateDB) Exist(addr common.Address) bool {
 	return self.GetStateObject(addr) != nil
 }

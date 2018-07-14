@@ -26,7 +26,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/internal/debug"
@@ -50,7 +50,7 @@ var (
 type Node struct {
 	eventmux *event.TypeMux // Event multiplexer used between the services of a stack
 	config   *Config
-	accman   *accounts.Manager
+	accman   *wallet.Manager
 
 	ephemeralKeystore string          // if non-empty, the key directory that will be removed by Stop
 	instanceDirLock   storage.Storage // prevents concurrent use of instance directory
@@ -613,7 +613,7 @@ func (n *Node) InstanceDir() string {
 }
 
 // AccountManager retrieves the account manager used by the protocol stack.
-func (n *Node) AccountManager() *accounts.Manager {
+func (n *Node) AccountManager() *wallet.Manager {
 	return n.accman
 }
 

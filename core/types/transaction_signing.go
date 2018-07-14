@@ -53,7 +53,7 @@ func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 // SignECDSA signs the transaction using the given signer and private key
 func SignECDSA(s Signer, tx *Transaction, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
-	sig, err := crypto.SignEthereum(h[:], prv)
+	sig, err := crypto.SignSiotchain(h[:], prv)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (s EIP155Signer) Hash(tx *Transaction) common.Hash {
 
 func (s EIP155Signer) SigECDSA(tx *Transaction, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
-	sig, err := crypto.SignEthereum(h[:], prv)
+	sig, err := crypto.SignSiotchain(h[:], prv)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func (hs HomesteadSigner) WithSignature(tx *Transaction, sig []byte) (*Transacti
 
 func (hs HomesteadSigner) SignECDSA(tx *Transaction, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := hs.Hash(tx)
-	sig, err := crypto.SignEthereum(h[:], prv)
+	sig, err := crypto.SignSiotchain(h[:], prv)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func (fs FrontierSigner) WithSignature(tx *Transaction, sig []byte) (*Transactio
 
 func (fs FrontierSigner) SignECDSA(tx *Transaction, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := fs.Hash(tx)
-	sig, err := crypto.SignEthereum(h[:], prv)
+	sig, err := crypto.SignSiotchain(h[:], prv)
 	if err != nil {
 		return nil, err
 	}

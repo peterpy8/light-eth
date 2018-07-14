@@ -19,7 +19,7 @@ package siot
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -188,7 +188,7 @@ func (b *EthApiBackend) EventMux() *event.TypeMux {
 	return b.eth.EventMux()
 }
 
-func (b *EthApiBackend) AccountManager() *accounts.Manager {
+func (b *EthApiBackend) AccountManager() *wallet.Manager {
 	return b.eth.AccountManager()
 }
 

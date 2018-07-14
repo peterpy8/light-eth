@@ -1,9 +1,7 @@
 ./.git
-22
+21
 ./.idea
-30
-./accounts
-74
+28
 ./build
 112
 ./cmd
@@ -13,15 +11,15 @@
 ./compression
 7
 ./core
-589
+585
 ./crypto
-87
+86
 ./errs
 7
 ./event
 5
 ./internal
-159
+156
 ./logger
 87
 ./metrics
@@ -50,3 +48,5 @@
 79
 ./vendor
 4609
+./wallet
+16

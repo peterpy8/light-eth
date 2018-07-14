@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -38,7 +38,7 @@ import (
 
 // Backend wraps all methods required for mining.
 type Backend interface {
-	AccountManager() *accounts.Manager
+	AccountManager() *wallet.Manager
 	BlockChain() *core.BlockChain
 	TxPool() *core.TxPool
 	ChainDb() siotdb.Database

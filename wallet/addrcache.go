@@ -1,20 +1,4 @@
-// Copyright 2016 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
-package accounts
+package wallet
 
 import (
 	"bufio"
@@ -62,7 +46,7 @@ func (err *AmbiguousAddrError) Error() string {
 	return fmt.Sprintf("multiple keys match address (%s)", files)
 }
 
-// addrCache is a live index of all accounts in the keystore.
+// addrCache is a live index of all wallet in the keystore.
 type addrCache struct {
 	keydir   string
 	watcher  *watcher
@@ -197,7 +181,7 @@ func (ac *addrCache) close() {
 	ac.mu.Unlock()
 }
 
-// reload caches addresses of existing accounts.
+// reload caches addresses of existing wallet.
 // Callers must hold ac.mu.
 func (ac *addrCache) reload() {
 	accounts, err := ac.scan()
@@ -212,7 +196,7 @@ func (ac *addrCache) reload() {
 	for _, a := range accounts {
 		ac.byAddr[a.Address] = append(ac.byAddr[a.Address], a)
 	}
-	glog.V(logger.Debug).Infof("reloaded keys, cache has %d accounts", len(ac.all))
+	glog.V(logger.Debug).Infof("reloaded keys, cache has %d wallet", len(ac.all))
 }
 
 func (ac *addrCache) scan() ([]Account, error) {

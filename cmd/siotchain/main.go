@@ -20,7 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/node"
 	"gopkg.in/urfave/cli.v1"
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 )
 
 
@@ -194,7 +194,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 }
 
 // startNode boots up the system node and all registered protocols, after which
-// it unlocks any requested accounts, and starts the RPC/IPC interfaces and the
+// it unlocks any requested wallet, and starts the RPC/IPC interfaces and the
 // miner.
 func startNode(ctx *cli.Context, stack *node.Node) {
 	// Start up the node itself
@@ -222,10 +222,10 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 }
 
 // tries unlocking the specified account a few times.
-func unlockAccount(ctx *cli.Context, accman *accounts.Manager, address string, i int, passwords []string) (accounts.Account, string) {
+func unlockAccount(ctx *cli.Context, accman *wallet.Manager, address string, i int, passwords []string) (wallet.Account, string) {
 	account, err := utils.MakeAddress(accman, address)
 	if err != nil {
-		utils.Fatalf("Could not list accounts: %v", err)
+		utils.Fatalf("Could not list wallet: %v", err)
 	}
 	for trials := 0; trials < 3; trials++ {
 		prompt := fmt.Sprintf("Unlocking account %s | Attempt %d/%d", address, trials+1, 3)
@@ -235,18 +235,18 @@ func unlockAccount(ctx *cli.Context, accman *accounts.Manager, address string, i
 			glog.V(logger.Info).Infof("Unlocked account %x", account.Address)
 			return account, password
 		}
-		if err, ok := err.(*accounts.AmbiguousAddrError); ok {
+		if err, ok := err.(*wallet.AmbiguousAddrError); ok {
 			glog.V(logger.Info).Infof("Unlocked account %x", account.Address)
 			return ambiguousAddrRecovery(accman, err, password), password
 		}
-		if err != accounts.ErrDecrypt {
+		if err != wallet.ErrDecrypt {
 			// No need to prompt again if the error is not decryption-related.
 			break
 		}
 	}
 	// All trials expended to unlock account, bail out
 	utils.Fatalf("Failed to unlock account %s (%v)", address, err)
-	return accounts.Account{}, ""
+	return wallet.Account{}, ""
 }
 
 // getPassPhrase retrieves the passwor associated with an account, either fetched
@@ -279,13 +279,13 @@ func getPassPhrase(prompt string, confirmation bool, i int, passwords []string) 
 	return password
 }
 
-func ambiguousAddrRecovery(am *accounts.Manager, err *accounts.AmbiguousAddrError, auth string) accounts.Account {
+func ambiguousAddrRecovery(am *wallet.Manager, err *wallet.AmbiguousAddrError, auth string) wallet.Account {
 	fmt.Printf("Multiple key files exist for address %x:\n", err.Addr)
 	for _, a := range err.Matches {
 		fmt.Println("  ", a.File)
 	}
 	fmt.Println("Testing your passphrase against all of them...")
-	var match *accounts.Account
+	var match *wallet.Account
 	for _, a := range err.Matches {
 		if err := am.Unlock(a, auth); err == nil {
 			match = &a

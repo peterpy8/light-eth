@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"github.com/ethereum/ethash"
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -171,27 +171,27 @@ func (s *PublicTxPoolAPI) Inspect() map[string]map[string]map[string]string {
 	return content
 }
 
-// PublicAccountAPI provides an API to access accounts managed by this node.
-// It offers only methods that can retrieve accounts.
+// PublicAccountAPI provides an API to access wallet managed by this node.
+// It offers only methods that can retrieve wallet.
 type PublicAccountAPI struct {
-	am *accounts.Manager
+	am *wallet.Manager
 }
 
 // NewPublicAccountAPI creates a new PublicAccountAPI.
-func NewPublicAccountAPI(am *accounts.Manager) *PublicAccountAPI {
+func NewPublicAccountAPI(am *wallet.Manager) *PublicAccountAPI {
 	return &PublicAccountAPI{am: am}
 }
 
-// Accounts returns the collection of accounts this node manages
-func (s *PublicAccountAPI) Accounts() []accounts.Account {
+// Accounts returns the collection of wallet this node manages
+func (s *PublicAccountAPI) Accounts() []wallet.Account {
 	return s.am.Accounts()
 }
 
-// PrivateAccountAPI provides an API to access accounts managed by this node.
-// It offers methods to create, (un)lock en list accounts. Some methods accept
+// PrivateAccountAPI provides an API to access wallet managed by this node.
+// It offers methods to create, (un)lock en list wallet. Some methods accept
 // passwords and are therefore considered private by default.
 type PrivateAccountAPI struct {
-	am *accounts.Manager
+	am *wallet.Manager
 	b  Backend
 }
 
@@ -203,7 +203,7 @@ func NewPrivateAccountAPI(b Backend) *PrivateAccountAPI {
 	}
 }
 
-// ListAccounts will return a list of addresses for accounts this node manages.
+// ListAccounts will return a list of addresses for wallet this node manages.
 func (s *PrivateAccountAPI) ListAccounts() []common.Address {
 	accounts := s.am.Accounts()
 	addresses := make([]common.Address, len(accounts))
@@ -241,7 +241,7 @@ func (s *PrivateAccountAPI) UnlockAccount(addr common.Address, password string, 
 	if duration == nil {
 		duration = rpc.NewHexNumber(300)
 	}
-	a := accounts.Account{Address: addr}
+	a := wallet.Account{Address: addr}
 	d := time.Duration(duration.Int64()) * time.Second
 	if err := s.am.TimedUnlock(a, password, d); err != nil {
 		return false, err
@@ -990,7 +990,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(txHash common.Hash) (ma
 func (s *PublicTransactionPoolAPI) sign(addr common.Address, tx *types.Transaction) (*types.Transaction, error) {
 	signer := types.MakeSigner(s.b.ChainConfig(), s.b.CurrentBlock().Number())
 
-	signature, err := s.b.AccountManager().SignEthereum(addr, signer.Hash(tx).Bytes())
+	signature, err := s.b.AccountManager().SignSiotchain(addr, signer.Hash(tx).Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -1075,7 +1075,7 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	}
 
 	signer := types.MakeSigner(s.b.ChainConfig(), s.b.CurrentBlock().Number())
-	signature, err := s.b.AccountManager().SignEthereum(args.From, signer.Hash(tx).Bytes())
+	signature, err := s.b.AccountManager().SignSiotchain(args.From, signer.Hash(tx).Bytes())
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -1118,7 +1118,7 @@ func (s *PublicTransactionPoolAPI) SendRawTransaction(ctx context.Context, encod
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
 func (s *PublicTransactionPoolAPI) Sign(addr common.Address, message string) (string, error) {
 	hash := signHash(message)
-	signature, err := s.b.AccountManager().SignEthereum(addr, hash)
+	signature, err := s.b.AccountManager().SignSiotchain(addr, hash)
 	return common.ToHex(signature), err
 }
 
@@ -1272,7 +1272,7 @@ func (s *PublicTransactionPoolAPI) SignTransaction(ctx context.Context, args Sig
 }
 
 // PendingTransactions returns the transactions that are in the transaction pool and have a from address that is one of
-// the accounts this node manages.
+// the wallet this node manages.
 func (s *PublicTransactionPoolAPI) PendingTransactions() []*RPCTransaction {
 	pending := s.b.GetPoolTransactions()
 	transactions := make([]*RPCTransaction, 0, len(pending))

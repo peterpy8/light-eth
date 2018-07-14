@@ -1,24 +1,6 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// Package wallet implements encrypted storage of secp256k1 private keys.
 
-// Package accounts implements encrypted storage of secp256k1 private keys.
-//
-// Keys are stored as encrypted JSON files according to the Web3 Secret Storage specification.
-// See https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition for more information.
-package accounts
+package wallet
 
 import (
 	"crypto/ecdsa"
@@ -45,7 +27,7 @@ var (
 // Account represents a stored key.
 // When used as an argument, it selects a unique key file to act on.
 type Account struct {
-	Address common.Address // Ethereum account address derived from the key
+	Address common.Address // Siotchain account address derived from the key
 
 	// File contains the key file name.
 	// When Acccount is used as an argument to select a key, File can be left blank to
@@ -137,9 +119,9 @@ func (am *Manager) DeleteAccount(a Account, passphrase string) error {
 }
 
 // Sign calculates a ECDSA signature for the given hash.
-// Note, Ethereum signatures have a particular format as described in the
-// yellow paper. Use the SignEthereum function to calculate a signature
-// in Ethereum format.
+// Note, Siotchain signatures have a particular format as described in the
+// yellow paper. Use the SignSiotchain function to calculate a signature
+// in Siotchain format.
 func (am *Manager) Sign(addr common.Address, hash []byte) ([]byte, error) {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
@@ -150,16 +132,15 @@ func (am *Manager) Sign(addr common.Address, hash []byte) ([]byte, error) {
 	return crypto.Sign(hash, unlockedKey.PrivateKey)
 }
 
-// SignEthereum calculates a ECDSA signature for the given hash.
-// The signature has the format as described in the Ethereum yellow paper.
-func (am *Manager) SignEthereum(addr common.Address, hash []byte) ([]byte, error) {
+// SignSiotchain calculates a ECDSA signature for the given hash.
+func (am *Manager) SignSiotchain(addr common.Address, hash []byte) ([]byte, error) {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
 	unlockedKey, found := am.unlocked[addr]
 	if !found {
 		return nil, ErrLocked
 	}
-	return crypto.SignEthereum(hash, unlockedKey.PrivateKey)
+	return crypto.SignSiotchain(hash, unlockedKey.PrivateKey)
 }
 
 // SignWithPassphrase signs hash if the private key matching the given
@@ -171,7 +152,7 @@ func (am *Manager) SignWithPassphrase(addr common.Address, passphrase string, ha
 	}
 
 	defer zeroKey(key.PrivateKey)
-	return crypto.SignEthereum(hash, key.PrivateKey)
+	return crypto.SignSiotchain(hash, key.PrivateKey)
 }
 
 // Unlock unlocks the given account indefinitely.
@@ -343,7 +324,7 @@ func (am *Manager) Update(a Account, passphrase, newPassphrase string) error {
 	return am.keyStore.StoreKey(a.File, key, newPassphrase)
 }
 
-// ImportPreSaleKey decrypts the given Ethereum presale wallet and stores
+// ImportPreSaleKey decrypts the given Siotchain presale wallet and stores
 // a key file in the key directory. The key file is encrypted with the same passphrase.
 func (am *Manager) ImportPreSaleKey(keyJSON []byte, passphrase string) (Account, error) {
 	a, _, err := importPreSaleKey(am.keyStore, keyJSON, passphrase)

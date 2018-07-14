@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/ethereum/ethash"
-	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -205,7 +205,7 @@ var (
 	// Account settings
 	UnlockedAccountFlag = cli.StringFlag{
 		Name:  "unlock",
-		Usage: "Comma separated list of accounts to unlock",
+		Usage: "Comma separated list of wallet to unlock",
 		Value: "",
 	}
 	PasswordFileFlag = cli.StringFlag{
@@ -567,25 +567,25 @@ func MakeDatabaseHandles() int {
 
 // MakeAddress converts an account specified directly as a hex encoded string or
 // a key index in the key store to an internal account representation.
-func MakeAddress(accman *accounts.Manager, account string) (accounts.Account, error) {
+func MakeAddress(accman *wallet.Manager, account string) (wallet.Account, error) {
 	// If the specified account is a valid address, return it
 	if common.IsHexAddress(account) {
-		return accounts.Account{Address: common.HexToAddress(account)}, nil
+		return wallet.Account{Address: common.HexToAddress(account)}, nil
 	}
 	// Otherwise try to interpret the account as a keystore index
 	index, err := strconv.Atoi(account)
 	if err != nil {
-		return accounts.Account{}, fmt.Errorf("invalid account address or index %q", account)
+		return wallet.Account{}, fmt.Errorf("invalid account address or index %q", account)
 	}
 	return accman.AccountByIndex(index)
 }
 
 // MakeEtherbase retrieves the etherbase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func MakeEtherbase(accman *accounts.Manager, ctx *cli.Context) common.Address {
+func MakeEtherbase(accman *wallet.Manager, ctx *cli.Context) common.Address {
 	accounts := accman.Accounts()
 	if !ctx.GlobalIsSet(MinerFlag.Name) && len(accounts) == 0 {
-		glog.V(logger.Error).Infoln("WARNING: No etherbase set and no accounts found as default")
+		glog.V(logger.Error).Infoln("WARNING: No etherbase set and no wallet found as default")
 		return common.Address{}
 	}
 	etherbase := ctx.GlobalString(MinerFlag.Name)

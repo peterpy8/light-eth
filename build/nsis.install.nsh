@@ -1,4 +1,4 @@
-Name "geth ${MAJORVERSION}.${MINORVERSION}.${BUILDVERSION}" # VERSION variables set through command line arguments
+Name "siotchain ${MAJORVERSION}.${MINORVERSION}.${BUILDVERSION}" # VERSION variables set through command line arguments
 InstallDir "$InstDir"
 OutFile "${OUTPUTFILE}" # set through command line arguments
 
@@ -12,32 +12,32 @@ PageEx license
   LicenseData {{.License}}
 PageExEnd
 
-# Install geth binary
-Section "Geth" GETH_IDX
+# Install siotchain binary
+Section "SIOTCHAIN" SIOTCHAIN_IDX
   SetOutPath $INSTDIR
-  file {{.Geth}}
+  file {{.Siotchain}}
 
   # Create start menu launcher
   createDirectory "$SMPROGRAMS\${APPNAME}"
-  createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\geth.exe" "--fast" "--cache=512"
-  createShortCut "$SMPROGRAMS\${APPNAME}\Attach.lnk" "$INSTDIR\geth.exe" "attach" "" ""
+  createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\siotchain.exe" "--fast" "--cache=512"
+  createShortCut "$SMPROGRAMS\${APPNAME}\Attach.lnk" "$INSTDIR\siotchain.exe" "attach" "" ""
   createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" ""
 
   # Firewall - remove rules (if exists)
-  SimpleFC::AdvRemoveRule "Geth incoming peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Geth outgoing peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Geth UDP discovery (UDP:30303)"
+  SimpleFC::AdvRemoveRule "Siotchain incoming peers (TCP:30303)"
+  SimpleFC::AdvRemoveRule "Siotchain outgoing peers (TCP:30303)"
+  SimpleFC::AdvRemoveRule "Siotchain UDP discovery (UDP:30303)"
 
   # Firewall - add rules
-  SimpleFC::AdvAddRule "Geth incoming peers (TCP:30303)" ""  6 1 1 2147483647 1 "$INSTDIR\geth.exe" "" "" "Ethereum" 30303 "" "" ""
-  SimpleFC::AdvAddRule "Geth outgoing peers (TCP:30303)" ""  6 2 1 2147483647 1 "$INSTDIR\geth.exe" "" "" "Ethereum" "" 30303 "" ""
-  SimpleFC::AdvAddRule "Geth UDP discovery (UDP:30303)" "" 17 2 1 2147483647 1 "$INSTDIR\geth.exe" "" "" "Ethereum" "" 30303 "" ""
+  SimpleFC::AdvAddRule "Siotchain incoming peers (TCP:30303)" ""  6 1 1 2147483647 1 "$INSTDIR\siotchain.exe" "" "" "Siotchain" 30303 "" "" ""
+  SimpleFC::AdvAddRule "Siotchain outgoing peers (TCP:30303)" ""  6 2 1 2147483647 1 "$INSTDIR\siotchain.exe" "" "" "Siotchain" "" 30303 "" ""
+  SimpleFC::AdvAddRule "Siotchain UDP discovery (UDP:30303)" "" 17 2 1 2147483647 1 "$INSTDIR\siotchain.exe" "" "" "Siotchain" "" 30303 "" ""
 
-  # Set default IPC endpoint (https://github.com/ethereum/EIPs/issues/147)
-  ${EnvVarUpdate} $0 "ETHEREUM_SOCKET" "R" "HKLM" "\\.\pipe\geth.ipc"
-  ${EnvVarUpdate} $0 "ETHEREUM_SOCKET" "A" "HKLM" "\\.\pipe\geth.ipc"
+  # Set default IPC endpoint
+  ${EnvVarUpdate} $0 "SIOTCHAIN_SOCKET" "R" "HKLM" "\\.\pipe\siotchain.ipc"
+  ${EnvVarUpdate} $0 "SIOTCHAIN_SOCKET" "A" "HKLM" "\\.\pipe\siotchain.ipc"
 
-  # Add geth to PATH
+  # Add siotchain to PATH
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" $INSTDIR
 SectionEnd
 
@@ -53,8 +53,8 @@ Var GetInstalledSize.total
 Function GetInstalledSize
   StrCpy $GetInstalledSize.total 0
 
-  ${if} ${SectionIsSelected} ${GETH_IDX}
-    SectionGetSize ${GETH_IDX} $0
+  ${if} ${SectionIsSelected} ${SIOTCHAIN_IDX}
+    SectionGetSize ${SIOTCHAIN_IDX} $0
     IntOp $GetInstalledSize.total $GetInstalledSize.total + $0
   ${endif}
 

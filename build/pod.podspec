@@ -6,17 +6,17 @@ Pod::Spec.new do |spec|
   spec.authors      = { {{range .Contributors}}
 		'{{.Name}}' => '{{.Email}}',{{end}}
 	}
-  spec.summary      = 'iOS Ethereum Client'
+  spec.summary      = 'iOS Siotchain Client'
   spec.source       = { :git => 'https://github.com/ethereum/go-ethereum.git', :commit => '{{.Commit}}' }
 
 	spec.platform = :ios
   spec.ios.deployment_target  = '9.0'
-	spec.ios.vendored_frameworks = 'Frameworks/Geth.framework'
+	spec.ios.vendored_frameworks = 'Frameworks/Siotchain.framework'
 
 	spec.prepare_command = <<-CMD
-    curl https://gethstore.blob.core.windows.net/builds/geth-ios-all-{{.Version}}.tar.gz | tar -xvz
+    curl https://siotchainstore.blob.core.windows.net/builds/siotchain-ios-all-{{.Version}}.tar.gz | tar -xvz
     mkdir Frameworks
-    mv geth-ios-all-{{.Version}}/Geth.framework Frameworks
-    rm -rf geth-ios-all-{{.Version}}
+    mv siotchain-ios-all-{{.Version}}/Siotchain.framework Frameworks
+    rm -rf siotchain-ios-all-{{.Version}}
   CMD
 end

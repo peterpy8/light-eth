@@ -86,7 +86,7 @@ func NewHeaderChain(chainDb siotdb.Database, config *params.ChainConfig, getVali
 		if err != nil {
 			return nil, err
 		}
-		glog.V(logger.Info).Infoln("WARNING: Wrote default ethereum genesis block")
+		glog.V(logger.Info).Infoln("WARNING: Wrote default siot genesis block")
 		hc.genesisHeader = genesisBlock.Header()
 	}
 

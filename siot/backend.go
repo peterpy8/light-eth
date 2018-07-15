@@ -72,7 +72,6 @@ type Config struct {
 	Etherbase    common.Address
 	GasPrice     *big.Int
 	MinerThreads int
-	SolcPath     string
 
 	GpoMinGasPrice          *big.Int
 	GpoMaxGasPrice          *big.Int
@@ -122,7 +121,6 @@ type Siotchain struct {
 	AutoDAG      bool
 	autodagquit  chan bool
 	etherbase    common.Address
-	solcPath     string
 
 	NatSpec       bool
 	PowTest       bool
@@ -164,7 +162,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		etherbase:      config.Etherbase,
 		MinerThreads:   config.MinerThreads,
 		AutoDAG:        config.AutoDAG,
-		solcPath:       config.SolcPath,
 	}
 
 	if err := upgradeChainDatabase(chainDb); err != nil {

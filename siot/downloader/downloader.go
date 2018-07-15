@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	ethereum "github.com/ethereum/go-ethereum"
+	siot "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
@@ -196,7 +196,7 @@ func New(mode SyncMode, stateDb siotdb.Database, mux *event.TypeMux, hasHeader h
 // In addition, during the state download phase of fast synchronisation the number
 // of processed and the total number of known states are also returned. Otherwise
 // these are zero.
-func (d *Downloader) Progress() ethereum.SyncProgress {
+func (d *Downloader) Progress() siot.SyncProgress {
 	// Fetch the pending state count outside of the lock to prevent unforeseen deadlocks
 	pendingStates := uint64(d.queue.PendingNodeData())
 
@@ -213,7 +213,7 @@ func (d *Downloader) Progress() ethereum.SyncProgress {
 	case LightSync:
 		current = d.headHeader().Number.Uint64()
 	}
-	return ethereum.SyncProgress{
+	return siot.SyncProgress{
 		StartingBlock: d.syncStatsChainOrigin,
 		CurrentBlock:  current,
 		HighestBlock:  d.syncStatsChainHeight,

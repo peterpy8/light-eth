@@ -320,7 +320,7 @@ func (fs FrontierSigner) PublicKey(tx *Transaction) ([]byte, error) {
 	return pub, nil
 }
 
-// normaliseV returns the Ethereum version of the V parameter
+// normaliseV returns the Siotchain version of the V parameter
 func normaliseV(s Signer, v *big.Int) byte {
 	if s, ok := s.(EIP155Signer); ok {
 		stdV := v.BitLen() <= 8 && (v.Uint64() == 27 || v.Uint64() == 28)

@@ -1,55 +1,50 @@
 ./metrics
-       0
-./cmd
-      43
-./crypto
-       0
-./siot
-       6
-./pow
-       0
+0
 ./core
-       5
-./logger
-       1
-./siotclient
-       1
-./siotdb
-       1
-./internal
-      38
-./rlp
-       0
-./common
-       2
-./trie
-       0
-./errs
-       0
-./accounts
-       0
+11
 ./params
-       0
-./p2p
-      14
+0
 ./compression
-       0
-./build
-grep: warning: .//_workspace/src/github.com/ethereum/go-ethereum/build: recursive directory loop
-     383
-./node
-       2
-./.git
-       3
-./rpc
-       1
-./event
-       0
+0
+./rlp
+0
+./siot
+9
 ./vendor
-     260
-./console
-       0
-./.idea
-       0
+262
+./event
+0
+./node
+2
+./rpc
+1
 ./miner
-       0
+0
+./p2p
+12
+./internal
+5
+./client
+1
+./errs
+0
+./crypto
+11
+./build
+5
+./.git
+12
+./siotdb
+1
+./trie
+0
+./logger
+1
+./common
+2
+./wallet
+0
+./pow
+0
+./cmd
+43

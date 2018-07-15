@@ -1,4 +1,4 @@
-// Package core implements the Ethereum consensus protocol.
+// Package core implements the Siotchain consensus protocol.
 package core
 
 import (

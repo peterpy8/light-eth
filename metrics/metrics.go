@@ -1,19 +1,3 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
 // Package metrics provides general system and process level metrics collection.
 package metrics
 
@@ -95,16 +79,6 @@ func CollectProcessMetrics(refresh time.Duration) {
 	memInuse := metrics.GetOrRegisterMeter("system/memory/inuse", metrics.DefaultRegistry)
 	memPauses := metrics.GetOrRegisterMeter("system/memory/pauses", metrics.DefaultRegistry)
 
-	// var diskReads, diskReadBytes, diskWrites, diskWriteBytes metrics.Meter
-	// if err := ReadDiskStats(diskstats[0]); err == nil {
-	// 	diskReads = metrics.GetOrRegisterMeter("system/disk/readcount", metrics.DefaultRegistry)
-	// 	diskReadBytes = metrics.GetOrRegisterMeter("system/disk/readdata", metrics.DefaultRegistry)
-	// 	diskWrites = metrics.GetOrRegisterMeter("system/disk/writecount", metrics.DefaultRegistry)
-	// 	diskWriteBytes = metrics.GetOrRegisterMeter("system/disk/writedata", metrics.DefaultRegistry)
-	// } else {
-	// 	glog.V(logger.Debug).Infof("failed to read disk metrics: %v", err)
-	// }
-	// Iterate loading the different stats and updating the meters
 	for i := 1; ; i++ {
 		runtime.ReadMemStats(memstats[i%2])
 		memAllocs.Mark(int64(memstats[i%2].Mallocs - memstats[(i-1)%2].Mallocs))
@@ -112,12 +86,7 @@ func CollectProcessMetrics(refresh time.Duration) {
 		memInuse.Mark(int64(memstats[i%2].Alloc - memstats[(i-1)%2].Alloc))
 		memPauses.Mark(int64(memstats[i%2].PauseTotalNs - memstats[(i-1)%2].PauseTotalNs))
 
-		// if ReadDiskStats(diskstats[i%2]) == nil {
-		// 	diskReads.Mark(int64(diskstats[i%2].ReadCount - diskstats[(i-1)%2].ReadCount))
-		// 	diskReadBytes.Mark(int64(diskstats[i%2].ReadBytes - diskstats[(i-1)%2].ReadBytes))
-		// 	diskWrites.Mark(int64(diskstats[i%2].WriteCount - diskstats[(i-1)%2].WriteCount))
-		// 	diskWriteBytes.Mark(int64(diskstats[i%2].WriteBytes - diskstats[(i-1)%2].WriteBytes))
-		// }
+
 		time.Sleep(refresh)
 	}
 }

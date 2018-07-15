@@ -1,19 +1,3 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
 package node
 
 import (
@@ -238,7 +222,6 @@ func DefaultWSEndpoint() string {
 // NodeName returns the devp2p node identifier.
 func (c *Config) NodeName() string {
 	name := c.name()
-	// Backwards compatibility: previous versions used title-cased "Geth", keep that.
 	if name == "siotchain" || name == "siotchain-testnet" {
 		name = "Siotchain"
 	}
@@ -265,7 +248,7 @@ func (c *Config) name() string {
 }
 
 // These resources are resolved differently for "siotchain" instances.
-var isOldGethResource = map[string]bool{
+var isOldResource = map[string]bool{
 	"chaindata":          true,
 	"nodes":              true,
 	"nodekey":            true,
@@ -283,7 +266,7 @@ func (c *Config) resolvePath(path string) string {
 	}
 	// Backwards-compatibility: ensure that data directory files created
 	// by siotchain 1.4 are used if they exist.
-	if c.name() == "siotchain" && isOldGethResource[path] {
+	if c.name() == "siotchain" && isOldResource[path] {
 		oldpath := ""
 		if c.Name == "siotchain" {
 			oldpath = filepath.Join(c.DataDir, path)
@@ -406,7 +389,7 @@ func makeAccountManager(conf *Config) (am *wallet.Manager, ephemeralKeystore str
 		keydir, err = filepath.Abs(conf.KeyStoreDir)
 	default:
 		// There is no datadir.
-		keydir, err = ioutil.TempDir("", "go-ethereum-keystore")
+		keydir, err = ioutil.TempDir("", "go-siotchain-keystore")
 		ephemeralKeystore = keydir
 	}
 	if err != nil {

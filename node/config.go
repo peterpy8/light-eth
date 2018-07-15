@@ -32,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/p2p/discv5"
 	"github.com/ethereum/go-ethereum/p2p/nat"
 )
 
@@ -96,19 +95,8 @@ type Config struct {
 	// or not. Disabling is usually useful for protocol debugging (manual topology).
 	NoDiscovery bool
 
-	// DiscoveryV5 specifies whether the the new topic-discovery based V5 discovery
-	// protocol should be started or not.
-	DiscoveryV5 bool
-
-	// Listener address for the V5 discovery protocol UDP traffic.
-	DiscoveryV5Addr string
-
 	// BootstrapNodes used to establish connectivity with the rest of the network.
 	BootstrapNodes []*discover.Node
-
-	// BootstrapNodesV5 used to establish connectivity with the rest of the network
-	// using the V5 discovery protocol.
-	BootstrapNodesV5 []*discv5.Node
 
 	// Network interface address on which the node should listen for inbound peers.
 	ListenAddr string

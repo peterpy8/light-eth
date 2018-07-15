@@ -1,4 +1,4 @@
-// Package types contains data types related to Ethereum consensus.
+// Package types contains data types related to Siotchain consensus.
 package types
 
 import (
@@ -63,7 +63,7 @@ func (n *BlockNonce) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// Header represents a block header in the Ethereum blockchain.
+// Header represents a block header in the Siotchain blockchain.
 type Header struct {
 	ParentHash  common.Hash    // Hash to the previous block
 	UncleHash   common.Hash    // Uncles of this block
@@ -198,7 +198,7 @@ type Body struct {
 	Uncles       []*Header
 }
 
-// Block represents an entire block in the Ethereum blockchain.
+// Block represents an entire block in the Siotchain blockchain.
 type Block struct {
 	header       *Header
 	uncles       []*Header
@@ -319,7 +319,7 @@ func CopyHeader(h *Header) *Header {
 	return &cpy
 }
 
-// DecodeRLP decodes the Ethereum
+// DecodeRLP decodes the Siotchain
 func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	var eb extblock
 	_, size, _ := s.Kind()
@@ -331,7 +331,7 @@ func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	return nil
 }
 
-// EncodeRLP serializes b into the Ethereum RLP block format.
+// EncodeRLP serializes b into the Siotchain RLP block format.
 func (b *Block) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, extblock{
 		Header: b.header,

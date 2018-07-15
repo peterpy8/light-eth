@@ -78,8 +78,8 @@ type ProtocolManager struct {
 	badBlockReportingEnabled bool
 }
 
-// NewProtocolManager returns a new ethereum sub protocol manager. The Siotchain sub protocol manages peers capable
-// with the ethereum network.
+// NewProtocolManager returns a new Siotchain sub protocol manager. The Siotchain sub protocol manages peers capable
+// with the Siotchain network.
 func NewProtocolManager(config *params.ChainConfig, fastSync bool, networkId int, maxPeers int, mux *event.TypeMux, txpool txPool, pow pow.PoW, blockchain *core.BlockChain, chaindb siotdb.Database) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
@@ -209,7 +209,7 @@ func (pm *ProtocolManager) Start() {
 }
 
 func (pm *ProtocolManager) Stop() {
-	glog.V(logger.Info).Infoln("Stopping ethereum protocol handler...")
+	glog.V(logger.Info).Infoln("Stopping Siotchain protocol handler...")
 
 	pm.txSub.Unsubscribe()         // quits txBroadcastLoop
 	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop

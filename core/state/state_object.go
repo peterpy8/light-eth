@@ -41,14 +41,14 @@ func (self Storage) Copy() Storage {
 	return cpy
 }
 
-// StateObject represents an Ethereum account which is being modified.
+// StateObject represents an Siotchain account which is being modified.
 //
 // The usage pattern is as follows:
 // First you need to obtain a state object.
 // Account values can be accessed and modified through the object.
 // Finally, call CommitTrie to write the modified storage trie into a database.
 type StateObject struct {
-	address common.Address // Ethereum address of this account
+	address common.Address // Siotchain address of this account
 	data    Account
 	db      *StateDB
 
@@ -80,7 +80,7 @@ func (s *StateObject) empty() bool {
 	return s.data.Nonce == 0 && s.data.Balance.BitLen() == 0 && bytes.Equal(s.data.CodeHash, emptyCodeHash)
 }
 
-// Account is the Ethereum consensus representation of wallet.
+// Account is the Siotchain consensus representation of wallet.
 // These objects are stored in the main account trie.
 type Account struct {
 	Nonce    uint64

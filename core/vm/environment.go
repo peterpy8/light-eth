@@ -95,7 +95,7 @@ type Database interface {
 	Empty(common.Address) bool
 }
 
-// Account represents a contract or basic ethereum account.
+// Account represents a contract or basic Siotchain account.
 type Account interface {
 	SubBalance(amount *big.Int)
 	AddBalance(amount *big.Int)

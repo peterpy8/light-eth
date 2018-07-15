@@ -34,7 +34,7 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain) *StateProcess
 	}
 }
 
-// Process processes the state changes according to the Ethereum rules by running
+// Process processes the state changes according to the Siotchain rules by running
 // the transaction messages using the statedb and applying any rewards to both
 // the processor (coinbase) and any included uncles.
 //

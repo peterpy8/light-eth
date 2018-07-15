@@ -1,19 +1,3 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
 // Package p2p implements the Ethereum p2p network protocols.
 package p2p
 
@@ -28,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/p2p/discv5"
 	"github.com/ethereum/go-ethereum/p2p/nat"
 )
 
@@ -73,13 +56,6 @@ type Config struct {
 	// or not. Disabling is usually useful for protocol debugging (manual topology).
 	Discovery bool
 
-	// DiscoveryV5 specifies whether the the new topic-discovery based V5 discovery
-	// protocol should be started or not.
-	DiscoveryV5 bool
-
-	// Listener address for the V5 discovery protocol UDP traffic.
-	DiscoveryV5Addr string
-
 	// Name sets the node name of this server.
 	// Use common.MakeName to create a name that follows existing conventions.
 	Name string
@@ -87,11 +63,6 @@ type Config struct {
 	// BootstrapNodes are used to establish connectivity
 	// with the rest of the network.
 	BootstrapNodes []*discover.Node
-
-	// BootstrapNodesV5 are used to establish connectivity
-	// with the rest of the network using the V5 discovery
-	// protocol.
-	BootstrapNodesV5 []*discv5.Node
 
 	// Static nodes are used as pre-configured connections which are always
 	// maintained and re-connected on disconnects.
@@ -148,7 +119,6 @@ type Server struct {
 	listener     net.Listener
 	ourHandshake *protoHandshake
 	lastLookup   time.Time
-	DiscV5       *discv5.Network
 
 	// These are for Peers, PeerCount (and nothing else).
 	peerOp     chan peerOpFunc
@@ -366,17 +336,6 @@ func (srv *Server) Start() (err error) {
 		srv.ntab = ntab
 	}
 
-	if srv.DiscoveryV5 {
-		ntab, err := discv5.ListenUDP(srv.PrivateKey, srv.DiscoveryV5Addr, srv.NAT, "") //srv.NodeDatabase)
-		if err != nil {
-			return err
-		}
-		if err := ntab.SetFallbackNodes(srv.BootstrapNodesV5); err != nil {
-			return err
-		}
-		srv.DiscV5 = ntab
-	}
-
 	dynPeers := (srv.MaxPeers + 1) / 2
 	if !srv.Discovery {
 		dynPeers = 0
@@ -419,7 +378,7 @@ func (srv *Server) startListening() error {
 	if !laddr.IP.IsLoopback() && srv.NAT != nil {
 		srv.loopWG.Add(1)
 		go func() {
-			nat.Map(srv.NAT, srv.quit, "tcp", laddr.Port, laddr.Port, "ethereum p2p")
+			nat.Map(srv.NAT, srv.quit, "tcp", laddr.Port, laddr.Port, "siotchain p2p")
 			srv.loopWG.Done()
 		}()
 	}
@@ -551,9 +510,6 @@ running:
 	// Terminate discovery. If there is a running lookup it will terminate soon.
 	if srv.ntab != nil {
 		srv.ntab.Close()
-	}
-	if srv.DiscV5 != nil {
-		srv.DiscV5.Close()
 	}
 	// Disconnect all peers.
 	for _, p := range peers {

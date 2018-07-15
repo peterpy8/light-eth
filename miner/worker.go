@@ -1,19 +1,3 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
 package miner
 
 import (
@@ -105,7 +89,7 @@ type worker struct {
 	recv   chan *Result
 	pow    pow.PoW
 
-	eth     Backend
+	siot     Backend
 	chain   *core.BlockChain
 	proc    core.Validator
 	chainDb siotdb.Database
@@ -130,16 +114,16 @@ type worker struct {
 	fullValidation bool
 }
 
-func newWorker(config *params.ChainConfig, coinbase common.Address, eth Backend, mux *event.TypeMux) *worker {
+func newWorker(config *params.ChainConfig, coinbase common.Address, siot Backend, mux *event.TypeMux) *worker {
 	worker := &worker{
 		config:         config,
-		eth:            eth,
+		siot:            siot,
 		mux:            mux,
-		chainDb:        eth.ChainDb(),
+		chainDb:        siot.ChainDb(),
 		recv:           make(chan *Result, resultQueueSize),
 		gasPrice:       new(big.Int),
-		chain:          eth.BlockChain(),
-		proc:           eth.BlockChain().Validator(),
+		chain:          siot.BlockChain(),
+		proc:           siot.BlockChain().Validator(),
 		possibleUncles: make(map[common.Hash]*types.Block),
 		coinbase:       coinbase,
 		txQueue:        make(map[common.Hash]*types.Transaction),
@@ -285,7 +269,7 @@ func (self *worker) wait() {
 					continue
 				}
 
-				auxValidator := self.eth.BlockChain().AuxValidator()
+				auxValidator := self.siot.BlockChain().AuxValidator()
 				if err := core.ValidateHeader(self.config, auxValidator, block.Header(), parent.Header(), true, false); err != nil && err != core.BlockFutureErr {
 					glog.V(logger.Error).Infoln("Invalid header on mined block:", err)
 					continue
@@ -386,7 +370,7 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 		work.family.Add(ancestor.Hash())
 		work.ancestors.Add(ancestor.Hash())
 	}
-	accounts := self.eth.AccountManager().Accounts()
+	accounts := self.siot.AccountManager().Accounts()
 
 	// Keep track of transactions which return errors so they can be removed
 	work.tcount = 0
@@ -473,7 +457,7 @@ func (self *worker) commitNewWork() {
 		Extra:      self.extra,
 		Time:       big.NewInt(tstamp),
 	}
-	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
+	// If we are care about hard-fork check whether to override the extra-data or not
 	if daoBlock := self.config.DAOForkBlock; daoBlock != nil {
 		// Check whether the block is among the fork extra-override range
 		limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
@@ -498,11 +482,11 @@ func (self *worker) commitNewWork() {
 	if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
 		core.ApplyDAOHardFork(work.state)
 	}
-	txs := types.NewTransactionsByPriceAndNonce(self.eth.TxPool().Pending())
+	txs := types.NewTransactionsByPriceAndNonce(self.siot.TxPool().Pending())
 	work.commitTransactions(self.mux, txs, self.gasPrice, self.chain)
 
-	self.eth.TxPool().RemoveBatch(work.lowGasTxs)
-	self.eth.TxPool().RemoveBatch(work.failedTxs)
+	self.siot.TxPool().RemoveBatch(work.lowGasTxs)
+	self.siot.TxPool().RemoveBatch(work.failedTxs)
 
 	// compute uncles for the new block.
 	var (

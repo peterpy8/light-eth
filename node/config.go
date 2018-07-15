@@ -1,19 +1,3 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
 package node
 
 import (
@@ -32,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/p2p/discv5"
 	"github.com/ethereum/go-ethereum/p2p/nat"
 )
 
@@ -96,19 +79,8 @@ type Config struct {
 	// or not. Disabling is usually useful for protocol debugging (manual topology).
 	NoDiscovery bool
 
-	// DiscoveryV5 specifies whether the the new topic-discovery based V5 discovery
-	// protocol should be started or not.
-	DiscoveryV5 bool
-
-	// Listener address for the V5 discovery protocol UDP traffic.
-	DiscoveryV5Addr string
-
 	// BootstrapNodes used to establish connectivity with the rest of the network.
 	BootstrapNodes []*discover.Node
-
-	// BootstrapNodesV5 used to establish connectivity with the rest of the network
-	// using the V5 discovery protocol.
-	BootstrapNodesV5 []*discv5.Node
 
 	// Network interface address on which the node should listen for inbound peers.
 	ListenAddr string
@@ -250,7 +222,6 @@ func DefaultWSEndpoint() string {
 // NodeName returns the devp2p node identifier.
 func (c *Config) NodeName() string {
 	name := c.name()
-	// Backwards compatibility: previous versions used title-cased "Geth", keep that.
 	if name == "siotchain" || name == "siotchain-testnet" {
 		name = "Siotchain"
 	}
@@ -277,7 +248,7 @@ func (c *Config) name() string {
 }
 
 // These resources are resolved differently for "siotchain" instances.
-var isOldGethResource = map[string]bool{
+var isOldResource = map[string]bool{
 	"chaindata":          true,
 	"nodes":              true,
 	"nodekey":            true,
@@ -295,7 +266,7 @@ func (c *Config) resolvePath(path string) string {
 	}
 	// Backwards-compatibility: ensure that data directory files created
 	// by siotchain 1.4 are used if they exist.
-	if c.name() == "siotchain" && isOldGethResource[path] {
+	if c.name() == "siotchain" && isOldResource[path] {
 		oldpath := ""
 		if c.Name == "siotchain" {
 			oldpath = filepath.Join(c.DataDir, path)
@@ -418,7 +389,7 @@ func makeAccountManager(conf *Config) (am *wallet.Manager, ephemeralKeystore str
 		keydir, err = filepath.Abs(conf.KeyStoreDir)
 	default:
 		// There is no datadir.
-		keydir, err = ioutil.TempDir("", "go-ethereum-keystore")
+		keydir, err = ioutil.TempDir("", "go-siotchain-keystore")
 		ephemeralKeystore = keydir
 	}
 	if err != nil {

@@ -79,7 +79,6 @@ participating.
 		utils.NATFlag,
 		utils.NatspecEnabledFlag,
 		utils.NoDiscoverFlag,
-		utils.DiscoveryV5Flag,
 		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
 		utils.RPCEnabledFlag,

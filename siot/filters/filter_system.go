@@ -1,4 +1,4 @@
-// Package filters implements an ethereum filtering system for block,
+// Package filters implements an Siotchain filtering system for block,
 // transactions and log events.
 package filters
 

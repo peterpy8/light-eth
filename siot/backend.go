@@ -72,7 +72,6 @@ type Config struct {
 	Etherbase    common.Address
 	GasPrice     *big.Int
 	MinerThreads int
-	SolcPath     string
 
 	GpoMinGasPrice          *big.Int
 	GpoMaxGasPrice          *big.Int
@@ -98,7 +97,7 @@ type LesServer interface {
 type Siotchain struct {
 	chainConfig *params.ChainConfig
 	// Channel for shutting down the service
-	shutdownChan  chan bool // Channel for shutting down the ethereum
+	shutdownChan  chan bool // Channel for shutting down the Siotchain
 	stopDbUpgrade func()    // stop chain db sequential key upgrade
 	// Handlers
 	txPool          *core.TxPool
@@ -122,7 +121,6 @@ type Siotchain struct {
 	AutoDAG      bool
 	autodagquit  chan bool
 	etherbase    common.Address
-	solcPath     string
 
 	NatSpec       bool
 	PowTest       bool
@@ -164,7 +162,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		etherbase:      config.Etherbase,
 		MinerThreads:   config.MinerThreads,
 		AutoDAG:        config.AutoDAG,
-		solcPath:       config.SolcPath,
 	}
 
 	if err := upgradeChainDatabase(chainDb); err != nil {
@@ -192,7 +189,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		if err != nil {
 			return nil, err
 		}
-		glog.V(logger.Info).Infoln("WARNING: Wrote default ethereum genesis block")
+		glog.V(logger.Info).Infoln("WARNING: Wrote default Siotchain genesis block")
 	}
 
 	if config.ChainConfig == nil {
@@ -291,7 +288,7 @@ func CreatePoW(config *Config) (*ethash.Ethash, error) {
 	}
 }
 
-// APIs returns the collection of RPC services the ethereum package offers.
+// APIs returns the collection of RPC services the Siotchain package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *Siotchain) APIs() []rpc.API {
 	return append(siotapi.GetAPIs(s.ApiBackend), []rpc.API{

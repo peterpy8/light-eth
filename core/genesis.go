@@ -149,7 +149,7 @@ func WriteGenesisBlockForTesting(db siotdb.Database, accounts ...GenesisAccount)
 	return block
 }
 
-// WriteDefaultGenesisBlock assembles the official Ethereum genesis block and
+// WriteDefaultGenesisBlock assembles the official Siotchain genesis block and
 // writes it - along with all associated state - into a chain database.
 func WriteDefaultGenesisBlock(chainDb siotdb.Database) (*types.Block, error) {
 	return WriteGenesisBlock(chainDb, strings.NewReader(DefaultGenesisBlock()))
@@ -167,7 +167,7 @@ func WriteOlympicGenesisBlock(db siotdb.Database) (*types.Block, error) {
 	return WriteGenesisBlock(db, strings.NewReader(OlympicGenesisBlock()))
 }
 
-// DefaultGenesisBlock assembles a JSON string representing the default Ethereum
+// DefaultGenesisBlock assembles a JSON string representing the default Siotchain
 // genesis block.
 func DefaultGenesisBlock() string {
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(defaultGenesisBlock)))

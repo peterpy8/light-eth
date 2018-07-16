@@ -7,12 +7,9 @@ GOBIN = build/bin
 GO ?= latest
 
 all:
-	build/env.sh go run build/ci.go install ./cmd/siotchain
-	build/env.sh go run build/ci.go install ./cmd/siotchain_cli
+	build/env.sh go run build/ci.go install ./client/siotchain
+	build/env.sh go run build/ci.go install ./client/siotchain_cli
 	@echo "Done building."
-
-test: all
-	build/env.sh go run build/ci.go test
 
 clean:
 	rm -fr build/_workspace/pkg/ $(GOBIN)/*

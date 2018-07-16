@@ -149,9 +149,9 @@ func doInstall(cmdline []string) {
 	goinstall.Args = append(goinstall.Args, packages...)
 	build.MustRun(goinstall)
 
-	if cmds, err := ioutil.ReadDir("cmd"); err == nil {
+	if cmds, err := ioutil.ReadDir("client"); err == nil {
 		for _, cmd := range cmds {
-			pkgs, err := parser.ParseDir(token.NewFileSet(), filepath.Join(".", "cmd", cmd.Name()), nil, parser.PackageClauseOnly)
+			pkgs, err := parser.ParseDir(token.NewFileSet(), filepath.Join(".", "client", cmd.Name()), nil, parser.PackageClauseOnly)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -160,7 +160,7 @@ func doInstall(cmdline []string) {
 					gobuild := goToolArch(*arch, "build", buildFlags(env)...)
 					gobuild.Args = append(gobuild.Args, "-v")
 					gobuild.Args = append(gobuild.Args, []string{"-o", executablePath(cmd.Name())}...)
-					gobuild.Args = append(gobuild.Args, "."+string(filepath.Separator)+filepath.Join("cmd", cmd.Name()))
+					gobuild.Args = append(gobuild.Args, "."+string(filepath.Separator)+filepath.Join("client", cmd.Name()))
 					build.MustRun(gobuild)
 					break
 				}

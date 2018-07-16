@@ -5,7 +5,7 @@ package main
 import (
 	"io"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
+	"github.com/ethereum/go-ethereum/client/utils"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -23,40 +23,45 @@ AUTHOR(S):
    {{range .App.Authors}}{{ . }}{{end}}
    {{end}}{{if .App.Commands}}
 COMMANDS:
-   init     Initialize a new genesis block
    help, h  Shows a list of commands or help for one cmd
    {{end}}
-SIOTCHAIN OPTIONS:
-  --dir value			  			 Target directory to save the databases and account keystore (default: "/home/vivid/.siotchain")
-  --networkport value       Network listening port (default: 10000)
-  --rpc                     Enable the HTTP-RPC server
-  --rpcport value           HTTP-RPC server listening port (default: 8800)
-  --chainnetwork value      Network identifier (default: 9876)
+SIOTCHAIN-CLI OPTIONS:
+  --rpcport value			HTTP-RPC server listening port (default: 8800)
+  --request value			Request for JSON RPC call, if no request specified, will go into the interactive mode
+REQUESTS SUPPORTED IN INTERACTIVE MODE:
+	getNodeInfo					Get information of the node
+	getAccounts					Get the address lists of all wallet of the node
+	getNewAccount [password]					Create a new account with password
+	unlockAccount [account addr] [password]					Unlock an account with password
+	getBalance [account addr]					Get the current balance of the account
+	connectPeer [peer url]					Connect to a peer (siot://[peerid]@127.0.0.1:10000)
+	getPeers					Get id lists of all connected peers
+	setMiner [account addr]					Set an account as miner
+	startMine					Start mining	
+	stopMine					Stop mining
+	sentAsset [sender addr] [receiver addr] [value]					Send transaction from one account to another with value set
 `
 
-	// flagGroup is a collection of flags belonging to a single topic.
-	type flagGroup struct {
-		Name  string
-		Flags []cli.Flag
-	}
+// flagGroup is a collection of flags belonging to a single topic.
+type flagGroup struct {
+	Name  string
+	Flags []cli.Flag
+}
 
-	// AppHelpFlagGroups is the application flags, grouped by functionality.
-	var AppHelpFlagGroups = []flagGroup{
-		{
-			Name: "SIOTCHAIN",
-			Flags: []cli.Flag{
-				utils.DataDirFlag,
-				utils.ListenPortFlag,
-				utils.RPCEnabledFlag,
-				utils.RPCPortFlag,
-				utils.NetworkIdFlag,
-			},
+// AppHelpFlagGroups is the application flags, grouped by functionality.
+var AppHelpFlagGroups = []flagGroup{
+	{
+		Name: "SIOTCHAIN-CLI",
+		Flags: []cli.Flag{
+			utils.RPCPortFlag,
+			utils.RequestFlag,
 		},
-	}
+	},
+}
 
-	func init() {
-		// Override the default app help template
-		cli.AppHelpTemplate = AppHelpTemplate
+func init() {
+	// Override the default app help template
+	cli.AppHelpTemplate = AppHelpTemplate
 
 	// Define a one shot struct to pass to the usage template
 	type helpData struct {

@@ -70,7 +70,7 @@ type peer struct {
 	getReceipts receiptFetcherFn // [siot/63] Method to retrieve a batch of block transaction receipts
 	getNodeData stateFetcherFn   // [siot/63] Method to retrieve a batch of state trie data
 
-	version int // Eth protocol version number to switch strategies
+	version int // Siot protocol version number to switch strategies
 	lock    sync.RWMutex
 }
 

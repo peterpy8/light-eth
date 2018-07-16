@@ -39,8 +39,8 @@ const (
 
 	eciesOverhead = 65 /* pubkey */ + 16 /* IV */ + 32 /* MAC */
 
-	encAuthMsgLen  = authMsgLen + eciesOverhead  // size of encrypted pre-EIP-8 initiator handshake
-	encAuthRespLen = authRespLen + eciesOverhead // size of encrypted pre-EIP-8 handshake reply
+	encAuthMsgLen  = authMsgLen + eciesOverhead
+	encAuthRespLen = authRespLen + eciesOverhead
 
 	// total timeout for encryption handshake and protocol
 	// handshake in both directions.

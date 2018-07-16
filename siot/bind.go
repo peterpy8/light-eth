@@ -26,7 +26,7 @@ type ExternalLogicBackend struct {
 }
 
 // NewExternalLogicBackend creates a new native externalLogic backend using an existing
-// Etheruem object.
+// Siotchain object.
 func NewExternalLogicBackend(apiBackend siotapi.Backend) *ExternalLogicBackend {
 	return &ExternalLogicBackend{
 		eapi:  siotapi.NewPublicSiotchainAPI(apiBackend),

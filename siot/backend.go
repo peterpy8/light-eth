@@ -69,7 +69,7 @@ type Config struct {
 	PowShared bool
 	ExtraData []byte
 
-	Etherbase    common.Address
+	MinerAddr    common.Address
 	GasPrice     *big.Int
 	MinerThreads int
 
@@ -120,7 +120,7 @@ type Siotchain struct {
 	MinerThreads int
 	AutoDAG      bool
 	autodagquit  chan bool
-	etherbase    common.Address
+	mineraddr    common.Address
 
 	NatSpec       bool
 	PowTest       bool
@@ -159,7 +159,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		netVersionId:   config.NetworkId,
 		NatSpec:        config.NatSpec,
 		PowTest:        config.PowTest,
-		etherbase:      config.Etherbase,
+		mineraddr:      config.MinerAddr,
 		MinerThreads:   config.MinerThreads,
 		AutoDAG:        config.AutoDAG,
 	}
@@ -211,7 +211,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 
 	maxPeers := config.MaxPeers
 	if config.LightServ > 0 {
-		// if we are running a light server, limit the number of ETH peers so that we reserve some space for incoming LES connections
+		// if we are running a light server, limit the number of Siot peers so that we reserve some space for incoming LES connections
 		// temporary solution until the new peer connectivity API is finished
 		halfPeers := maxPeers / 2
 		maxPeers -= config.LightPeers
@@ -295,7 +295,7 @@ func (s *Siotchain) APIs() []rpc.API {
 		{
 			Namespace: "siot",
 			Version:   "1.0",
-			Service:   NewPublicEthereumAPI(s),
+			Service:   NewPublicSiotchainAPI(s),
 			Public:    true,
 		}, {
 			Namespace: "siot",
@@ -329,28 +329,28 @@ func (s *Siotchain) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Siotchain) Etherbase() (eb common.Address, err error) {
-	eb = s.etherbase
+func (s *Siotchain) Mineraddr() (eb common.Address, err error) {
+	eb = s.mineraddr
 	if (eb == common.Address{}) {
 		firstAccount, err := s.AccountManager().AccountByIndex(0)
 		eb = firstAccount.Address
 		if err != nil {
-			return eb, fmt.Errorf("etherbase address must be explicitly specified")
+			return eb, fmt.Errorf("Miner address must be explicitly specified")
 		}
 	}
 	return eb, nil
 }
 
 // set in js console via admin interface or wrapper from cli flags
-func (self *Siotchain) SetMiner(etherbase common.Address) {
-	self.etherbase = etherbase
-	self.miner.SetMiner(etherbase)
+func (self *Siotchain) SetMiner(mineraddr common.Address) {
+	self.mineraddr = mineraddr
+	self.miner.SetMiner(mineraddr)
 }
 
 func (s *Siotchain) StartMining(threads int) error {
-	eb, err := s.Etherbase()
+	eb, err := s.Mineraddr()
 	if err != nil {
-		err = fmt.Errorf("Cannot start mining without etherbase address: %v", err)
+		err = fmt.Errorf("Cannot start mining without miner address: %v", err)
 		glog.V(logger.Error).Infoln(err)
 		return err
 	}

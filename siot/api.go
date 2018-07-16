@@ -22,8 +22,8 @@ import (
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
 

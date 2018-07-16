@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
 

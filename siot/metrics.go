@@ -2,7 +2,7 @@ package siot
 
 import (
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/ethereum/go-ethereum/net/p2p"
 )
 
 var (

@@ -26,7 +26,7 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/ethereum/go-ethereum/context"
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/p2p/nat"
 	"github.com/ethereum/go-ethereum/params"
@@ -84,7 +84,7 @@ var (
 	DataDirFlag = DirectoryFlag{
 		Name:  "dir",
 		Usage: "Target directory to save the databases and account keystore",
-		Value: DirectoryString{node.DefaultDataDir()},
+		Value: DirectoryString{context.DefaultDataDir()},
 	}
 	KeyStoreDirFlag = DirectoryFlag{
 		Name:  "keystore",
@@ -225,12 +225,12 @@ var (
 	RPCListenAddrFlag = cli.StringFlag{
 		Name:  "rpcip",
 		Usage: "HTTP-RPC server listening interface",
-		Value: node.DefaultHTTPHost,
+		Value: context.DefaultHTTPHost,
 	}
 	RPCPortFlag = cli.IntFlag{
 		Name:  "rpcport",
 		Usage: "HTTP-RPC server listening port",
-		Value: node.DefaultHTTPPort,
+		Value: context.DefaultHTTPPort,
 	}
 	RequestFlag = cli.StringFlag{
 		Name:  "request",
@@ -268,12 +268,12 @@ var (
 	WSListenAddrFlag = cli.StringFlag{
 		Name:  "wsaddr",
 		Usage: "WS-RPC server listening interface",
-		Value: node.DefaultWSHost,
+		Value: context.DefaultWSHost,
 	}
 	WSPortFlag = cli.IntFlag{
 		Name:  "wsport",
 		Usage: "WS-RPC server listening port",
-		Value: node.DefaultWSPort,
+		Value: context.DefaultWSPort,
 	}
 	WSApiFlag = cli.StringFlag{
 		Name:  "wsapi",
@@ -576,10 +576,10 @@ func MakePasswordList(ctx *cli.Context) []string {
 }
 
 // MakeNode configures a node with no services from cmd line flags.
-func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
+func MakeNode(ctx *cli.Context, name, gitCommit string) *context.Node {
 	vsn := Version
 
-	config := &node.Config{
+	config := &context.Config{
 		DataDir:           MakeDataDir(ctx),
 		KeyStoreDir:       ctx.GlobalString(KeyStoreDirFlag.Name),
 		PrivateKey:        MakeNodeKey(ctx),
@@ -609,7 +609,7 @@ func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 		config.MaxPeers = 0
 		config.ListenAddr = ":0"
 	}
-	stack, err := node.New(config)
+	stack, err := context.New(config)
 	if err != nil {
 		Fatalf("Failed to create the protocol stack: %v", err)
 	}
@@ -618,7 +618,7 @@ func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 
 // RegisterSiotService configures siot.Siotchain from cmd line flags and adds it to the
 // given node.
-func RegisterSiotService(ctx *cli.Context, stack *node.Node, extra []byte) {
+func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 	// Avoid conflicting network flags
 	networks, netFlags := 0, []cli.BoolFlag{DevModeFlag, TestNetFlag, OlympicFlag}
 	for _, flag := range netFlags {
@@ -684,7 +684,7 @@ func RegisterSiotService(ctx *cli.Context, stack *node.Node, extra []byte) {
 		state.MaxTrieCacheGen = uint16(gen)
 	}
 
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+	if err := stack.Register(func(ctx *context.ServiceContext) (context.Service, error) {
 		fullNode, err := siot.New(ctx, ethConf)
 		return fullNode, err
 	}); err != nil {
@@ -708,7 +708,7 @@ func SetupNetwork(ctx *cli.Context) {
 }
 
 // MakeChainConfig reads the chain configuration from the database in ctx.Datadir.
-func MakeChainConfig(ctx *cli.Context, stack *node.Node) *params.ChainConfig {
+func MakeChainConfig(ctx *cli.Context, stack *context.Node) *params.ChainConfig {
 	db := MakeChainDatabase(ctx, stack)
 	defer db.Close()
 
@@ -813,7 +813,7 @@ func ChainDbName(ctx *cli.Context) string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) siotdb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *context.Node) siotdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name)
 		handles = MakeDatabaseHandles()
@@ -828,7 +828,7 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) siotdb.Database {
 }
 
 // MakeChain creates a chain manager from set cmd line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb siotdb.Database) {
+func MakeChain(ctx *cli.Context, stack *context.Node) (chain *core.BlockChain, chainDb siotdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 

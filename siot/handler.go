@@ -751,9 +751,9 @@ func (self *ProtocolManager) txBroadcastLoop() {
 	}
 }
 
-// EthNodeInfo represents a short summary of the Siotchain sub-protocol metadata known
+// SiotNodeInfo represents a short summary of the Siotchain sub-protocol metadata known
 // about the host peer.
-type EthNodeInfo struct {
+type SiotNodeInfo struct {
 	Network    int         `json:"network"`    // Siotchain network ID (0=Olympic, 1=Frontier, 2=Morden)
 	Difficulty *big.Int    `json:"difficulty"` // Total difficulty of the host's blockchain
 	Genesis    common.Hash `json:"genesis"`    // SHA3 hash of the host's genesis block
@@ -761,9 +761,9 @@ type EthNodeInfo struct {
 }
 
 // NodeInfo retrieves some protocol metadata about the running host node.
-func (self *ProtocolManager) NodeInfo() *EthNodeInfo {
+func (self *ProtocolManager) NodeInfo() *SiotNodeInfo {
 	currentBlock := self.blockchain.CurrentBlock()
-	return &EthNodeInfo{
+	return &SiotNodeInfo{
 		Network:    self.networkId,
 		Difficulty: self.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64()),
 		Genesis:    self.blockchain.Genesis().Hash(),

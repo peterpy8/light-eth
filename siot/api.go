@@ -31,27 +31,27 @@ const defaultTraceTimeout = 5 * time.Second
 
 // PublicSiotchainAPI provides an API to access Siotchain full node-related
 // information.
-type PublicEthereumAPI struct {
+type PublicSiotchainAPI struct {
 	e *Siotchain
 }
 
-// NewPublicSiotchainAPI creates a new Etheruem protocol API for full nodes.
-func NewPublicEthereumAPI(e *Siotchain) *PublicEthereumAPI {
-	return &PublicEthereumAPI{e}
+// NewPublicSiotchainAPI creates a new Siotchain protocol API for full nodes.
+func NewPublicSiotchainAPI(e *Siotchain) *PublicSiotchainAPI {
+	return &PublicSiotchainAPI{e}
 }
 
-// Etherbase is the address that mining rewards will be send to
-func (s *PublicEthereumAPI) Etherbase() (common.Address, error) {
-	return s.e.Etherbase()
+// MinerAddr is the address that mining rewards will be send to
+func (s *PublicSiotchainAPI) Mineraddr() (common.Address, error) {
+	return s.e.Mineraddr()
 }
 
-// Coinbase is the address that mining rewards will be send to (alias for Etherbase)
-func (s *PublicEthereumAPI) Coinbase() (common.Address, error) {
-	return s.Etherbase()
+// Coinbase is the address that mining rewards will be send to (alias for MinerAddr)
+func (s *PublicSiotchainAPI) Coinbase() (common.Address, error) {
+	return s.Mineraddr()
 }
 
 // Hashrate returns the POW hashrate
-func (s *PublicEthereumAPI) Hashrate() *rpc.HexNumber {
+func (s *PublicSiotchainAPI) Hashrate() *rpc.HexNumber {
 	return rpc.NewHexNumber(s.e.Miner().HashRate())
 }
 
@@ -153,9 +153,9 @@ func (s *PrivateMinerAPI) SetGasPrice(gasPrice rpc.HexNumber) bool {
 	return true
 }
 
-// SetMiner sets the etherbase of the miner
-func (s *PrivateMinerAPI) SetMiner(etherbase common.Address) bool {
-	s.e.SetMiner(etherbase)
+// SetMiner sets the mineraddr of the miner
+func (s *PrivateMinerAPI) SetMiner(mineraddr common.Address) bool {
+	s.e.SetMiner(mineraddr)
 	return true
 }
 
@@ -180,16 +180,16 @@ func (s *PrivateMinerAPI) MakeDAG(blockNr rpc.BlockNumber) (bool, error) {
 	return true, nil
 }
 
-// PrivateAdminAPI is the collection of Etheruem full node-related APIs
+// PrivateAdminAPI is the collection of Siotchain full node-related APIs
 // exposed over the private admin endpoint.
 type PrivateAdminAPI struct {
-	eth *Siotchain
+	siot *Siotchain
 }
 
 // NewPrivateAdminAPI creates a new API definition for the full node private
 // admin methods of the Siotchain service.
-func NewPrivateAdminAPI(eth *Siotchain) *PrivateAdminAPI {
-	return &PrivateAdminAPI{eth: eth}
+func NewPrivateAdminAPI(siot *Siotchain) *PrivateAdminAPI {
+	return &PrivateAdminAPI{siot: siot}
 }
 
 // ExportChain exports the current blockchain into a local file.
@@ -202,7 +202,7 @@ func (api *PrivateAdminAPI) ExportChain(file string) (bool, error) {
 	defer out.Close()
 
 	// Export the blockchain
-	if err := api.eth.BlockChain().Export(out); err != nil {
+	if err := api.siot.BlockChain().Export(out); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -247,12 +247,12 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 			break
 		}
 
-		if hasAllBlocks(api.eth.BlockChain(), blocks) {
+		if hasAllBlocks(api.siot.BlockChain(), blocks) {
 			blocks = blocks[:0]
 			continue
 		}
 		// Import the batch and reset the buffer
-		if _, err := api.eth.BlockChain().InsertChain(blocks); err != nil {
+		if _, err := api.siot.BlockChain().InsertChain(blocks); err != nil {
 			return false, fmt.Errorf("batch %d: failed to insert: %v", batch, err)
 		}
 		blocks = blocks[:0]
@@ -260,32 +260,32 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 	return true, nil
 }
 
-// PublicDebugAPI is the collection of Etheruem full node APIs exposed
+// PublicDebugAPI is the collection of Siotchain full node APIs exposed
 // over the public debugging endpoint.
 type PublicDebugAPI struct {
-	eth *Siotchain
+	siot *Siotchain
 }
 
 // NewPublicDebugAPI creates a new API definition for the full node-
 // related public debug methods of the Siotchain service.
-func NewPublicDebugAPI(eth *Siotchain) *PublicDebugAPI {
-	return &PublicDebugAPI{eth: eth}
+func NewPublicDebugAPI(siot *Siotchain) *PublicDebugAPI {
+	return &PublicDebugAPI{siot: siot}
 }
 
 // DumpBlock retrieves the entire state of the database at a given block.
 func (api *PublicDebugAPI) DumpBlock(number uint64) (state.Dump, error) {
-	block := api.eth.BlockChain().GetBlockByNumber(number)
+	block := api.siot.BlockChain().GetBlockByNumber(number)
 	if block == nil {
 		return state.Dump{}, fmt.Errorf("block #%d not found", number)
 	}
-	stateDb, err := api.eth.BlockChain().StateAt(block.Root())
+	stateDb, err := api.siot.BlockChain().StateAt(block.Root())
 	if err != nil {
 		return state.Dump{}, err
 	}
 	return stateDb.RawDump(), nil
 }
 
-// PrivateDebugAPI is the collection of Etheruem full node APIs exposed over
+// PrivateDebugAPI is the collection of Siotchain full node APIs exposed over
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
 	config *params.ChainConfig

@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"encoding/hex"
 	"github.com/fatih/color"
-	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/ethereum/go-ethereum/net/p2p"
 	"encoding/json"
 	"bytes"
 	"golang.org/x/net/context"

@@ -6,8 +6,8 @@ import (
 	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/net/p2p"
+	"github.com/ethereum/go-ethereum/net/rpc"
 )
 
 // ServiceContext is a collection of service independent options inherited from

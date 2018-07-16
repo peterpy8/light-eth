@@ -5,7 +5,7 @@ import (
 
 	siot "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
 

@@ -1,7 +1,7 @@
 package params
 
 import (
-	"github.com/ethereum/go-ethereum/p2p/discover"
+	"github.com/ethereum/go-ethereum/net/p2p/discover"
 )
 
 // MainnetBootnodes are the siot node URLs of the P2P bootstrap nodes running on

@@ -7,9 +7,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/net/p2p"
+	"github.com/ethereum/go-ethereum/net/p2p/discover"
+	"github.com/ethereum/go-ethereum/net/rpc"
 	"github.com/rcrowley/go-metrics"
 )
 

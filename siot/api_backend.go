@@ -15,7 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/params"
-	rpc "github.com/ethereum/go-ethereum/rpc"
+	rpc "github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
 

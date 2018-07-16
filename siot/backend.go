@@ -148,7 +148,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		return nil, err
 	}
 
-	eth := &Siotchain{
+	siot := &Siotchain{
 		chainDb:        chainDb,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
@@ -197,17 +197,17 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 	}
 	core.WriteChainConfig(chainDb, genesis.Hash(), config.ChainConfig)
 
-	eth.chainConfig = config.ChainConfig
+	siot.chainConfig = config.ChainConfig
 
-	eth.blockchain, err = core.NewBlockChain(chainDb, eth.chainConfig, eth.pow, eth.EventMux())
+	siot.blockchain, err = core.NewBlockChain(chainDb, siot.chainConfig, siot.pow, siot.EventMux())
 	if err != nil {
 		if err == core.ErrNoGenesis {
 			return nil, fmt.Errorf(`No chain found. Please initialise a new chain using the "init" subcommand.`)
 		}
 		return nil, err
 	}
-	newPool := core.NewTxPool(eth.chainConfig, eth.EventMux(), eth.blockchain.State, eth.blockchain.GasLimit)
-	eth.txPool = newPool
+	newPool := core.NewTxPool(siot.chainConfig, siot.EventMux(), siot.blockchain.State, siot.blockchain.GasLimit)
+	siot.txPool = newPool
 
 	maxPeers := config.MaxPeers
 	if config.LightServ > 0 {
@@ -220,12 +220,12 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		}
 	}
 
-	if eth.protocolManager, err = NewProtocolManager(eth.chainConfig, config.FastSync, config.NetworkId, maxPeers, eth.eventMux, eth.txPool, eth.pow, eth.blockchain, chainDb); err != nil {
+	if siot.protocolManager, err = NewProtocolManager(siot.chainConfig, config.FastSync, config.NetworkId, maxPeers, siot.eventMux, siot.txPool, siot.pow, siot.blockchain, chainDb); err != nil {
 		return nil, err
 	}
-	eth.miner = miner.New(eth, eth.chainConfig, eth.EventMux(), eth.pow)
-	eth.miner.SetGasPrice(config.GasPrice)
-	eth.miner.SetExtra(config.ExtraData)
+	siot.miner = miner.New(siot, siot.chainConfig, siot.EventMux(), siot.pow)
+	siot.miner.SetGasPrice(config.GasPrice)
+	siot.miner.SetExtra(config.ExtraData)
 
 	gpoParams := &gasprice.GpoParams{
 		GpoMinGasPrice:          config.GpoMinGasPrice,
@@ -235,10 +235,10 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 		GpobaseStepUp:           config.GpobaseStepUp,
 		GpobaseCorrectionFactor: config.GpobaseCorrectionFactor,
 	}
-	gpo := gasprice.NewGasPriceOracle(eth.blockchain, chainDb, eth.eventMux, gpoParams)
-	eth.ApiBackend = &SiotApiBackend{eth, gpo}
+	gpo := gasprice.NewGasPriceOracle(siot.blockchain, chainDb, siot.eventMux, gpoParams)
+	siot.ApiBackend = &SiotApiBackend{siot, gpo}
 
-	return eth, nil
+	return siot, nil
 }
 
 // CreateDB creates the chain database.

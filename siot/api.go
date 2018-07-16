@@ -289,13 +289,13 @@ func (api *PublicDebugAPI) DumpBlock(number uint64) (state.Dump, error) {
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
 	config *params.ChainConfig
-	eth    *Siotchain
+	siot   *Siotchain
 }
 
 // NewPrivateDebugAPI creates a new API definition for the full node-related
 // private debug methods of the Siotchain service.
-func NewPrivateDebugAPI(config *params.ChainConfig, eth *Siotchain) *PrivateDebugAPI {
-	return &PrivateDebugAPI{config: config, eth: eth}
+func NewPrivateDebugAPI(config *params.ChainConfig, siot *Siotchain) *PrivateDebugAPI {
+	return &PrivateDebugAPI{config: config, siot: siot}
 }
 
 // BlockTraceResult is the returned value when replaying a block to check for
@@ -343,7 +343,7 @@ func (api *PrivateDebugAPI) TraceBlockFromFile(file string, config *vm.LogConfig
 // TraceBlockByNumber processes the block by canonical block number.
 func (api *PrivateDebugAPI) TraceBlockByNumber(number uint64, config *vm.LogConfig) BlockTraceResult {
 	// Fetch the block that we aim to reprocess
-	block := api.eth.BlockChain().GetBlockByNumber(number)
+	block := api.siot.BlockChain().GetBlockByNumber(number)
 	if block == nil {
 		return BlockTraceResult{Error: fmt.Sprintf("block #%d not found", number)}
 	}
@@ -359,7 +359,7 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(number uint64, config *vm.LogConf
 // TraceBlockByHash processes the block by hash.
 func (api *PrivateDebugAPI) TraceBlockByHash(hash common.Hash, config *vm.LogConfig) BlockTraceResult {
 	// Fetch the block that we aim to reprocess
-	block := api.eth.BlockChain().GetBlockByHash(hash)
+	block := api.siot.BlockChain().GetBlockByHash(hash)
 	if block == nil {
 		return BlockTraceResult{Error: fmt.Sprintf("block #%x not found", hash)}
 	}
@@ -376,7 +376,7 @@ func (api *PrivateDebugAPI) TraceBlockByHash(hash common.Hash, config *vm.LogCon
 func (api *PrivateDebugAPI) traceBlock(block *types.Block, logConfig *vm.LogConfig) (bool, []vm.StructLog, error) {
 	// Validate and reprocess the block
 	var (
-		blockchain = api.eth.BlockChain()
+		blockchain = api.siot.BlockChain()
 		validator  = blockchain.Validator()
 		processor  = blockchain.Processor()
 	)
@@ -468,20 +468,20 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.
 	}
 
 	// Retrieve the tx from the chain and the containing block
-	tx, blockHash, _, txIndex := core.GetTransaction(api.eth.ChainDb(), txHash)
+	tx, blockHash, _, txIndex := core.GetTransaction(api.siot.ChainDb(), txHash)
 	if tx == nil {
 		return nil, fmt.Errorf("transaction %x not found", txHash)
 	}
-	block := api.eth.BlockChain().GetBlockByHash(blockHash)
+	block := api.siot.BlockChain().GetBlockByHash(blockHash)
 	if block == nil {
 		return nil, fmt.Errorf("block %x not found", blockHash)
 	}
 	// Create the state database to mutate and eventually trace
-	parent := api.eth.BlockChain().GetBlock(block.ParentHash(), block.NumberU64()-1)
+	parent := api.siot.BlockChain().GetBlock(block.ParentHash(), block.NumberU64()-1)
 	if parent == nil {
 		return nil, fmt.Errorf("block parent %x not found", block.ParentHash())
 	}
-	stateDb, err := api.eth.BlockChain().StateAt(parent.Root())
+	stateDb, err := api.siot.BlockChain().StateAt(parent.Root())
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +496,7 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.
 		}
 		// Mutate the state if we haven't reached the tracing transaction yet
 		if uint64(idx) < txIndex {
-			vmenv := core.NewEnv(stateDb, api.config, api.eth.BlockChain(), msg, block.Header())
+			vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
 			_, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
 			if err != nil {
 				return nil, fmt.Errorf("mutation failed: %v", err)
@@ -505,7 +505,7 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.
 			continue
 		}
 		// Otherwise trace the transaction and return
-		vmenv := core.NewEnv(stateDb, api.config, api.eth.BlockChain(), msg, block.Header())
+		vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
 		ret, gas, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
 		if err != nil {
 			return nil, fmt.Errorf("tracing failed: %v", err)

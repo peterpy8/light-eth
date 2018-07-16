@@ -256,12 +256,6 @@ func CalcDifficulty(config *params.ChainConfig, time, parentTime uint64, parentN
 }
 
 func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {
-	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-2.mediawiki
-	// algorithm:
-	// diff = (parent_diff +
-	//         (parent_diff / 2048 * max(1 - (block_timestamp - parent_timestamp) // 10, -99))
-	//        ) + 2^(periodCount - 2)
-
 	bigTime := new(big.Int).SetUint64(time)
 	bigParentTime := new(big.Int).SetUint64(parentTime)
 
@@ -269,17 +263,14 @@ func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *
 	x := new(big.Int)
 	y := new(big.Int)
 
-	// 1 - (block_timestamp -parent_timestamp) // 10
 	x.Sub(bigTime, bigParentTime)
 	x.Div(x, big10)
 	x.Sub(common.Big1, x)
 
-	// max(1 - (block_timestamp - parent_timestamp) // 10, -99)))
 	if x.Cmp(bigMinus99) < 0 {
 		x.Set(bigMinus99)
 	}
 
-	// (parent_diff + parent_diff // 2048 * max(1 - (block_timestamp - parent_timestamp) // 10, -99))
 	y.Div(parentDiff, params.DifficultyBoundDivisor)
 	x.Mul(y, x)
 	x.Add(parentDiff, x)
@@ -294,7 +285,6 @@ func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *
 	periodCount.Div(periodCount, ExpDiffPeriod)
 
 	// the exponential factor, commonly referred to as "the bomb"
-	// diff = diff + 2^(periodCount - 2)
 	if periodCount.Cmp(common.Big1) > 0 {
 		y.Sub(periodCount, common.Big2)
 		y.Exp(common.Big2, y, nil)

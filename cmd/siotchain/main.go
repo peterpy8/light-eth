@@ -17,7 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/ethereum/go-ethereum/context"
 	"gopkg.in/urfave/cli.v1"
 	"github.com/ethereum/go-ethereum/wallet"
 )
@@ -184,7 +184,7 @@ func initGenesis(ctx *cli.Context) error {
 	return nil
 }
 
-func makeFullNode(ctx *cli.Context) *node.Node {
+func makeFullNode(ctx *cli.Context) *context.Node {
 	stack := utils.MakeNode(ctx, clientIdentifier, gitCommit)
 	utils.RegisterSiotService(ctx, stack, utils.MakeDefaultExtraData(clientIdentifier))
 	return stack
@@ -193,7 +193,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 // startNode boots up the system node and all registered protocols, after which
 // it unlocks any requested wallet, and starts the RPC/IPC interfaces and the
 // miner.
-func startNode(ctx *cli.Context, stack *node.Node) {
+func startNode(ctx *cli.Context, stack *context.Node) {
 	// Start up the node itself
 	utils.StartNode(stack)
 

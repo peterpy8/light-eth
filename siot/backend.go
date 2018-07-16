@@ -28,7 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/miner"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/ethereum/go-ethereum/context"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -134,7 +134,7 @@ func (s *Siotchain) AddLesServer(ls LesServer) {
 
 // New creates a new Siotchain object (including the
 // initialisation of the common Siotchain object)
-func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
+func New(ctx *context.ServiceContext, config *Config) (*Siotchain, error) {
 	chainDb, err := CreateDB(ctx, config, "chaindata")
 	if err != nil {
 		return nil, err
@@ -242,7 +242,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Siotchain, error) {
 }
 
 // CreateDB creates the chain database.
-func CreateDB(ctx *node.ServiceContext, config *Config, name string) (siotdb.Database, error) {
+func CreateDB(ctx *context.ServiceContext, config *Config, name string) (siotdb.Database, error) {
 	db, err := ctx.OpenDatabase(name, config.DatabaseCache, config.DatabaseHandles)
 	if db, ok := db.(*siotdb.LDBDatabase); ok {
 		db.Meter("siot/db/chaindata/")

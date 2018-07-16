@@ -44,7 +44,7 @@ type Transaction struct {
 type txdata struct {
 	AccountNonce    uint64
 	Price, GasLimit *big.Int
-	Recipient       *common.Address `rlp:"nil"` // nil means contract creation
+	Recipient       *common.Address `rlp:"nil"` // nil means externalLogic creation
 	Amount          *big.Int
 	Payload         []byte
 	V               *big.Int // signature
@@ -68,7 +68,7 @@ func NewTransaction(nonce uint64, to common.Address, amount, gasLimit, gasPrice 
 	return newTransaction(nonce, &to, amount, gasLimit, gasPrice, data)
 }
 
-func NewContractCreation(nonce uint64, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
+func NewExternalLogicCreation(nonce uint64, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
 	return newTransaction(nonce, nil, amount, gasLimit, gasPrice, data)
 }
 
@@ -175,7 +175,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	// Ensure that all fields are set. V, R, S are checked separately because they're a
 	// recent addition to the RPC spec (as of August 2016) and older implementations might
 	// not provide them. Note that Recipient is not checked because it can be missing for
-	// contract creations.
+	// externalLogic creations.
 	if dec.V == nil || dec.R == nil || dec.S == nil {
 		return errMissingTxSignatureFields
 	}
@@ -356,14 +356,14 @@ func (tx *Transaction) String() string {
 		from = fmt.Sprintf("%x", f[:])
 	}
 	if tx.data.Recipient == nil {
-		to = "[contract creation]"
+		to = "[externalLogic creation]"
 	} else {
 		to = fmt.Sprintf("%x", tx.data.Recipient[:])
 	}
 	enc, _ := rlp.EncodeToBytes(&tx.data)
 	return fmt.Sprintf(`
 	TX(%x)
-	Contract: %v
+	ExternalLogic: %v
 	From:     %s
 	To:       %s
 	Nonce:    %v

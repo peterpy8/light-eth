@@ -90,8 +90,8 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, gp *GasPool, s
 	receipt := types.NewReceipt(statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes(), usedGas)
 	receipt.TxHash = tx.Hash()
 	receipt.GasUsed = new(big.Int).Set(gas)
-	if MessageCreatesContract(msg) {
-		receipt.ContractAddress = crypto.CreateAddress(msg.From(), tx.Nonce())
+	if MessageCreatesExternalLogic(msg) {
+		receipt.ExternalLogicAddress = crypto.CreateAddress(msg.From(), tx.Nonce())
 	}
 
 	logs := statedb.GetLogs(tx.Hash())

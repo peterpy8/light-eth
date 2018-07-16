@@ -11,16 +11,16 @@ import (
 )
 
 // NodeIterator is an iterator to traverse the entire state trie post-order,
-// including all of the contract code and contract state tries.
+// including all of the externalLogic code and externalLogic state tries.
 type NodeIterator struct {
 	state *StateDB // State being iterated
 
 	stateIt *trie.NodeIterator // Primary iterator for the global state trie
-	dataIt  *trie.NodeIterator // Secondary iterator for the data trie of a contract
+	dataIt  *trie.NodeIterator // Secondary iterator for the data trie of a externalLogic
 
 	accountHash common.Hash // Hash of the node containing the account
-	codeHash    common.Hash // Hash of the contract source code
-	code        []byte      // Source code associated with a contract
+	codeHash    common.Hash // Hash of the externalLogic source code
+	code        []byte      // Source code associated with a externalLogic
 
 	Hash   common.Hash // Hash of the current entry being iterated (nil if not standalone)
 	Entry  interface{} // Current state entry being iterated (internal representation)

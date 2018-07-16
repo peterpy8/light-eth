@@ -8,7 +8,7 @@ import (
 
 var bigMaxUint64 = new(big.Int).SetUint64(^uint64(0))
 
-// destinations stores one map per contract (keyed by hash of code).
+// destinations stores one map per externalLogic (keyed by hash of code).
 // The maps contain an entry for each location of a JUMPDEST
 // instruction.
 type destinations map[common.Hash]map[uint64]struct{}

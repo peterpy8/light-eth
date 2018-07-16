@@ -27,7 +27,7 @@ type Receipt struct {
 
 	// Implementation fields (don't reorder!)
 	TxHash          common.Hash
-	ContractAddress common.Address
+	ExternalLogicAddress common.Address
 	GasUsed         *big.Int
 }
 
@@ -37,7 +37,7 @@ type jsonReceipt struct {
 	Bloom             *Bloom          `json:"logsBloom"`
 	Logs              *vm.Logs        `json:"logs"`
 	TxHash            *common.Hash    `json:"transactionHash"`
-	ContractAddress   *common.Address `json:"contractAddress"`
+	ExternalLogicAddress   *common.Address `json:"externalLogicAddress"`
 	GasUsed           *hexBig         `json:"gasUsed"`
 }
 
@@ -78,7 +78,7 @@ func (r *Receipt) MarshalJSON() ([]byte, error) {
 		Bloom:             &r.Bloom,
 		Logs:              &r.Logs,
 		TxHash:            &r.TxHash,
-		ContractAddress:   &r.ContractAddress,
+		ExternalLogicAddress:   &r.ExternalLogicAddress,
 		GasUsed:           (*hexBig)(r.GasUsed),
 	})
 }
@@ -91,7 +91,7 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 	}
 	// Ensure that all fields are set. PostState is checked separately because it is a
 	// recent addition to the RPC spec (as of August 2016) and older implementations might
-	// not provide it. Note that ContractAddress is not checked because it can be null.
+	// not provide it. Note that ExternalLogicAddress is not checked because it can be null.
 	if dec.PostState == nil {
 		return errMissingReceiptPostState
 	}
@@ -107,8 +107,8 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 		TxHash:            *dec.TxHash,
 		GasUsed:           (*big.Int)(dec.GasUsed),
 	}
-	if dec.ContractAddress != nil {
-		r.ContractAddress = *dec.ContractAddress
+	if dec.ExternalLogicAddress != nil {
+		r.ExternalLogicAddress = *dec.ExternalLogicAddress
 	}
 	return nil
 }
@@ -129,7 +129,7 @@ func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 	for i, log := range r.Logs {
 		logs[i] = (*vm.LogForStorage)(log)
 	}
-	return rlp.Encode(w, []interface{}{r.PostState, r.CumulativeGasUsed, r.Bloom, r.TxHash, r.ContractAddress, logs, r.GasUsed})
+	return rlp.Encode(w, []interface{}{r.PostState, r.CumulativeGasUsed, r.Bloom, r.TxHash, r.ExternalLogicAddress, logs, r.GasUsed})
 }
 
 // DecodeRLP implements rlp.Decoder, and loads both consensus and implementation
@@ -140,7 +140,7 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 		CumulativeGasUsed *big.Int
 		Bloom             Bloom
 		TxHash            common.Hash
-		ContractAddress   common.Address
+		ExternalLogicAddress   common.Address
 		Logs              []*vm.LogForStorage
 		GasUsed           *big.Int
 	}
@@ -154,7 +154,7 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 		r.Logs[i] = (*vm.Log)(log)
 	}
 	// Assign the implementation fields
-	r.TxHash, r.ContractAddress, r.GasUsed = receipt.TxHash, receipt.ContractAddress, receipt.GasUsed
+	r.TxHash, r.ExternalLogicAddress, r.GasUsed = receipt.TxHash, receipt.ExternalLogicAddress, receipt.GasUsed
 
 	return nil
 }

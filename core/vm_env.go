@@ -83,17 +83,17 @@ func (self *VMEnv) Transfer(from, to vm.Account, amount *big.Int) {
 	Transfer(from, to, amount)
 }
 
-func (self *VMEnv) Call(me vm.ContractRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error) {
+func (self *VMEnv) Call(me vm.ExternalLogicRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error) {
 	return Call(self, me, addr, data, gas, price, value)
 }
-func (self *VMEnv) CallCode(me vm.ContractRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error) {
+func (self *VMEnv) CallCode(me vm.ExternalLogicRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error) {
 	return CallCode(self, me, addr, data, gas, price, value)
 }
 
-func (self *VMEnv) DelegateCall(me vm.ContractRef, addr common.Address, data []byte, gas, price *big.Int) ([]byte, error) {
+func (self *VMEnv) DelegateCall(me vm.ExternalLogicRef, addr common.Address, data []byte, gas, price *big.Int) ([]byte, error) {
 	return DelegateCall(self, me, addr, data, gas, price)
 }
 
-func (self *VMEnv) Create(me vm.ContractRef, data []byte, gas, price, value *big.Int) ([]byte, common.Address, error) {
+func (self *VMEnv) Create(me vm.ExternalLogicRef, data []byte, gas, price, value *big.Int) ([]byte, common.Address, error) {
 	return Create(self, me, data, gas, price, value)
 }

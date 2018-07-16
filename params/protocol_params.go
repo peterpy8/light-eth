@@ -8,8 +8,8 @@ var (
 	SloadGas               = big.NewInt(50)     // Multiplied by the number of 32-byte words that are copied (round up) for any *COPY operation and added.
 	CallValueTransferGas   = big.NewInt(9000)   // Paid for CALL when the value transfer is non-zero.
 	CallNewAccountGas      = big.NewInt(25000)  // Paid for CALL when the destination address didn't exist prior.
-	TxGas                  = big.NewInt(21000)  // Per transaction not creating a contract. NOTE: Not payable on data of calls between transactions.
-	TxGasContractCreation  = big.NewInt(53000)  // Per transaction that creates a contract. NOTE: Not payable on data of calls between transactions.
+	TxGas                  = big.NewInt(21000)  // Per transaction not creating a externalLogic. NOTE: Not payable on data of calls between transactions.
+	TxGasExternalLogicCreation  = big.NewInt(53000)  // Per transaction that creates a externalLogic. NOTE: Not payable on data of calls between transactions.
 	TxDataZeroGas          = big.NewInt(4)      // Per byte of data attached to a transaction that equals zero. NOTE: Not payable on data of calls between transactions.
 	DifficultyBoundDivisor = big.NewInt(2048)   // The bound divisor of the difficulty, used in the update calculations.
 	QuadCoeffDiv           = big.NewInt(512)    // Divisor for the quadratic particle of the memory cost equation.
@@ -48,7 +48,7 @@ var (
 	StackLimit           = big.NewInt(1024)   // Maximum size of VM stack allowed.
 	TierStepGas          = big.NewInt(0)      // Once per operation, for a selection of them.
 	LogTopicGas          = big.NewInt(375)    // Multiplied by the * of the LOG*, per LOG transaction. e.g. LOG0 incurs 0 * c_txLogTopicGas, LOG4 incurs 4 * c_txLogTopicGas.
-	CreateGas            = big.NewInt(32000)  // Once per CREATE operation & contract-creation transaction.
+	CreateGas            = big.NewInt(32000)  // Once per CREATE operation & externalLogic-creation transaction.
 	SuicideRefundGas     = big.NewInt(24000)  // Refunded following a suicide operation.
 	MemoryGas            = big.NewInt(3)      // Times the address of the (highest referenced byte in memory + 1). NOTE: referencing happens on read, write and in instructions such as RETURN and CALL.
 	TxDataNonZeroGas     = big.NewInt(68)     // Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions.

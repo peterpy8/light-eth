@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 )
 
-// PrecompiledAccount represents a native Siotchain contract
+// PrecompiledAccount represents a native Siotchain externalLogic
 type PrecompiledAccount struct {
 	Gas func(l int) *big.Int
 	fn  func(in []byte) []byte
@@ -21,12 +21,12 @@ func (self PrecompiledAccount) Call(in []byte) []byte {
 	return self.fn(in)
 }
 
-// Precompiled contains the default set of Siotchain contracts
-var Precompiled = PrecompiledContracts()
+// Precompiled contains the default set of Siotchain externalLogics
+var Precompiled = PrecompiledExternalLogics()
 
-// PrecompiledContracts returns the default set of precompiled Siotchain
-// contracts defined by the Siotchain yellow paper.
-func PrecompiledContracts() map[string]*PrecompiledAccount {
+// PrecompiledExternalLogics returns the default set of precompiled Siotchain
+// externalLogics defined by the Siotchain yellow paper.
+func PrecompiledExternalLogics() map[string]*PrecompiledAccount {
 	return map[string]*PrecompiledAccount{
 		// ECRECOVER
 		string(common.LeftPadBytes([]byte{1}, 20)): &PrecompiledAccount{func(l int) *big.Int {

@@ -42,7 +42,7 @@ type revision struct {
 // StateDBs within the Siotchain protocol are used to store anything
 // within the merkle trie. StateDBs take care of caching and storing
 // nested states. It's the general query interface to retrieve:
-// * Contracts
+// * ExternalLogics
 // * Accounts
 type StateDB struct {
 	db            siotdb.Database
@@ -424,7 +424,7 @@ func (self *StateDB) createObject(addr common.Address) (newobj, prev *StateObjec
 // already exists the balance is carried over to the new account.
 //
 // CreateAccount is called during the EVM CREATE operation. The situation might arise that
-// a contract does the following:
+// a externalLogic does the following:
 //
 //   1. sends funds to sha(account ++ (nonce + 1))
 //   2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
@@ -578,7 +578,7 @@ func (s *StateDB) commit(dbw trie.DatabaseWriter, deleteEmptyObjects bool) (root
 			// and just mark it for deletion in the trie.
 			s.deleteStateObject(stateObject)
 		case isDirty:
-			// Write any contract code associated with the state object
+			// Write any externalLogic code associated with the state object
 			if stateObject.code != nil && stateObject.dirtyCode {
 				if err := dbw.Put(stateObject.CodeHash(), stateObject.code); err != nil {
 					return common.Hash{}, err

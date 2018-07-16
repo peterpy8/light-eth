@@ -49,14 +49,14 @@ type StructLog struct {
 // Note that reference types are actual VM data structures; make copies
 // if you need to retain them beyond the current call.
 type Tracer interface {
-	CaptureState(env Environment, pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error
+	CaptureState(env Environment, pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *Stack, externalLogic *ExternalLogic, depth int, err error) error
 }
 
 // StructLogger is an EVM state logger and implements Tracer.
 //
 // StructLogger can capture state based on the given Log configuration and also keeps
 // a track record of modified storage which is used in reporting snapshots of the
-// contract their storage.
+// externalLogic their storage.
 type StructLogger struct {
 	cfg LogConfig
 
@@ -78,16 +78,16 @@ func NewStructLogger(cfg *LogConfig) *StructLogger {
 // captureState logs a new structured log message and pushes it out to the environment
 //
 // captureState also tracks SSTORE ops to track dirty values.
-func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
+func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *Stack, externalLogic *ExternalLogic, depth int, err error) error {
 	// check if already accumulated the specified number of logs
 	if l.cfg.Limit != 0 && l.cfg.Limit <= len(l.logs) {
 		return TraceLimitReachedError
 	}
 
-	// initialise new changed values storage container for this contract
+	// initialise new changed values storage container for this externalLogic
 	// if not present.
-	if l.changedValues[contract.Address()] == nil {
-		l.changedValues[contract.Address()] = make(Storage)
+	if l.changedValues[externalLogic.Address()] == nil {
+		l.changedValues[externalLogic.Address()] = make(Storage)
 	}
 
 	// capture SSTORE opcodes and determine the changed value and store
@@ -100,7 +100,7 @@ func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, 
 			value   = common.BigToHash(stack.data[stack.len()-2])
 			address = common.BigToHash(stack.data[stack.len()-1])
 		)
-		l.changedValues[contract.Address()][address] = value
+		l.changedValues[externalLogic.Address()][address] = value
 	}
 
 	// copy a snapstot of the current memory state to a new buffer
@@ -126,16 +126,16 @@ func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, 
 	if !l.cfg.DisableStorage {
 		if l.cfg.FullStorage {
 			storage = make(Storage)
-			// Get the contract account and loop over each storage entry. This may involve looping over
+			// Get the externalLogic account and loop over each storage entry. This may involve looping over
 			// the trie and is a very expensive process.
-			env.Db().GetAccount(contract.Address()).ForEachStorage(func(key, value common.Hash) bool {
+			env.Db().GetAccount(externalLogic.Address()).ForEachStorage(func(key, value common.Hash) bool {
 				storage[key] = value
 				// Return true, indicating we'd like to continue.
 				return true
 			})
 		} else {
 			// copy a snapshot of the current storage to a new container.
-			storage = l.changedValues[contract.Address()].Copy()
+			storage = l.changedValues[externalLogic.Address()].Copy()
 		}
 	}
 	// create a new snaptshot of the EVM.

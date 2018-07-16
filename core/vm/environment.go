@@ -44,22 +44,22 @@ type Environment interface {
 	Depth() int
 	// Set the current calling depth
 	SetDepth(i int)
-	// Call another contract
-	Call(me ContractRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
-	// Take another's contract code and execute within our own context
-	CallCode(me ContractRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
+	// Call another externalLogic
+	Call(me ExternalLogicRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
+	// Take another's externalLogic code and execute within our own context
+	CallCode(me ExternalLogicRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
 	// Same as CallCode except sender and value is propagated from parent to child scope
-	DelegateCall(me ContractRef, addr common.Address, data []byte, gas, price *big.Int) ([]byte, error)
-	// Create a new contract
-	Create(me ContractRef, data []byte, gas, price, value *big.Int) ([]byte, common.Address, error)
+	DelegateCall(me ExternalLogicRef, addr common.Address, data []byte, gas, price *big.Int) ([]byte, error)
+	// Create a new externalLogic
+	Create(me ExternalLogicRef, data []byte, gas, price, value *big.Int) ([]byte, common.Address, error)
 }
 
 // Vm is the basic interface for an implementation of the EVM.
 type Vm interface {
-	// Run should execute the given contract with the input given in in
-	// and return the contract execution return bytes or an error if it
+	// Run should execute the given externalLogic with the input given in in
+	// and return the externalLogic execution return bytes or an error if it
 	// failed.
-	Run(c *Contract, in []byte) ([]byte, error)
+	Run(c *ExternalLogic, in []byte) ([]byte, error)
 }
 
 // Database is a EVM database for full state querying.
@@ -95,7 +95,7 @@ type Database interface {
 	Empty(common.Address) bool
 }
 
-// Account represents a contract or basic Siotchain account.
+// Account represents a externalLogic or basic Siotchain account.
 type Account interface {
 	SubBalance(amount *big.Int)
 	AddBalance(amount *big.Int)

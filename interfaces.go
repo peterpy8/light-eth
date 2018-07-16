@@ -59,7 +59,7 @@ type ChainReader interface {
 
 // ChainStateReader wraps access to the state trie of the canonical blockchain. Note that
 // implementations of the interface may be unable to return state values for old blocks.
-// In many cases, using CallContract can be preferable to reading raw contract storage.
+// In many cases, using CallExternalLogic can be preferable to reading raw externalLogic storage.
 type ChainStateReader interface {
 	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
 	StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error)
@@ -88,29 +88,29 @@ type ChainHeadEventer interface {
 	SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (Subscription, error)
 }
 
-// CallMsg contains parameters for contract calls.
+// CallMsg contains parameters for externalLogic calls.
 type CallMsg struct {
 	From     common.Address  // the sender of the 'transaction'
-	To       *common.Address // the destination contract (nil for contract creation)
+	To       *common.Address // the destination externalLogic (nil for externalLogic creation)
 	Gas      *big.Int        // if nil, the call executes with near-infinite gas
 	GasPrice *big.Int        // wei <-> gas exchange ratio
 	Value    *big.Int        // amount of wei sent along with the call
-	Data     []byte          // input data, usually an ABI-encoded contract method invocation
+	Data     []byte          // input data, usually an ABI-encoded externalLogic method invocation
 }
 
-// A ContractCaller provides contract calls, essentially transactions that are executed by
-// the EVM but not mined into the blockchain. ContractCall is a low-level method to
-// execute such calls. For applications which are structured around specific contracts,
+// A ExternalLogicCaller provides externalLogic calls, essentially transactions that are executed by
+// the EVM but not mined into the blockchain. ExternalLogicCall is a low-level method to
+// execute such calls. For applications which are structured around specific externalLogics,
 // the abigen tool provides a nicer, properly typed way to perform calls.
-type ContractCaller interface {
-	CallContract(ctx context.Context, call CallMsg, blockNumber *big.Int) ([]byte, error)
+type ExternalLogicCaller interface {
+	CallExternalLogic(ctx context.Context, call CallMsg, blockNumber *big.Int) ([]byte, error)
 }
 
 // FilterQuery contains options for contact log filtering.
 type FilterQuery struct {
 	FromBlock *big.Int         // beginning of the queried range, nil means genesis block
 	ToBlock   *big.Int         // end of the range, nil means latest block
-	Addresses []common.Address // restricts matches to events created by specific contracts
+	Addresses []common.Address // restricts matches to events created by specific externalLogics
 
 	// The Topic list restricts matches to particular event topics. Each event has a list
 	// of topics. Topics matches a prefix of that list. An empty element slice matches any
@@ -126,7 +126,7 @@ type FilterQuery struct {
 	Topics [][]common.Hash
 }
 
-// LogFilterer provides access to contract log events using a one-off query or continuous
+// LogFilterer provides access to externalLogic log events using a one-off query or continuous
 // event subscription.
 type LogFilterer interface {
 	FilterLogs(ctx context.Context, q FilterQuery) ([]vm.Log, error)
@@ -135,8 +135,8 @@ type LogFilterer interface {
 
 // TransactionSender wraps transaction sending. The SendTransaction method injects a
 // signed transaction into the pending transaction pool for execution. If the transaction
-// was a contract creation, the TransactionReceipt method can be used to retrieve the
-// contract address after the transaction has been mined.
+// was a externalLogic creation, the TransactionReceipt method can be used to retrieve the
+// externalLogic address after the transaction has been mined.
 //
 // The transaction must be signed and have a valid nonce to be included. Consumers of the
 // API can use package wallet to maintain local private keys and need can retrieve the
@@ -164,9 +164,9 @@ type PendingStateReader interface {
 	PendingTransactionCount(ctx context.Context) (uint, error)
 }
 
-// PendingContractCaller can be used to perform calls against the pending state.
-type PendingContractCaller interface {
-	PendingCallContract(ctx context.Context, call CallMsg) ([]byte, error)
+// PendingExternalLogicCaller can be used to perform calls against the pending state.
+type PendingExternalLogicCaller interface {
+	PendingCallExternalLogic(ctx context.Context, call CallMsg) ([]byte, error)
 }
 
 // GasEstimator wraps EstimateGas, which tries to estimate the gas needed to execute a

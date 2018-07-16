@@ -12,53 +12,53 @@ import (
 	"golang.org/x/net/context"
 )
 
-// ContractBackend implements bind.ContractBackend with direct calls to Siotchain
-// internals to support operating on contracts within subprotocols like siot and
+// ExternalLogicBackend implements bind.ExternalLogicBackend with direct calls to Siotchain
+// internals to support operating on externalLogics within subprotocols like siot and
 // swarm.
 //
 // Internally this backend uses the already exposed API endpoints of the Siotchain
 // object. These should be rewritten to internal Go method calls when the Go API
 // is refactored to support a clean library use.
-type ContractBackend struct {
+type ExternalLogicBackend struct {
 	eapi  *siotapi.PublicSiotchainAPI       // Wrapper around the Siotchain object to access metadata
 	bcapi *siotapi.PublicBlockChainAPI      // Wrapper around the blockchain to access chain data
 	txapi *siotapi.PublicTransactionPoolAPI // Wrapper around the transaction pool to access transaction data
 }
 
-// NewContractBackend creates a new native contract backend using an existing
+// NewExternalLogicBackend creates a new native externalLogic backend using an existing
 // Etheruem object.
-func NewContractBackend(apiBackend siotapi.Backend) *ContractBackend {
-	return &ContractBackend{
+func NewExternalLogicBackend(apiBackend siotapi.Backend) *ExternalLogicBackend {
+	return &ExternalLogicBackend{
 		eapi:  siotapi.NewPublicSiotchainAPI(apiBackend),
 		bcapi: siotapi.NewPublicBlockChainAPI(apiBackend),
 		txapi: siotapi.NewPublicTransactionPoolAPI(apiBackend),
 	}
 }
 
-// CodeAt retrieves any code associated with the contract from the local API.
-func (b *ContractBackend) CodeAt(ctx context.Context, contract common.Address, blockNum *big.Int) ([]byte, error) {
-	out, err := b.bcapi.GetCode(ctx, contract, toBlockNumber(blockNum))
+// CodeAt retrieves any code associated with the externalLogic from the local API.
+func (b *ExternalLogicBackend) CodeAt(ctx context.Context, externalLogic common.Address, blockNum *big.Int) ([]byte, error) {
+	out, err := b.bcapi.GetCode(ctx, externalLogic, toBlockNumber(blockNum))
 	return common.FromHex(out), err
 }
 
-// CodeAt retrieves any code associated with the contract from the local API.
-func (b *ContractBackend) PendingCodeAt(ctx context.Context, contract common.Address) ([]byte, error) {
-	out, err := b.bcapi.GetCode(ctx, contract, rpc.PendingBlockNumber)
+// CodeAt retrieves any code associated with the externalLogic from the local API.
+func (b *ExternalLogicBackend) PendingCodeAt(ctx context.Context, externalLogic common.Address) ([]byte, error) {
+	out, err := b.bcapi.GetCode(ctx, externalLogic, rpc.PendingBlockNumber)
 	return common.FromHex(out), err
 }
 
-// ContractCall implements bind.ContractCaller executing an Siotchain contract
+// ExternalLogicCall implements bind.ExternalLogicCaller executing an Siotchain externalLogic
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
-func (b *ContractBackend) CallContract(ctx context.Context, msg siotchain.CallMsg, blockNum *big.Int) ([]byte, error) {
+func (b *ExternalLogicBackend) CallExternalLogic(ctx context.Context, msg siotchain.CallMsg, blockNum *big.Int) ([]byte, error) {
 	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(blockNum))
 	return common.FromHex(out), err
 }
 
-// ContractCall implements bind.ContractCaller executing an Siotchain contract
+// ExternalLogicCall implements bind.ExternalLogicCaller executing an Siotchain externalLogic
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
-func (b *ContractBackend) PendingCallContract(ctx context.Context, msg siotchain.CallMsg) ([]byte, error) {
+func (b *ExternalLogicBackend) PendingCallExternalLogic(ctx context.Context, msg siotchain.CallMsg) ([]byte, error) {
 	out, err := b.bcapi.Call(ctx, toCallArgs(msg), rpc.PendingBlockNumber)
 	return common.FromHex(out), err
 }
@@ -88,32 +88,32 @@ func toBlockNumber(num *big.Int) rpc.BlockNumber {
 	return rpc.BlockNumber(num.Int64())
 }
 
-// PendingAccountNonce implements bind.ContractTransactor retrieving the current
+// PendingAccountNonce implements bind.ExternalLogicTransactor retrieving the current
 // pending nonce associated with an account.
-func (b *ContractBackend) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
+func (b *ExternalLogicBackend) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
 	out, err := b.txapi.GetTransactionCount(ctx, account, rpc.PendingBlockNumber)
 	return out.Uint64(), err
 }
 
-// SuggestGasPrice implements bind.ContractTransactor retrieving the currently
+// SuggestGasPrice implements bind.ExternalLogicTransactor retrieving the currently
 // suggested gas price to allow a timely execution of a transaction.
-func (b *ContractBackend) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
+func (b *ExternalLogicBackend) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
 	return b.eapi.GasPrice(ctx)
 }
 
-// EstimateGasLimit implements bind.ContractTransactor triing to estimate the gas
+// EstimateGasLimit implements bind.ExternalLogicTransactor triing to estimate the gas
 // needed to execute a specific transaction based on the current pending state of
 // the backend blockchain. There is no guarantee that this is the true gas limit
 // requirement as other transactions may be added or removed by miners, but it
 // should provide a basis for setting a reasonable default.
-func (b *ContractBackend) EstimateGas(ctx context.Context, msg siotchain.CallMsg) (*big.Int, error) {
+func (b *ExternalLogicBackend) EstimateGas(ctx context.Context, msg siotchain.CallMsg) (*big.Int, error) {
 	out, err := b.bcapi.EstimateGas(ctx, toCallArgs(msg))
 	return out.BigInt(), err
 }
 
-// SendTransaction implements bind.ContractTransactor injects the transaction
+// SendTransaction implements bind.ExternalLogicTransactor injects the transaction
 // into the pending pool for execution.
-func (b *ContractBackend) SendTransaction(ctx context.Context, tx *types.Transaction) error {
+func (b *ExternalLogicBackend) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	raw, _ := rlp.EncodeToBytes(tx)
 	_, err := b.txapi.SendRawTransaction(ctx, common.ToHex(raw))
 	return err

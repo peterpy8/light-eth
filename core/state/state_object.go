@@ -61,7 +61,7 @@ type StateObject struct {
 
 	// Write caches.
 	trie *trie.SecureTrie // storage trie, which becomes non-nil on first access
-	code Code             // contract bytecode, which gets set when code is loaded
+	code Code             // externalLogic bytecode, which gets set when code is loaded
 
 	cachedStorage Storage // Storage entry cache to avoid duplicate reads
 	dirtyStorage  Storage // Storage entries that need to be flushed to disk
@@ -273,12 +273,12 @@ func (self *StateObject) deepCopy(db *StateDB, onDirty func(addr common.Address)
 // Attribute accessors
 //
 
-// Returns the address of the contract/account
+// Returns the address of the externalLogic/account
 func (c *StateObject) Address() common.Address {
 	return c.address
 }
 
-// Code returns the contract code associated with this object, if any.
+// Code returns the externalLogic code associated with this object, if any.
 func (self *StateObject) Code(db trie.Database) []byte {
 	if self.code != nil {
 		return self.code
@@ -343,7 +343,7 @@ func (self *StateObject) Nonce() uint64 {
 }
 
 // Never called, but must be present to allow StateObject to be used
-// as a vm.Account interface that also satisfies the vm.ContractRef
+// as a vm.Account interface that also satisfies the vm.ExternalLogicRef
 // interface. Interfaces are awesome.
 func (self *StateObject) Value() *big.Int {
 	panic("Value on StateObject should never be called")

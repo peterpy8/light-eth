@@ -25,7 +25,7 @@ The state transitioning model does all all the necessary work to work out a vali
 2) Pre pay gas
 3) Create a new state object if the recipient is \0*32
 4) Value transfer
-== If contract creation ==
+== If externalLogic creation ==
   4a) Attempt to run transaction data
   4b) If valid, use result as code for the new state object
 == end ==
@@ -44,7 +44,7 @@ type StateTransition struct {
 	env vm.Environment
 }
 
-// Message represents a message sent to a contract.
+// Message represents a message sent to a externalLogic.
 type Message interface {
 	From() common.Address
 	//FromFrontier() (common.Address, error)
@@ -59,16 +59,16 @@ type Message interface {
 	Data() []byte
 }
 
-func MessageCreatesContract(msg Message) bool {
+func MessageCreatesExternalLogic(msg Message) bool {
 	return msg.To() == nil
 }
 
 // IntrinsicGas computes the 'intrinsic gas' for a message
 // with the given data.
-func IntrinsicGas(data []byte, contractCreation, homestead bool) *big.Int {
+func IntrinsicGas(data []byte, externalLogicCreation, homestead bool) *big.Int {
 	igas := new(big.Int)
-	if contractCreation && homestead {
-		igas.Set(params.TxGasContractCreation)
+	if externalLogicCreation && homestead {
+		igas.Set(params.TxGasExternalLogicCreation)
 	} else {
 		igas.Set(params.TxGas)
 	}
@@ -132,7 +132,7 @@ func (self *StateTransition) to() vm.Account {
 	}
 	to := self.msg.To()
 	if to == nil {
-		return nil // contract creation
+		return nil // externalLogic creation
 	}
 
 	if !self.state.Exist(*to) {
@@ -202,15 +202,15 @@ func (self *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *b
 	sender := self.from() // err checked in preCheck
 
 	homestead := self.env.ChainConfig().IsHomestead(self.env.BlockNumber())
-	contractCreation := MessageCreatesContract(msg)
+	externalLogicCreation := MessageCreatesExternalLogic(msg)
 	// Pay intrinsic gas
-	if err = self.useGas(IntrinsicGas(self.data, contractCreation, homestead)); err != nil {
+	if err = self.useGas(IntrinsicGas(self.data, externalLogicCreation, homestead)); err != nil {
 		return nil, nil, nil, InvalidTxError(err)
 	}
 
 	vmenv := self.env
 	//var addr common.Address
-	if contractCreation {
+	if externalLogicCreation {
 		ret, _, err = vmenv.Create(sender, self.data, self.gas, self.gasPrice, self.value)
 		if homestead && err == vm.CodeStoreOutOfGasError {
 			self.gas = Big0

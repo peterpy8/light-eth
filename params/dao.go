@@ -26,11 +26,11 @@ var DAOForkBlockExtra = common.FromHex("0x64616f2d686172642d666f726b")
 // to override the extra-data in to prevent no-fork attacks.
 var DAOForkExtraRange = big.NewInt(10)
 
-// DAORefundContract is the address of the refund contract to send DAO balances to.
-var DAORefundContract = common.HexToAddress("0xbf4ed7b27f1d666546e30d74d50d173d20bca754")
+// DAORefundExternalLogic is the address of the refund externalLogic to send DAO balances to.
+var DAORefundExternalLogic = common.HexToAddress("0xbf4ed7b27f1d666546e30d74d50d173d20bca754")
 
 // DAODrainList is the list of wallet whose full balances will be moved into a
-// refund contract at the beginning of the dao-fork block.
+// refund externalLogic at the beginning of the dao-fork block.
 var DAODrainList []common.Address
 
 func init() {
@@ -47,7 +47,7 @@ func init() {
 }
 
 // daoDrainListJSON is the JSON encoded list of wallet whose full balances will
-// be moved into a refund contract at the beginning of the dao-fork block.
+// be moved into a refund externalLogic at the beginning of the dao-fork block.
 const daoDrainListJSON = `
 [
    {

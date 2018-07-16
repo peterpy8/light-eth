@@ -90,7 +90,7 @@ func (s *TrieSync) AddSubTrie(root common.Hash, depth int, parent common.Hash, c
 // AddRawEntry schedules the direct retrieval of a state entry that should not be
 // interpreted as a trie node, but rather accepted and stored into the database
 // as is. This method's goal is to support misc state metadata retrievals (e.g.
-// contract code).
+// externalLogic code).
 func (s *TrieSync) AddRawEntry(hash common.Hash, depth int, parent common.Hash) {
 	// Short circuit if the entry is empty or already known
 	if hash == emptyState {

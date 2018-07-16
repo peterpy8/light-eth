@@ -18,7 +18,7 @@ var (
 	GasReturn = big.NewInt(0)
 	GasStop   = big.NewInt(0)
 
-	GasContractByte = big.NewInt(200)
+	GasExternalLogicByte = big.NewInt(200)
 
 	n64 = big.NewInt(64)
 )

@@ -43,12 +43,12 @@ func ValidateDAOHeaderExtraData(config *params.ChainConfig, header *types.Header
 
 // ApplyDAOHardFork modifies the state database according to the DAO hard-fork
 // rules, transferring all balances of a set of DAO wallet to a single refund
-// contract.
+// externalLogic.
 func ApplyDAOHardFork(statedb *state.StateDB) {
-	// Retrieve the contract to refund balances into
-	refund := statedb.GetOrNewStateObject(params.DAORefundContract)
+	// Retrieve the externalLogic to refund balances into
+	refund := statedb.GetOrNewStateObject(params.DAORefundExternalLogic)
 
-	// Move every DAO account and extra-balance account funds into the refund contract
+	// Move every DAO account and extra-balance account funds into the refund externalLogic
 	for _, addr := range params.DAODrainList {
 		if account := statedb.GetStateObject(addr); account != nil {
 			refund.AddBalance(account.Balance())

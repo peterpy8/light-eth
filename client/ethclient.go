@@ -299,7 +299,7 @@ func (ec *Client) StopMining(ctx context.Context) (bool, error) {
 
 
 
-// StorageAt returns the value of key in the contract storage of the given account.
+// StorageAt returns the value of key in the externalLogic storage of the given account.
 // The block number can be nil, in which case the value is taken from the latest known block.
 func (ec *Client) StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
 	var result rpc.HexBytes
@@ -307,7 +307,7 @@ func (ec *Client) StorageAt(ctx context.Context, account common.Address, key com
 	return result, err
 }
 
-// CodeAt returns the contract code of the given account.
+// CodeAt returns the externalLogic code of the given account.
 // The block number can be nil, in which case the code is taken from the latest known block.
 func (ec *Client) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
 	var result rpc.HexBytes
@@ -359,14 +359,14 @@ func (ec *Client) PendingBalanceAt(ctx context.Context, account common.Address) 
 	return (*big.Int)(&result), err
 }
 
-// PendingStorageAt returns the value of key in the contract storage of the given account in the pending state.
+// PendingStorageAt returns the value of key in the externalLogic storage of the given account in the pending state.
 func (ec *Client) PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error) {
 	var result rpc.HexBytes
 	err := ec.c.CallContext(ctx, &result, "siot_getStorageAt", account, key, "pending")
 	return result, err
 }
 
-// PendingCodeAt returns the contract code of the given account in the pending state.
+// PendingCodeAt returns the externalLogic code of the given account in the pending state.
 func (ec *Client) PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error) {
 	var result rpc.HexBytes
 	err := ec.c.CallContext(ctx, &result, "siot_getCode", account, "pending")
@@ -390,15 +390,15 @@ func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 
 // TODO: SubscribePendingTransactions (needs server side)
 
-// Contract Calling
+// ExternalLogic Calling
 
-// CallContract executes a message call transaction, which is directly executed in the VM
+// CallExternalLogic executes a message call transaction, which is directly executed in the VM
 // of the node, but never mined into the blockchain.
 //
 // blockNumber selects the block height at which the call runs. It can be nil, in which
 // case the code is taken from the latest known block. Note that state from very old
 // blocks might not be available.
-func (ec *Client) CallContract(ctx context.Context, msg siotchain.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (ec *Client) CallExternalLogic(ctx context.Context, msg siotchain.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex string
 	err := ec.c.CallContext(ctx, &hex, "siot_call", toCallArg(msg), toBlockNumArg(blockNumber))
 	if err != nil {
@@ -407,9 +407,9 @@ func (ec *Client) CallContract(ctx context.Context, msg siotchain.CallMsg, block
 	return common.FromHex(hex), nil
 }
 
-// PendingCallContract executes a message call transaction using the EVM.
-// The state seen by the contract call is the pending state.
-func (ec *Client) PendingCallContract(ctx context.Context, msg siotchain.CallMsg) ([]byte, error) {
+// PendingCallExternalLogic executes a message call transaction using the EVM.
+// The state seen by the externalLogic call is the pending state.
+func (ec *Client) PendingCallExternalLogic(ctx context.Context, msg siotchain.CallMsg) ([]byte, error) {
 	var hex string
 	err := ec.c.CallContext(ctx, &hex, "siot_call", toCallArg(msg), "pending")
 	if err != nil {
@@ -443,8 +443,8 @@ func (ec *Client) EstimateGas(ctx context.Context, msg siotchain.CallMsg) (*big.
 
 // SendTransaction injects a signed transaction into the pending pool for execution.
 //
-// If the transaction was a contract creation use the TransactionReceipt method to get the
-// contract address after the transaction has been mined.
+// If the transaction was a externalLogic creation use the TransactionReceipt method to get the
+// externalLogic address after the transaction has been mined.
 func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	data, err := rlp.EncodeToBytes(tx)
 	if err != nil {

@@ -66,7 +66,6 @@ func NewApp(gitCommit, usage string) *cli.App {
 	app := cli.NewApp()
 	app.Name = filepath.Base(os.Args[0])
 	app.Author = ""
-	//app.Authors = nil
 	app.Email = ""
 	app.Version = Version
 	app.Usage = usage
@@ -130,25 +129,6 @@ var (
 		Name:  "fast",
 		Usage: "Enable fast syncing through state downloads",
 	}
-	//LightModeFlag = cli.BoolFlag{
-	//	Name:  "light",
-	//	Usage: "Enable light client mode",
-	//}
-	//LightServFlag = cli.IntFlag{
-	//	Name:  "lightserv",
-	//	Usage: "Maximum percentage of time allowed for serving LES requests (0-90)",
-	//	Value: 0,
-	//}
-	//LightPeersFlag = cli.IntFlag{
-	//	Name:  "lightpeers",
-	//	Usage: "Maximum number of LES client peers",
-	//	Value: 20,
-	//}
-	//LightKDFFlag = cli.BoolFlag{
-	//	Name:  "lightkdf",
-	//	Usage: "Reduce key-derivation RAM & CPU usage at some expense of KDF strength",
-	//}
-	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
 		Name:  "cache",
 		Usage: "Megabytes of memory allocated to internal caching (min 16MB / database forced)",
@@ -602,7 +582,6 @@ func MakeNode(ctx *cli.Context, name, gitCommit string) *node.Node {
 	config := &node.Config{
 		DataDir:           MakeDataDir(ctx),
 		KeyStoreDir:       ctx.GlobalString(KeyStoreDirFlag.Name),
-		//UseLightweightKDF: ctx.GlobalBool(LightKDFFlag.Name),
 		PrivateKey:        MakeNodeKey(ctx),
 		Name:              name,
 		Version:           vsn,
@@ -707,10 +686,6 @@ func RegisterSiotService(ctx *cli.Context, stack *node.Node, extra []byte) {
 
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		fullNode, err := siot.New(ctx, ethConf)
-		//if fullNode != nil && ethConf.LightServ > 0 {
-		//	ls, _ := les.NewLesServer(fullNode, ethConf)
-		//	fullNode.AddLesServer(ls)
-		//}
 		return fullNode, err
 	}); err != nil {
 		Fatalf("Failed to register the Siotchain full node service: %v", err)
@@ -834,11 +809,7 @@ func MakeChainConfigFromDb(ctx *cli.Context, db siotdb.Database) *params.ChainCo
 }
 
 func ChainDbName(ctx *cli.Context) string {
-	//if ctx.GlobalBool(LightModeFlag.Name) {
-	//	return "lightchaindata"
-	//} else {
-		return "chaindata"
-	//}
+	return "chaindata"
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.

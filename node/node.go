@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/wallet"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/p2p"
@@ -638,27 +637,13 @@ func (n *Node) ResolvePath(x string) string {
 func (n *Node) apis() []rpc.API {
 	return []rpc.API{
 		{
-			Namespace: "admin",
+			Namespace: "manage",
 			Version:   "1.0",
 			Service:   NewPrivateAdminAPI(n),
 		}, {
-			Namespace: "admin",
+			Namespace: "manage",
 			Version:   "1.0",
 			Service:   NewPublicAdminAPI(n),
-			Public:    true,
-		}, {
-			Namespace: "debug",
-			Version:   "1.0",
-			Service:   debug.Handler,
-		}, {
-			Namespace: "debug",
-			Version:   "1.0",
-			Service:   NewPublicDebugAPI(n),
-			Public:    true,
-		}, {
-			Namespace: "web3",
-			Version:   "1.0",
-			Service:   NewPublicWeb3API(n),
 			Public:    true,
 		},
 	}

@@ -1,4 +1,5 @@
-// Package rle implements the run-length encoding used for SiotChain data.
+// Package rle implements the run-length encoding used for Siotchain data.
+
 package rle
 
 import (

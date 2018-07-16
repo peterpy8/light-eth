@@ -224,31 +224,31 @@ func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header)
 // TODO WEI: add client api to handle rpc call
 func (ec *Client) NodeInfoAt(ctx context.Context) (*p2p.NodeInfo, error) {
 	var result p2p.NodeInfo
-	err := ec.c.CallContext(ctx, &result, "admin_nodeInfo")
+	err := ec.c.CallContext(ctx, &result, "manage_nodeInfo")
 	return (*p2p.NodeInfo)(&result), err
 }
 
 func (ec *Client) ListAccountsAt(ctx context.Context) ([]rpc.HexBytes, error) {
 	var result []rpc.HexBytes
-	err := ec.c.CallContext(ctx, &result, "personal_listAccounts")
+	err := ec.c.CallContext(ctx, &result, "user_listAccounts")
 	return result, err
 }
 
 func (ec *Client) NewAccount(ctx context.Context, password string) (rpc.HexBytes, error) {
 	var result rpc.HexBytes
-	err := ec.c.CallContext(ctx, &result, "personal_newAccount", password)
+	err := ec.c.CallContext(ctx, &result, "user_newAccount", password)
 	return result, err
 }
 
 func (ec *Client) UnlockAccount(ctx context.Context, account common.Address, password string) (bool, error) {
 	var result bool
-	err := ec.c.CallContext(ctx, &result, "personal_unlockAccount", account, password)
+	err := ec.c.CallContext(ctx, &result, "user_unlockAccount", account, password)
 	return result, err
 }
 
 func (ec *Client) LockAccount(ctx context.Context) (common.Address, error) {
 	var result common.Address
-	err := ec.c.CallContext(ctx, &result, "personal_lockAccount")
+	err := ec.c.CallContext(ctx, &result, "user_lockAccount")
 	return result, err
 }
 // BalanceAt returns the wei balance of the given account.
@@ -269,13 +269,13 @@ func (ec *Client) SendAsset(ctx context.Context, sender common.Address, receiver
 
 func (ec *Client) AddPeer(ctx context.Context, url string) (bool, error) {
 	var result bool
-	err := ec.c.CallContext(ctx, &result, "admin_addPeer", url)
+	err := ec.c.CallContext(ctx, &result, "manage_addPeer", url)
 	return result, err
 }
 
 func (ec *Client) GetPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
 	var result []*p2p.PeerInfo
-	err := ec.c.CallContext(ctx, &result, "admin_peers")
+	err := ec.c.CallContext(ctx, &result, "manage_peers")
 	return result, err
 }
 

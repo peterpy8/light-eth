@@ -318,28 +318,10 @@ func (s *Siotchain) APIs() []rpc.API {
 			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
 			Public:    true,
 		}, {
-			Namespace: "admin",
+			Namespace: "manage",
 			Version:   "1.0",
 			Service:   NewPrivateAdminAPI(s),
-		}, {
-			Namespace: "debug",
-			Version:   "1.0",
-			Service:   NewPublicDebugAPI(s),
-			Public:    true,
-		}, {
-			Namespace: "debug",
-			Version:   "1.0",
-			Service:   NewPrivateDebugAPI(s.chainConfig, s),
-		}, {
-			Namespace: "net",
-			Version:   "1.0",
-			Service:   s.netRPCService,
-			Public:    true,
-		}, //{
-		//	Namespace: "admin",
-		//	Version:   "1.0",
-		//	Service:   ethreg.NewPrivateRegistarAPI(s.chainConfig, s.blockchain, s.chainDb, s.txPool, s.accountManager),
-		//},
+		},
 	}...)
 }
 

@@ -29,9 +29,9 @@ import (
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/context"
-	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/ethereum/go-ethereum/net/p2p"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/net/rpc"
 )
 
 const (

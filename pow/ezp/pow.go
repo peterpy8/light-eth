@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/pow"
@@ -81,14 +81,14 @@ func (pow *EasyPow) Verify(block pow.Block) bool {
 	return Verify(block)
 }
 
-func verify(hash common.Hash, diff *big.Int, nonce uint64) bool {
+func verify(hash helper.Hash, diff *big.Int, nonce uint64) bool {
 	sha := sha3.NewKeccak256()
 	n := make([]byte, 8)
 	binary.PutUvarint(n, nonce)
 	sha.Write(n)
 	sha.Write(hash[:])
-	verification := new(big.Int).Div(common.BigPow(2, 256), diff)
-	res := common.BigD(sha.Sum(nil))
+	verification := new(big.Int).Div(helper.BigPow(2, 256), diff)
+	res := helper.BigD(sha.Sum(nil))
 	return res.Cmp(verification) <= 0
 }
 

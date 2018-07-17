@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -46,9 +46,9 @@ type StateTransition struct {
 
 // Message represents a message sent to a externalLogic.
 type Message interface {
-	From() common.Address
-	//FromFrontier() (common.Address, error)
-	To() *common.Address
+	From() helper.Address
+	//FromFrontier() (helper.Address, error)
+	To() *helper.Address
 
 	GasPrice() *big.Int
 	Gas() *big.Int
@@ -209,7 +209,7 @@ func (self *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *b
 	}
 
 	vmenv := self.env
-	//var addr common.Address
+	//var addr helper.Address
 	if externalLogicCreation {
 		ret, _, err = vmenv.Create(sender, self.data, self.gas, self.gasPrice, self.value)
 		if homestead && err == vm.CodeStoreOutOfGasError {
@@ -254,8 +254,8 @@ func (self *StateTransition) refundGas() {
 	sender.AddBalance(remaining)
 
 	// Apply refund counter, capped to half of the used gas.
-	uhalf := remaining.Div(self.gasUsed(), common.Big2)
-	refund := common.BigMin(uhalf, self.state.GetRefund())
+	uhalf := remaining.Div(self.gasUsed(), helper.Big2)
+	refund := helper.BigMin(uhalf, self.state.GetRefund())
 	self.gas.Add(self.gas, refund)
 	self.state.AddBalance(sender.Address(), refund.Mul(refund, self.gasPrice))
 

@@ -4,10 +4,10 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/internal/siotapi"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
@@ -36,15 +36,15 @@ func NewExternalLogicBackend(apiBackend siotapi.Backend) *ExternalLogicBackend {
 }
 
 // CodeAt retrieves any code associated with the externalLogic from the local API.
-func (b *ExternalLogicBackend) CodeAt(ctx context.Context, externalLogic common.Address, blockNum *big.Int) ([]byte, error) {
+func (b *ExternalLogicBackend) CodeAt(ctx context.Context, externalLogic helper.Address, blockNum *big.Int) ([]byte, error) {
 	out, err := b.bcapi.GetCode(ctx, externalLogic, toBlockNumber(blockNum))
-	return common.FromHex(out), err
+	return helper.FromHex(out), err
 }
 
 // CodeAt retrieves any code associated with the externalLogic from the local API.
-func (b *ExternalLogicBackend) PendingCodeAt(ctx context.Context, externalLogic common.Address) ([]byte, error) {
+func (b *ExternalLogicBackend) PendingCodeAt(ctx context.Context, externalLogic helper.Address) ([]byte, error) {
 	out, err := b.bcapi.GetCode(ctx, externalLogic, rpc.PendingBlockNumber)
-	return common.FromHex(out), err
+	return helper.FromHex(out), err
 }
 
 // ExternalLogicCall implements bind.ExternalLogicCaller executing an Siotchain externalLogic
@@ -52,7 +52,7 @@ func (b *ExternalLogicBackend) PendingCodeAt(ctx context.Context, externalLogic 
 // against the pending block, not the stable head of the chain.
 func (b *ExternalLogicBackend) CallExternalLogic(ctx context.Context, msg siotchain.CallMsg, blockNum *big.Int) ([]byte, error) {
 	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(blockNum))
-	return common.FromHex(out), err
+	return helper.FromHex(out), err
 }
 
 // ExternalLogicCall implements bind.ExternalLogicCaller executing an Siotchain externalLogic
@@ -60,14 +60,14 @@ func (b *ExternalLogicBackend) CallExternalLogic(ctx context.Context, msg siotch
 // against the pending block, not the stable head of the chain.
 func (b *ExternalLogicBackend) PendingCallExternalLogic(ctx context.Context, msg siotchain.CallMsg) ([]byte, error) {
 	out, err := b.bcapi.Call(ctx, toCallArgs(msg), rpc.PendingBlockNumber)
-	return common.FromHex(out), err
+	return helper.FromHex(out), err
 }
 
 func toCallArgs(msg siotchain.CallMsg) siotapi.CallArgs {
 	args := siotapi.CallArgs{
 		To:   msg.To,
 		From: msg.From,
-		Data: common.ToHex(msg.Data),
+		Data: helper.ToHex(msg.Data),
 	}
 	if msg.Gas != nil {
 		args.Gas = *rpc.NewHexNumber(msg.Gas)
@@ -90,7 +90,7 @@ func toBlockNumber(num *big.Int) rpc.BlockNumber {
 
 // PendingAccountNonce implements bind.ExternalLogicTransactor retrieving the current
 // pending nonce associated with an account.
-func (b *ExternalLogicBackend) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
+func (b *ExternalLogicBackend) PendingNonceAt(ctx context.Context, account helper.Address) (uint64, error) {
 	out, err := b.txapi.GetTransactionCount(ctx, account, rpc.PendingBlockNumber)
 	return out.Uint64(), err
 }
@@ -115,6 +115,6 @@ func (b *ExternalLogicBackend) EstimateGas(ctx context.Context, msg siotchain.Ca
 // into the pending pool for execution.
 func (b *ExternalLogicBackend) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	raw, _ := rlp.EncodeToBytes(tx)
-	_, err := b.txapi.SendRawTransaction(ctx, common.ToHex(raw))
+	_, err := b.txapi.SendRawTransaction(ctx, helper.ToHex(raw))
 	return err
 }

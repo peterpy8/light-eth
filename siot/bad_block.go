@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 const (
@@ -30,7 +30,7 @@ func sendBadBlockReport(block *types.Block, err error) {
 	var (
 		blockRLP, _ = rlp.EncodeToBytes(block)
 		params      = map[string]interface{}{
-			"block":     common.Bytes2Hex(blockRLP),
+			"block":     helper.Bytes2Hex(blockRLP),
 			"blockHash": block.Hash().Hex(),
 			"errortype": err.Error(),
 			"client":    "go",

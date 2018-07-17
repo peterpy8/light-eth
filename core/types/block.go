@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 var (
@@ -65,12 +65,12 @@ func (n *BlockNonce) UnmarshalJSON(input []byte) error {
 
 // Header represents a block header in the Siotchain blockchain.
 type Header struct {
-	ParentHash  common.Hash    // Hash to the previous block
-	UncleHash   common.Hash    // Uncles of this block
-	Coinbase    common.Address // The coin base address
-	Root        common.Hash    // Block Trie state
-	TxHash      common.Hash    // Tx sha
-	ReceiptHash common.Hash    // Receipt sha
+	ParentHash  helper.Hash    // Hash to the previous block
+	UncleHash   helper.Hash    // Uncles of this block
+	Coinbase    helper.Address // The coin base address
+	Root        helper.Hash    // Block Trie state
+	TxHash      helper.Hash    // Tx sha
+	ReceiptHash helper.Hash    // Receipt sha
 	Bloom       Bloom          // Bloom
 	Difficulty  *big.Int       // Difficulty for the current block
 	Number      *big.Int       // The block number
@@ -78,17 +78,17 @@ type Header struct {
 	GasUsed     *big.Int       // Gas used
 	Time        *big.Int       // Creation time
 	Extra       []byte         // Extra data
-	MixDigest   common.Hash    // for quick difficulty verification
+	MixDigest   helper.Hash    // for quick difficulty verification
 	Nonce       BlockNonce
 }
 
 type jsonHeader struct {
-	ParentHash  *common.Hash    `json:"parentHash"`
-	UncleHash   *common.Hash    `json:"sha3Uncles"`
-	Coinbase    *common.Address `json:"miner"`
-	Root        *common.Hash    `json:"stateRoot"`
-	TxHash      *common.Hash    `json:"transactionsRoot"`
-	ReceiptHash *common.Hash    `json:"receiptsRoot"`
+	ParentHash  *helper.Hash    `json:"parentHash"`
+	UncleHash   *helper.Hash    `json:"sha3Uncles"`
+	Coinbase    *helper.Address `json:"miner"`
+	Root        *helper.Hash    `json:"stateRoot"`
+	TxHash      *helper.Hash    `json:"transactionsRoot"`
+	ReceiptHash *helper.Hash    `json:"receiptsRoot"`
 	Bloom       *Bloom          `json:"logsBloom"`
 	Difficulty  *hexBig         `json:"difficulty"`
 	Number      *hexBig         `json:"number"`
@@ -96,18 +96,18 @@ type jsonHeader struct {
 	GasUsed     *hexBig         `json:"gasUsed"`
 	Time        *hexBig         `json:"timestamp"`
 	Extra       *hexBytes       `json:"extraData"`
-	MixDigest   *common.Hash    `json:"mixHash"`
+	MixDigest   *helper.Hash    `json:"mixHash"`
 	Nonce       *BlockNonce     `json:"nonce"`
 }
 
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its
 // RLP encoding.
-func (h *Header) Hash() common.Hash {
+func (h *Header) Hash() helper.Hash {
 	return rlpHash(h)
 }
 
 // HashNoNonce returns the hash which is used as input for the proof-of-work search.
-func (h *Header) HashNoNonce() common.Hash {
+func (h *Header) HashNoNonce() helper.Hash {
 	return rlpHash([]interface{}{
 		h.ParentHash,
 		h.UncleHash,
@@ -184,7 +184,7 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func rlpHash(x interface{}) (h common.Hash) {
+func rlpHash(x interface{}) (h helper.Hash) {
 	hw := sha3.NewKeccak256()
 	rlp.Encode(hw, x)
 	hw.Sum(h[:0])
@@ -327,7 +327,7 @@ func (b *Block) DecodeRLP(s *rlp.Stream) error {
 		return err
 	}
 	b.header, b.uncles, b.transactions = eb.Header, eb.Uncles, eb.Txs
-	b.size.Store(common.StorageSize(rlp.ListSize(size)))
+	b.size.Store(helper.StorageSize(rlp.ListSize(size)))
 	return nil
 }
 
@@ -355,7 +355,7 @@ func (b *StorageBlock) DecodeRLP(s *rlp.Stream) error {
 func (b *Block) Uncles() []*Header          { return b.uncles }
 func (b *Block) Transactions() Transactions { return b.transactions }
 
-func (b *Block) Transaction(hash common.Hash) *Transaction {
+func (b *Block) Transaction(hash helper.Hash) *Transaction {
 	for _, transaction := range b.transactions {
 		if transaction.Hash() == hash {
 			return transaction
@@ -371,50 +371,50 @@ func (b *Block) Difficulty() *big.Int { return new(big.Int).Set(b.header.Difficu
 func (b *Block) Time() *big.Int       { return new(big.Int).Set(b.header.Time) }
 
 func (b *Block) NumberU64() uint64        { return b.header.Number.Uint64() }
-func (b *Block) MixDigest() common.Hash   { return b.header.MixDigest }
+func (b *Block) MixDigest() helper.Hash   { return b.header.MixDigest }
 func (b *Block) Nonce() uint64            { return binary.BigEndian.Uint64(b.header.Nonce[:]) }
 func (b *Block) Bloom() Bloom             { return b.header.Bloom }
-func (b *Block) Coinbase() common.Address { return b.header.Coinbase }
-func (b *Block) Root() common.Hash        { return b.header.Root }
-func (b *Block) ParentHash() common.Hash  { return b.header.ParentHash }
-func (b *Block) TxHash() common.Hash      { return b.header.TxHash }
-func (b *Block) ReceiptHash() common.Hash { return b.header.ReceiptHash }
-func (b *Block) UncleHash() common.Hash   { return b.header.UncleHash }
-func (b *Block) Extra() []byte            { return common.CopyBytes(b.header.Extra) }
+func (b *Block) Coinbase() helper.Address { return b.header.Coinbase }
+func (b *Block) Root() helper.Hash        { return b.header.Root }
+func (b *Block) ParentHash() helper.Hash  { return b.header.ParentHash }
+func (b *Block) TxHash() helper.Hash      { return b.header.TxHash }
+func (b *Block) ReceiptHash() helper.Hash { return b.header.ReceiptHash }
+func (b *Block) UncleHash() helper.Hash   { return b.header.UncleHash }
+func (b *Block) Extra() []byte            { return helper.CopyBytes(b.header.Extra) }
 
 func (b *Block) Header() *Header { return CopyHeader(b.header) }
 
 // Body returns the non-header content of the block.
 func (b *Block) Body() *Body { return &Body{b.transactions, b.uncles} }
 
-func (b *Block) HashNoNonce() common.Hash {
+func (b *Block) HashNoNonce() helper.Hash {
 	return b.header.HashNoNonce()
 }
 
-func (b *Block) Size() common.StorageSize {
+func (b *Block) Size() helper.StorageSize {
 	if size := b.size.Load(); size != nil {
-		return size.(common.StorageSize)
+		return size.(helper.StorageSize)
 	}
 	c := writeCounter(0)
 	rlp.Encode(&c, b)
-	b.size.Store(common.StorageSize(c))
-	return common.StorageSize(c)
+	b.size.Store(helper.StorageSize(c))
+	return helper.StorageSize(c)
 }
 
-type writeCounter common.StorageSize
+type writeCounter helper.StorageSize
 
 func (c *writeCounter) Write(b []byte) (int, error) {
 	*c += writeCounter(len(b))
 	return len(b), nil
 }
 
-func CalcUncleHash(uncles []*Header) common.Hash {
+func CalcUncleHash(uncles []*Header) helper.Hash {
 	return rlpHash(uncles)
 }
 
 // WithMiningResult returns a new block with the data from b
 // where nonce and mix digest are set to the provided values.
-func (b *Block) WithMiningResult(nonce uint64, mixDigest common.Hash) *Block {
+func (b *Block) WithMiningResult(nonce uint64, mixDigest helper.Hash) *Block {
 	cpy := *b.header
 	binary.BigEndian.PutUint64(cpy.Nonce[:], nonce)
 	cpy.MixDigest = mixDigest
@@ -441,9 +441,9 @@ func (b *Block) WithBody(transactions []*Transaction, uncles []*Header) *Block {
 
 // Hash returns the keccak256 hash of b's header.
 // The hash is computed on the first call and cached thereafter.
-func (b *Block) Hash() common.Hash {
+func (b *Block) Hash() helper.Hash {
 	if hash := b.hash.Load(); hash != nil {
-		return hash.(common.Hash)
+		return hash.(helper.Hash)
 	}
 	v := rlpHash(b.header)
 	b.hash.Store(v)

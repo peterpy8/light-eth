@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 )
@@ -33,7 +33,7 @@ type Node struct {
 	// possible to write tests that need a node at a certain distance.
 	// In those tests, the content of sha will not actually correspond
 	// with ID.
-	sha common.Hash
+	sha helper.Hash
 
 	// whether this node is currently being pinged in order to replace
 	// it in a bucket
@@ -275,7 +275,7 @@ func recoverNodeID(hash, sig []byte) (id NodeID, err error) {
 // distcmp compares the distances a->target and b->target.
 // Returns -1 if a is closer to target, 1 if b is closer to target
 // and 0 if they are equal.
-func distcmp(target, a, b common.Hash) int {
+func distcmp(target, a, b helper.Hash) int {
 	for i := range target {
 		da := a[i] ^ target[i]
 		db := b[i] ^ target[i]
@@ -325,7 +325,7 @@ var lzcount = [256]int{
 }
 
 // logdist returns the logarithmic distance between a and b, log2(a ^ b).
-func logdist(a, b common.Hash) int {
+func logdist(a, b helper.Hash) int {
 	lz := 0
 	for i := range a {
 		x := a[i] ^ b[i]
@@ -340,7 +340,7 @@ func logdist(a, b common.Hash) int {
 }
 
 // hashAtDistance returns a random hash such that logdist(a, b) == n
-func hashAtDistance(a common.Hash, n int) (b common.Hash) {
+func hashAtDistance(a helper.Hash, n int) (b helper.Hash) {
 	if n == 0 {
 		return a
 	}

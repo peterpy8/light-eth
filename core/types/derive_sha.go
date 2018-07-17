@@ -3,8 +3,8 @@ package types
 import (
 	"bytes"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 )
 
@@ -13,7 +13,7 @@ type DerivableList interface {
 	GetRlp(i int) []byte
 }
 
-func DeriveSha(list DerivableList) common.Hash {
+func DeriveSha(list DerivableList) helper.Hash {
 	keybuf := new(bytes.Buffer)
 	trie := new(trie.Trie)
 	for i := 0; i < list.Len(); i++ {

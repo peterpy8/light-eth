@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/client/utils"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/siot"
 	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/logger"
@@ -34,7 +34,7 @@ var (
 	// Git SHA1 commit hash of the release (set via linker flags)
 	gitCommit = ""
 	// Siotchain address of the siot release oracle.
-	relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
+	relOracle = helper.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
 	// The app that holds all commands and flags.
 	app = utils.NewApp(gitCommit, "the siotchain interactive mode cmd line interface")
 	requestmap = map[string]int{
@@ -244,7 +244,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 		if numofparams == requestmap["unlockaccount"] {
 			addrString, err := parseInput(chunks[1])
 			addr_common := stringAddrToCommonAddr(addrString)
-			result, err := client.UnlockAccount(ctx, common.Address(addr_common), chunks[2])
+			result, err := client.UnlockAccount(ctx, helper.Address(addr_common), chunks[2])
 			if err != nil {
 				fmt.Println(err)
 				break
@@ -263,7 +263,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 				break
 			}
 			addr_common := stringAddrToCommonAddr(addrString)
-			result, err := client.BalanceAt(ctx, common.Address(addr_common), nil)
+			result, err := client.BalanceAt(ctx, helper.Address(addr_common), nil)
 			if err != nil {
 				fmt.Println(err)
 				break
@@ -311,7 +311,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 				break
 			}
 			addr_common := stringAddrToCommonAddr(addrString)
-			_, minerErr := client.SetMiner(ctx, common.Address(addr_common))
+			_, minerErr := client.SetMiner(ctx, helper.Address(addr_common))
 			if minerErr != nil {
 				fmt.Println(err)
 				break
@@ -379,7 +379,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 				fmt.Println("SetString: error")
 				break
 			}
-			result, err := client.SendAsset(ctx, common.Address(sender_common), common.Address(receiver_common), value)
+			result, err := client.SendAsset(ctx, helper.Address(sender_common), helper.Address(receiver_common), value)
 			if err != nil {
 				fmt.Println(err)
 				break
@@ -418,7 +418,7 @@ func byteArrayToString(addr []byte) string {
 	return stringAddr
 }
 
-func stringAddrToCommonAddr(account string) common.Address {
+func stringAddrToCommonAddr(account string) helper.Address {
 	var addr_common [20]byte
 	addr, _ := hex.DecodeString(account)
 	for index, a := range addr {

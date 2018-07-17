@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -69,7 +69,7 @@ type subscription struct {
 	created   time.Time
 	logsCrit  FilterCriteria
 	logs      chan []Log
-	hashes    chan common.Hash
+	hashes    chan helper.Hash
 	headers   chan *types.Header
 	installed chan struct{} // closed when the filter is installed
 	err       chan error    // closed when the filter is uninstalled
@@ -161,7 +161,7 @@ func (es *EventSystem) SubscribeLogs(crit FilterCriteria, logs chan []Log) *Subs
 		logsCrit:  crit,
 		created:   time.Now(),
 		logs:      logs,
-		hashes:    make(chan common.Hash),
+		hashes:    make(chan helper.Hash),
 		headers:   make(chan *types.Header),
 		installed: make(chan struct{}),
 		err:       make(chan error),
@@ -179,7 +179,7 @@ func (es *EventSystem) SubscribePendingLogs(crit FilterCriteria, logs chan []Log
 		logsCrit:  crit,
 		created:   time.Now(),
 		logs:      logs,
-		hashes:    make(chan common.Hash),
+		hashes:    make(chan helper.Hash),
 		headers:   make(chan *types.Header),
 		installed: make(chan struct{}),
 		err:       make(chan error),
@@ -190,7 +190,7 @@ func (es *EventSystem) SubscribePendingLogs(crit FilterCriteria, logs chan []Log
 
 // SubscribePendingTxEvents creates a sbuscription that writes transaction hashes for
 // transactions that enter the transaction pool.
-func (es *EventSystem) SubscribePendingTxEvents(hashes chan common.Hash) *Subscription {
+func (es *EventSystem) SubscribePendingTxEvents(hashes chan helper.Hash) *Subscription {
 	sub := &subscription{
 		id:        rpc.NewID(),
 		typ:       PendingTransactionsSubscription,
@@ -213,7 +213,7 @@ func (es *EventSystem) SubscribeNewHeads(headers chan *types.Header) *Subscripti
 		typ:       BlocksSubscription,
 		created:   time.Now(),
 		logs:      make(chan []Log),
-		hashes:    make(chan common.Hash),
+		hashes:    make(chan helper.Hash),
 		headers:   headers,
 		installed: make(chan struct{}),
 		err:       make(chan error),
@@ -290,7 +290,7 @@ func (es *EventSystem) lightFilterNewHead(newHeader *types.Header, callBack func
 		return
 	}
 	newh := newHeader
-	// find common ancestor, create list of rolled back and new block hashes
+	// find helper ancestor, create list of rolled back and new block hashes
 	var oldHeaders, newHeaders []*types.Header
 	for oldh.Hash() != newh.Hash() {
 		if oldh.Number.Uint64() >= newh.Number.Uint64() {
@@ -317,7 +317,7 @@ func (es *EventSystem) lightFilterNewHead(newHeader *types.Header, callBack func
 }
 
 // filter logs of a single header in light client mode
-func (es *EventSystem) lightFilterLogs(header *types.Header, addresses []common.Address, topics [][]common.Hash, remove bool) []Log {
+func (es *EventSystem) lightFilterLogs(header *types.Header, addresses []helper.Address, topics [][]helper.Hash, remove bool) []Log {
 	//fmt.Println("lightFilterLogs", header.Number.Uint64(), remove)
 	if bloomFilter(header.Bloom, addresses, topics) {
 		//fmt.Println("bloom match")

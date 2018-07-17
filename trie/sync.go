@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
@@ -15,7 +15,7 @@ var ErrNotRequested = errors.New("not requested")
 
 // request represents a scheduled or already in-flight state retrieval request.
 type request struct {
-	hash common.Hash // Hash of the node data content to retrieve
+	hash helper.Hash // Hash of the node data content to retrieve
 	data []byte      // Data content of the node, cached until all subtrees complete
 	raw  bool        // Whether this is a raw entry (code) or a trie node
 
@@ -29,37 +29,37 @@ type request struct {
 // SyncResult is a simple list to return missing nodes along with their request
 // hashes.
 type SyncResult struct {
-	Hash common.Hash // Hash of the originally unknown trie node
+	Hash helper.Hash // Hash of the originally unknown trie node
 	Data []byte      // Data content of the retrieved node
 }
 
 // TrieSyncLeafCallback is a callback type invoked when a trie sync reaches a
 // leaf node. It's used by state syncing to check if the leaf node requires some
 // further data syncing.
-type TrieSyncLeafCallback func(leaf []byte, parent common.Hash) error
+type TrieSyncLeafCallback func(leaf []byte, parent helper.Hash) error
 
 // TrieSync is the main state trie synchronisation scheduler, which provides yet
 // unknown trie hashes to retrieve, accepts node data associated with said hashes
 // and reconstructs the trie step by step until all is done.
 type TrieSync struct {
 	database siotdb.Database          // State database for storing all the assembled node data
-	requests map[common.Hash]*request // Pending requests pertaining to a key hash
+	requests map[helper.Hash]*request // Pending requests pertaining to a key hash
 	queue    *prque.Prque             // Priority queue with the pending requests
 }
 
 // NewTrieSync creates a new trie data download scheduler.
-func NewTrieSync(root common.Hash, database siotdb.Database, callback TrieSyncLeafCallback) *TrieSync {
+func NewTrieSync(root helper.Hash, database siotdb.Database, callback TrieSyncLeafCallback) *TrieSync {
 	ts := &TrieSync{
 		database: database,
-		requests: make(map[common.Hash]*request),
+		requests: make(map[helper.Hash]*request),
 		queue:    prque.New(),
 	}
-	ts.AddSubTrie(root, 0, common.Hash{}, callback)
+	ts.AddSubTrie(root, 0, helper.Hash{}, callback)
 	return ts
 }
 
 // AddSubTrie registers a new trie to the sync code, rooted at the designated parent.
-func (s *TrieSync) AddSubTrie(root common.Hash, depth int, parent common.Hash, callback TrieSyncLeafCallback) {
+func (s *TrieSync) AddSubTrie(root helper.Hash, depth int, parent helper.Hash, callback TrieSyncLeafCallback) {
 	// Short circuit if the trie is empty or already known
 	if root == emptyRoot {
 		return
@@ -76,7 +76,7 @@ func (s *TrieSync) AddSubTrie(root common.Hash, depth int, parent common.Hash, c
 		callback: callback,
 	}
 	// If this sub-trie has a designated parent, link them together
-	if parent != (common.Hash{}) {
+	if parent != (helper.Hash{}) {
 		ancestor := s.requests[parent]
 		if ancestor == nil {
 			panic(fmt.Sprintf("sub-trie ancestor not found: %x", parent))
@@ -91,7 +91,7 @@ func (s *TrieSync) AddSubTrie(root common.Hash, depth int, parent common.Hash, c
 // interpreted as a trie node, but rather accepted and stored into the database
 // as is. This method's goal is to support misc state metadata retrievals (e.g.
 // externalLogic code).
-func (s *TrieSync) AddRawEntry(hash common.Hash, depth int, parent common.Hash) {
+func (s *TrieSync) AddRawEntry(hash helper.Hash, depth int, parent helper.Hash) {
 	// Short circuit if the entry is empty or already known
 	if hash == emptyState {
 		return
@@ -106,7 +106,7 @@ func (s *TrieSync) AddRawEntry(hash common.Hash, depth int, parent common.Hash) 
 		depth: depth,
 	}
 	// If this sub-trie has a designated parent, link them together
-	if parent != (common.Hash{}) {
+	if parent != (helper.Hash{}) {
 		ancestor := s.requests[parent]
 		if ancestor == nil {
 			panic(fmt.Sprintf("raw-entry ancestor not found: %x", parent))
@@ -118,10 +118,10 @@ func (s *TrieSync) AddRawEntry(hash common.Hash, depth int, parent common.Hash) 
 }
 
 // Missing retrieves the known missing nodes from the trie for retrieval.
-func (s *TrieSync) Missing(max int) []common.Hash {
-	requests := []common.Hash{}
+func (s *TrieSync) Missing(max int) []helper.Hash {
+	requests := []helper.Hash{}
 	for !s.queue.Empty() && (max == 0 || len(requests) < max) {
-		requests = append(requests, s.queue.PopItem().(common.Hash))
+		requests = append(requests, s.queue.PopItem().(helper.Hash))
 	}
 	return requests
 }
@@ -237,7 +237,7 @@ func (s *TrieSync) children(req *request, object node) ([]*request, error) {
 			}
 			// Locally unknown node, schedule for retrieval
 			requests = append(requests, &request{
-				hash:     common.BytesToHash(node),
+				hash:     helper.BytesToHash(node),
 				parents:  []*request{req},
 				depth:    child.depth,
 				callback: req.callback,

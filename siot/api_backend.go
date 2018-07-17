@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -78,22 +78,22 @@ func (b *SiotApiBackend) StateAndHeaderByNumber(ctx context.Context, blockNr rpc
 	return SiotApiState{stateDb}, header, err
 }
 
-func (b *SiotApiBackend) GetBlock(ctx context.Context, blockHash common.Hash) (*types.Block, error) {
+func (b *SiotApiBackend) GetBlock(ctx context.Context, blockHash helper.Hash) (*types.Block, error) {
 	return b.siot.blockchain.GetBlockByHash(blockHash), nil
 }
 
-func (b *SiotApiBackend) GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error) {
+func (b *SiotApiBackend) GetReceipts(ctx context.Context, blockHash helper.Hash) (types.Receipts, error) {
 	return core.GetBlockReceipts(b.siot.chainDb, blockHash, core.GetBlockNumber(b.siot.chainDb, blockHash)), nil
 }
 
-func (b *SiotApiBackend) GetTd(blockHash common.Hash) *big.Int {
+func (b *SiotApiBackend) GetTd(blockHash helper.Hash) *big.Int {
 	return b.siot.blockchain.GetTdByHash(blockHash)
 }
 
 func (b *SiotApiBackend) GetVMEnv(ctx context.Context, msg core.Message, state siotapi.State, header *types.Header) (vm.Environment, func() error, error) {
 	statedb := state.(SiotApiState).state
 	from := statedb.GetOrNewStateObject(msg.From())
-	from.SetBalance(common.MaxBig)
+	from.SetBalance(helper.MaxBig)
 	vmError := func() error { return nil }
 	return core.NewEnv(statedb, b.siot.chainConfig, b.siot.blockchain, msg, header), vmError, nil
 }
@@ -106,7 +106,7 @@ func (b *SiotApiBackend) SendTx(ctx context.Context, signedTx *types.Transaction
 	return b.siot.txPool.Add(signedTx)
 }
 
-func (b *SiotApiBackend) RemoveTx(txHash common.Hash) {
+func (b *SiotApiBackend) RemoveTx(txHash helper.Hash) {
 	b.siot.txMu.Lock()
 	defer b.siot.txMu.Unlock()
 
@@ -124,14 +124,14 @@ func (b *SiotApiBackend) GetPoolTransactions() types.Transactions {
 	return txs
 }
 
-func (b *SiotApiBackend) GetPoolTransaction(hash common.Hash) *types.Transaction {
+func (b *SiotApiBackend) GetPoolTransaction(hash helper.Hash) *types.Transaction {
 	b.siot.txMu.Lock()
 	defer b.siot.txMu.Unlock()
 
 	return b.siot.txPool.Get(hash)
 }
 
-func (b *SiotApiBackend) GetPoolNonce(ctx context.Context, addr common.Address) (uint64, error) {
+func (b *SiotApiBackend) GetPoolNonce(ctx context.Context, addr helper.Address) (uint64, error) {
 	b.siot.txMu.Lock()
 	defer b.siot.txMu.Unlock()
 
@@ -145,7 +145,7 @@ func (b *SiotApiBackend) Stats() (pending int, queued int) {
 	return b.siot.txPool.Stats()
 }
 
-func (b *SiotApiBackend) TxPoolContent() (map[common.Address]types.Transactions, map[common.Address]types.Transactions) {
+func (b *SiotApiBackend) TxPoolContent() (map[helper.Address]types.Transactions, map[helper.Address]types.Transactions) {
 	b.siot.txMu.Lock()
 	defer b.siot.txMu.Unlock()
 
@@ -180,18 +180,18 @@ type SiotApiState struct {
 	state *state.StateDB
 }
 
-func (s SiotApiState) GetBalance(ctx context.Context, addr common.Address) (*big.Int, error) {
+func (s SiotApiState) GetBalance(ctx context.Context, addr helper.Address) (*big.Int, error) {
 	return s.state.GetBalance(addr), nil
 }
 
-func (s SiotApiState) GetCode(ctx context.Context, addr common.Address) ([]byte, error) {
+func (s SiotApiState) GetCode(ctx context.Context, addr helper.Address) ([]byte, error) {
 	return s.state.GetCode(addr), nil
 }
 
-func (s SiotApiState) GetState(ctx context.Context, a common.Address, b common.Hash) (common.Hash, error) {
+func (s SiotApiState) GetState(ctx context.Context, a helper.Address, b helper.Hash) (helper.Hash, error) {
 	return s.state.GetState(a, b), nil
 }
 
-func (s SiotApiState) GetNonce(ctx context.Context, addr common.Address) (uint64, error) {
+func (s SiotApiState) GetNonce(ctx context.Context, addr helper.Address) (uint64, error) {
 	return s.state.GetNonce(addr), nil
 }

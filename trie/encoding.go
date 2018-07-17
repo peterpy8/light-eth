@@ -84,7 +84,7 @@ func decodeCompact(key []byte) []byte {
 	return res
 }
 
-// prefixLen returns the length of the common prefix of a and b.
+// prefixLen returns the length of the helper prefix of a and b.
 func prefixLen(a, b []byte) int {
 	var i, length = 0, len(a)
 	if len(b) < length {

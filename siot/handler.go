@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siot/downloader"
@@ -23,7 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/net/p2p/discover"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/pow"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 const (
@@ -325,11 +325,11 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if err := msg.Decode(&query); err != nil {
 			return errResp(ErrDecode, "%v: %v", msg, err)
 		}
-		hashMode := query.Origin.Hash != (common.Hash{})
+		hashMode := query.Origin.Hash != (helper.Hash{})
 
 		// Gather headers until the fetch or network limits is reached
 		var (
-			bytes   common.StorageSize
+			bytes   helper.StorageSize
 			headers []*types.Header
 			unknown bool
 		)
@@ -350,7 +350,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 
 			// Advance to the next header of the query
 			switch {
-			case query.Origin.Hash != (common.Hash{}) && query.Reverse:
+			case query.Origin.Hash != (helper.Hash{}) && query.Reverse:
 				// Hash based traversal towards the genesis block
 				for i := 0; i < int(query.Skip)+1; i++ {
 					if header := pm.blockchain.GetHeader(query.Origin.Hash, number); header != nil {
@@ -361,7 +361,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 						break
 					}
 				}
-			case query.Origin.Hash != (common.Hash{}) && !query.Reverse:
+			case query.Origin.Hash != (helper.Hash{}) && !query.Reverse:
 				// Hash based traversal towards the leaf block
 				var (
 					current = origin.Number.Uint64()
@@ -458,7 +458,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		// Gather blocks until the fetch or network limits is reached
 		var (
-			hash   common.Hash
+			hash   helper.Hash
 			bytes  int
 			bodies []rlp.RawValue
 		)
@@ -511,7 +511,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		// Gather state data until the fetch or network limits is reached
 		var (
-			hash  common.Hash
+			hash  helper.Hash
 			bytes int
 			data  [][]byte
 		)
@@ -549,7 +549,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		// Gather state data until the fetch or network limits is reached
 		var (
-			hash     common.Hash
+			hash     helper.Hash
 			bytes    int
 			receipts []rlp.RawValue
 		)
@@ -591,14 +591,14 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 	case msg.Code == NewBlockHashesMsg:
 		// Retrieve and deserialize the remote new block hashes notification
 		type announce struct {
-			Hash   common.Hash
+			Hash   helper.Hash
 			Number uint64
 		}
 		var announces = []announce{}
 
 		if p.version < eth62 {
 			// We're running the old protocol, make block number unknown (0)
-			var hashes []common.Hash
+			var hashes []helper.Hash
 			if err := msg.Decode(&hashes); err != nil {
 				return errResp(ErrDecode, "%v: %v", msg, err)
 			}
@@ -713,7 +713,7 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 	// Otherwise if the block is indeed in out own chain, announce it
 	if pm.blockchain.HasBlock(hash) {
 		for _, peer := range peers {
-			peer.SendNewBlockHashes([]common.Hash{hash}, []uint64{block.NumberU64()})
+			peer.SendNewBlockHashes([]helper.Hash{hash}, []uint64{block.NumberU64()})
 		}
 		glog.V(logger.Detail).Infof("announced block %x to %d peers in %v", hash[:4], len(peers), time.Since(block.ReceivedAt))
 	}
@@ -721,7 +721,7 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 
 // BroadcastTx will propagate a transaction to all peers which are not known to
 // already have the given transaction.
-func (pm *ProtocolManager) BroadcastTx(hash common.Hash, tx *types.Transaction) {
+func (pm *ProtocolManager) BroadcastTx(hash helper.Hash, tx *types.Transaction) {
 	// Broadcast transaction to a batch of peers not knowing about it
 	peers := pm.peers.PeersWithoutTx(hash)
 	//FIXME include this again: peers = peers[:int(math.Sqrt(float64(len(peers))))]
@@ -756,8 +756,8 @@ func (self *ProtocolManager) txBroadcastLoop() {
 type SiotNodeInfo struct {
 	Network    int         `json:"network"`    // Siotchain network ID (0=Olympic, 1=Frontier, 2=Morden)
 	Difficulty *big.Int    `json:"difficulty"` // Total difficulty of the host's blockchain
-	Genesis    common.Hash `json:"genesis"`    // SHA3 hash of the host's genesis block
-	Head       common.Hash `json:"head"`       // SHA3 hash of the host's best owned block
+	Genesis    helper.Hash `json:"genesis"`    // SHA3 hash of the host's genesis block
+	Head       helper.Hash `json:"head"`       // SHA3 hash of the host's best owned block
 }
 
 // NodeInfo retrieves some protocol metadata about the running host node.

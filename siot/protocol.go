@@ -5,9 +5,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 // Constants to match up protocol versions and messages
@@ -87,7 +87,7 @@ type txPool interface {
 
 	// Pending should return pending transactions.
 	// The slice should be modifiable by the caller.
-	Pending() map[common.Address]types.Transactions
+	Pending() map[helper.Address]types.Transactions
 }
 
 // statusData is the network packet for the status message.
@@ -95,13 +95,13 @@ type statusData struct {
 	ProtocolVersion uint32
 	NetworkId       uint32
 	TD              *big.Int
-	CurrentBlock    common.Hash
-	GenesisBlock    common.Hash
+	CurrentBlock    helper.Hash
+	GenesisBlock    helper.Hash
 }
 
 // newBlockHashesData is the network packet for the block announcements.
 type newBlockHashesData []struct {
-	Hash   common.Hash // Hash of one particular block being announced
+	Hash   helper.Hash // Hash of one particular block being announced
 	Number uint64      // Number of one particular block being announced
 }
 
@@ -115,14 +115,14 @@ type getBlockHeadersData struct {
 
 // hashOrNumber is a combined field for specifying an origin block.
 type hashOrNumber struct {
-	Hash   common.Hash // Block hash from which to retrieve headers (excludes Number)
+	Hash   helper.Hash // Block hash from which to retrieve headers (excludes Number)
 	Number uint64      // Block hash from which to retrieve headers (excludes Hash)
 }
 
 // EncodeRLP is a specialized encoder for hashOrNumber to encode only one of the
 // two contained union fields.
 func (hn *hashOrNumber) EncodeRLP(w io.Writer) error {
-	if hn.Hash == (common.Hash{}) {
+	if hn.Hash == (helper.Hash{}) {
 		return rlp.Encode(w, hn.Number)
 	}
 	if hn.Number != 0 {

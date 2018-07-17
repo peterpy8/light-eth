@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siot/downloader"
 	"github.com/ethereum/go-ethereum/logger"
@@ -57,7 +57,7 @@ func (pm *ProtocolManager) txsyncLoop() {
 	// send starts a sending a pack of transactions from the sync.
 	send := func(s *txsync) {
 		// Fill pack with transactions up to the target size.
-		size := common.StorageSize(0)
+		size := helper.StorageSize(0)
 		pack.p = s.p
 		pack.txs = pack.txs[:0]
 		for i := 0; i < len(s.txs) && size < txsyncPackSize; i++ {

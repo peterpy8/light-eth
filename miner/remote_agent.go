@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/ethereum/ethash"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 )
@@ -26,22 +26,22 @@ type RemoteAgent struct {
 	returnCh chan<- *Result
 
 	currentWork *Work
-	work        map[common.Hash]*Work
+	work        map[helper.Hash]*Work
 
 	hashrateMu sync.RWMutex
-	hashrate   map[common.Hash]hashrate
+	hashrate   map[helper.Hash]hashrate
 
 	running int32 // running indicates whether the agent is active. Call atomically
 }
 
 func NewRemoteAgent() *RemoteAgent {
 	return &RemoteAgent{
-		work:     make(map[common.Hash]*Work),
-		hashrate: make(map[common.Hash]hashrate),
+		work:     make(map[helper.Hash]*Work),
+		hashrate: make(map[helper.Hash]hashrate),
 	}
 }
 
-func (a *RemoteAgent) SubmitHashrate(id common.Hash, rate uint64) {
+func (a *RemoteAgent) SubmitHashrate(id helper.Hash, rate uint64) {
 	a.hashrateMu.Lock()
 	defer a.hashrateMu.Unlock()
 
@@ -98,13 +98,13 @@ func (a *RemoteAgent) GetWork() ([3]string, error) {
 
 		res[0] = block.HashNoNonce().Hex()
 		seedHash, _ := ethash.GetSeedHash(block.NumberU64())
-		res[1] = common.BytesToHash(seedHash).Hex()
+		res[1] = helper.BytesToHash(seedHash).Hex()
 		// Calculate the "target" to be returned to the external miner
 		n := big.NewInt(1)
 		n.Lsh(n, 255)
 		n.Div(n, block.Difficulty())
 		n.Lsh(n, 1)
-		res[2] = common.BytesToHash(n.Bytes()).Hex()
+		res[2] = helper.BytesToHash(n.Bytes()).Hex()
 
 		a.work[block.HashNoNonce()] = a.currentWork
 		return res, nil
@@ -113,7 +113,7 @@ func (a *RemoteAgent) GetWork() ([3]string, error) {
 }
 
 // Returns true or false, but does not indicate if the PoW was correct
-func (a *RemoteAgent) SubmitWork(nonce uint64, mixDigest, hash common.Hash) bool {
+func (a *RemoteAgent) SubmitWork(nonce uint64, mixDigest, hash helper.Hash) bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 

@@ -3,7 +3,7 @@ package trie
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 // MissingNodeError is returned by the trie functions (TryGet, TryUpdate, TryDelete)
@@ -25,7 +25,7 @@ import (
 // which further nodes should also be retrieved (can be zero when there are no
 // such hints in the error message)
 type MissingNodeError struct {
-	RootHash, NodeHash   common.Hash
+	RootHash, NodeHash   helper.Hash
 	Key                  []byte
 	PrefixLen, SuffixLen int
 }

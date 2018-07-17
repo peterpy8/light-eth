@@ -3,7 +3,7 @@ package state
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 type journalEntry interface {
@@ -15,32 +15,32 @@ type journal []journalEntry
 type (
 	// Changes to the account trie.
 	createObjectChange struct {
-		account *common.Address
+		account *helper.Address
 	}
 	resetObjectChange struct {
 		prev *StateObject
 	}
 	suicideChange struct {
-		account     *common.Address
+		account     *helper.Address
 		prev        bool // whether account had already suicided
 		prevbalance *big.Int
 	}
 
 	// Changes to individual wallet.
 	balanceChange struct {
-		account *common.Address
+		account *helper.Address
 		prev    *big.Int
 	}
 	nonceChange struct {
-		account *common.Address
+		account *helper.Address
 		prev    uint64
 	}
 	storageChange struct {
-		account       *common.Address
-		key, prevalue common.Hash
+		account       *helper.Address
+		key, prevalue helper.Hash
 	}
 	codeChange struct {
-		account            *common.Address
+		account            *helper.Address
 		prevcode, prevhash []byte
 	}
 
@@ -49,7 +49,7 @@ type (
 		prev *big.Int
 	}
 	addLogChange struct {
-		txhash common.Hash
+		txhash helper.Hash
 	}
 )
 
@@ -80,7 +80,7 @@ func (ch nonceChange) undo(s *StateDB) {
 }
 
 func (ch codeChange) undo(s *StateDB) {
-	s.GetStateObject(*ch.account).setCode(common.BytesToHash(ch.prevhash), ch.prevcode)
+	s.GetStateObject(*ch.account).setCode(helper.BytesToHash(ch.prevhash), ch.prevcode)
 }
 
 func (ch storageChange) undo(s *StateDB) {

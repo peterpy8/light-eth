@@ -40,7 +40,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -105,7 +105,7 @@ func freeCache(cache *cache) {
 	cache.ptr = nil
 }
 
-func (cache *cache) compute(dagSize uint64, hash common.Hash, nonce uint64) (ok bool, mixDigest, result common.Hash) {
+func (cache *cache) compute(dagSize uint64, hash helper.Hash, nonce uint64) (ok bool, mixDigest, result helper.Hash) {
 	ret := C.ethash_light_compute_internal(cache.ptr, C.uint64_t(dagSize), hashToH256(hash), C.uint64_t(nonce))
 	// Make sure cache is live until after the C call.
 	// This is important because a GC might happen and execute
@@ -142,7 +142,7 @@ func (l *Light) Verify(block pow.Block) bool {
 		 We could check the minimum valid difficulty but for SoC we avoid (duplicating)
 	   Ethereum protocol consensus rules here which are not in scope of Ethash
 	*/
-	if difficulty.Cmp(common.Big0) == 0 {
+	if difficulty.Cmp(helper.Big0) == 0 {
 		glog.V(logger.Debug).Infof("invalid block difficulty")
 		return false
 	}
@@ -168,11 +168,11 @@ func (l *Light) Verify(block pow.Block) bool {
 	return result.Big().Cmp(target) <= 0
 }
 
-func h256ToHash(in C.ethash_h256_t) common.Hash {
-	return *(*common.Hash)(unsafe.Pointer(&in.b))
+func h256ToHash(in C.ethash_h256_t) helper.Hash {
+	return *(*helper.Hash)(unsafe.Pointer(&in.b))
 }
 
-func hashToH256(in common.Hash) C.ethash_h256_t {
+func hashToH256(in helper.Hash) C.ethash_h256_t {
 	return C.ethash_h256_t{b: *(*[32]C.uint8_t)(unsafe.Pointer(&in[0]))}
 }
 
@@ -433,7 +433,7 @@ func GetSeedHash(blockNum uint64) ([]byte, error) {
 	return sh[:], nil
 }
 
-func makeSeedHash(epoch uint64) (sh common.Hash) {
+func makeSeedHash(epoch uint64) (sh helper.Hash) {
 	for ; epoch > 0; epoch-- {
 		sh = crypto.Sha3Hash(sh[:])
 	}

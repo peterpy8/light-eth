@@ -14,11 +14,11 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -30,7 +30,7 @@ func Keccak256(data ...[]byte) []byte {
 	return d.Sum(nil)
 }
 
-func Keccak256Hash(data ...[]byte) (h common.Hash) {
+func Keccak256Hash(data ...[]byte) (h helper.Hash) {
 	d := sha3.NewKeccak256()
 	for _, b := range data {
 		d.Write(b)
@@ -41,12 +41,12 @@ func Keccak256Hash(data ...[]byte) (h common.Hash) {
 
 // Deprecated: For backward compatibility as other packages depend on these
 func Sha3(data ...[]byte) []byte          { return Keccak256(data...) }
-func Sha3Hash(data ...[]byte) common.Hash { return Keccak256Hash(data...) }
+func Sha3Hash(data ...[]byte) helper.Hash { return Keccak256Hash(data...) }
 
 // Creates a siotchain address given the bytes and the nonce
-func CreateAddress(b common.Address, nonce uint64) common.Address {
+func CreateAddress(b helper.Address, nonce uint64) helper.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(data)[12:])
+	return helper.BytesToAddress(Keccak256(data)[12:])
 }
 
 func Sha256(data []byte) []byte {
@@ -80,7 +80,7 @@ func ToECDSA(prv []byte) *ecdsa.PrivateKey {
 
 	priv := new(ecdsa.PrivateKey)
 	priv.PublicKey.Curve = secp256k1.S256()
-	priv.D = common.BigD(prv)
+	priv.D = helper.BigD(prv)
 	priv.PublicKey.X, priv.PublicKey.Y = secp256k1.S256().ScalarBaseMult(prv)
 	return priv
 }
@@ -152,7 +152,7 @@ func GenerateKey() (*ecdsa.PrivateKey, error) {
 }
 
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
-	if r.Cmp(common.Big1) < 0 || s.Cmp(common.Big1) < 0 {
+	if r.Cmp(helper.Big1) < 0 || s.Cmp(helper.Big1) < 0 {
 		return false
 	}
 	vint := uint32(v)
@@ -196,7 +196,7 @@ func Sign(data []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		return nil, fmt.Errorf("hash is required to be exactly 32 bytes (%d)", len(data))
 	}
 
-	seckey := common.LeftPadBytes(prv.D.Bytes(), prv.Params().BitSize/8)
+	seckey := helper.LeftPadBytes(prv.D.Bytes(), prv.Params().BitSize/8)
 	defer zeroBytes(seckey)
 	sig, err = secp256k1.Sign(data, seckey)
 	return
@@ -225,9 +225,9 @@ func Decrypt(prv *ecdsa.PrivateKey, ct []byte) ([]byte, error) {
 	return key.Decrypt(rand.Reader, ct, nil, nil)
 }
 
-func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
+func PubkeyToAddress(p ecdsa.PublicKey) helper.Address {
 	pubBytes := FromECDSAPub(&p)
-	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+	return helper.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
 
 func zeroBytes(bytes []byte) {

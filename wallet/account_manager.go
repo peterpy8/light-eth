@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -27,7 +27,7 @@ var (
 // Account represents a stored key.
 // When used as an argument, it selects a unique key file to act on.
 type Account struct {
-	Address common.Address // Siotchain account address derived from the key
+	Address helper.Address // Siotchain account address derived from the key
 
 	// File contains the key file name.
 	// When Acccount is used as an argument to select a key, File can be left blank to
@@ -49,7 +49,7 @@ type Manager struct {
 	cache    *addrCache
 	keyStore keyStore
 	mu       sync.RWMutex
-	unlocked map[common.Address]*unlocked
+	unlocked map[helper.Address]*unlocked
 }
 
 type unlocked struct {
@@ -75,7 +75,7 @@ func NewPlaintextManager(keydir string) *Manager {
 }
 
 func (am *Manager) init(keydir string) {
-	am.unlocked = make(map[common.Address]*unlocked)
+	am.unlocked = make(map[helper.Address]*unlocked)
 	am.cache = newAddrCache(keydir)
 	// TODO: In order for this finalizer to work, there must be no references
 	// to am. addrCache doesn't keep a reference but unlocked keys do,
@@ -86,7 +86,7 @@ func (am *Manager) init(keydir string) {
 }
 
 // HasAddress reports whether a key with the given address is present.
-func (am *Manager) HasAddress(addr common.Address) bool {
+func (am *Manager) HasAddress(addr helper.Address) bool {
 	return am.cache.hasAddress(addr)
 }
 
@@ -122,7 +122,7 @@ func (am *Manager) DeleteAccount(a Account, passphrase string) error {
 // Note, Siotchain signatures have a particular format as described in the
 // yellow paper. Use the SignSiotchain function to calculate a signature
 // in Siotchain format.
-func (am *Manager) Sign(addr common.Address, hash []byte) ([]byte, error) {
+func (am *Manager) Sign(addr helper.Address, hash []byte) ([]byte, error) {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
 	unlockedKey, found := am.unlocked[addr]
@@ -133,7 +133,7 @@ func (am *Manager) Sign(addr common.Address, hash []byte) ([]byte, error) {
 }
 
 // SignSiotchain calculates a ECDSA signature for the given hash.
-func (am *Manager) SignSiotchain(addr common.Address, hash []byte) ([]byte, error) {
+func (am *Manager) SignSiotchain(addr helper.Address, hash []byte) ([]byte, error) {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
 	unlockedKey, found := am.unlocked[addr]
@@ -145,7 +145,7 @@ func (am *Manager) SignSiotchain(addr common.Address, hash []byte) ([]byte, erro
 
 // SignWithPassphrase signs hash if the private key matching the given
 // address can be decrypted with the given passphrase.
-func (am *Manager) SignWithPassphrase(addr common.Address, passphrase string, hash []byte) (signature []byte, err error) {
+func (am *Manager) SignWithPassphrase(addr helper.Address, passphrase string, hash []byte) (signature []byte, err error) {
 	_, key, err := am.getDecryptedKey(Account{Address: addr}, passphrase)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (am *Manager) Unlock(a Account, passphrase string) error {
 }
 
 // Lock removes the private key with the given address from memory.
-func (am *Manager) Lock(addr common.Address) error {
+func (am *Manager) Lock(addr helper.Address) error {
 	am.mu.Lock()
 	if unl, found := am.unlocked[addr]; found {
 		am.mu.Unlock()
@@ -227,7 +227,7 @@ func (am *Manager) getDecryptedKey(a Account, auth string) (Account, *Key, error
 	return a, key, err
 }
 
-func (am *Manager) expire(addr common.Address, u *unlocked, timeout time.Duration) {
+func (am *Manager) expire(addr helper.Address, u *unlocked, timeout time.Duration) {
 	t := time.NewTimer(timeout)
 	defer t.Stop()
 	select {

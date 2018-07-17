@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
@@ -17,7 +17,7 @@ type Backend interface {
 	ChainDb() siotdb.Database
 	EventMux() *event.TypeMux
 	HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error)
-	GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error)
+	GetReceipts(ctx context.Context, blockHash helper.Hash) (types.Receipts, error)
 }
 
 // Filter can be used to retrieve and filter logs
@@ -29,8 +29,8 @@ type Filter struct {
 
 	db         siotdb.Database
 	begin, end int64
-	addresses  []common.Address
-	topics     [][]common.Hash
+	addresses  []helper.Address
+	topics     [][]helper.Hash
 }
 
 // New creates a new filter which uses a bloom filter on blocks to figure out whether
@@ -57,12 +57,12 @@ func (f *Filter) SetEndBlock(end int64) {
 
 // SetAddresses matches only logs that are generated from addresses that are included
 // in the given addresses.
-func (f *Filter) SetAddresses(addr []common.Address) {
+func (f *Filter) SetAddresses(addr []helper.Address) {
 	f.addresses = addr
 }
 
 // SetTopics matches only logs that have topics matching the given topics.
-func (f *Filter) SetTopics(topics [][]common.Hash) {
+func (f *Filter) SetTopics(topics [][]helper.Hash) {
 	f.topics = topics
 }
 
@@ -153,7 +153,7 @@ func (f *Filter) getLogs(ctx context.Context, start, end uint64) (logs []Log, er
 	return logs, nil
 }
 
-func includes(addresses []common.Address, a common.Address) bool {
+func includes(addresses []helper.Address, a helper.Address) bool {
 	for _, addr := range addresses {
 		if addr == a {
 			return true
@@ -163,7 +163,7 @@ func includes(addresses []common.Address, a common.Address) bool {
 	return false
 }
 
-func filterLogs(logs []Log, addresses []common.Address, topics [][]common.Hash) []Log {
+func filterLogs(logs []Log, addresses []helper.Address, topics [][]helper.Hash) []Log {
 	var ret []Log
 
 	// Filter the logs for interesting stuff
@@ -173,7 +173,7 @@ Logs:
 			continue
 		}
 
-		logTopics := make([]common.Hash, len(topics))
+		logTopics := make([]helper.Hash, len(topics))
 		copy(logTopics, log.Topics)
 
 		// If the to filtered topics is greater than the amount of topics in logs, skip.
@@ -184,8 +184,8 @@ Logs:
 		for i, topics := range topics {
 			var match bool
 			for _, topic := range topics {
-				// common.Hash{} is a match all (wildcard)
-				if (topic == common.Hash{}) || log.Topics[i] == topic {
+				// helper.Hash{} is a match all (wildcard)
+				if (topic == helper.Hash{}) || log.Topics[i] == topic {
 					match = true
 					break
 				}
@@ -206,7 +206,7 @@ func (f *Filter) bloomFilter(bloom types.Bloom) bool {
 	return bloomFilter(bloom, f.addresses, f.topics)
 }
 
-func bloomFilter(bloom types.Bloom, addresses []common.Address, topics [][]common.Hash) bool {
+func bloomFilter(bloom types.Bloom, addresses []helper.Address, topics [][]helper.Hash) bool {
 	if len(addresses) > 0 {
 		var included bool
 		for _, addr := range addresses {
@@ -224,7 +224,7 @@ func bloomFilter(bloom types.Bloom, addresses []common.Address, topics [][]commo
 	for _, sub := range topics {
 		var included bool
 		for _, topic := range sub {
-			if (topic == common.Hash{}) || types.BloomLookup(bloom, topic) {
+			if (topic == helper.Hash{}) || types.BloomLookup(bloom, topic) {
 				included = true
 				break
 			}

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/ethereum/ethash"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -22,7 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
@@ -41,12 +41,12 @@ func NewPublicSiotchainAPI(e *Siotchain) *PublicSiotchainAPI {
 }
 
 // MinerAddr is the address that mining rewards will be send to
-func (s *PublicSiotchainAPI) Mineraddr() (common.Address, error) {
+func (s *PublicSiotchainAPI) Mineraddr() (helper.Address, error) {
 	return s.e.Mineraddr()
 }
 
 // Coinbase is the address that mining rewards will be send to (alias for MinerAddr)
-func (s *PublicSiotchainAPI) Coinbase() (common.Address, error) {
+func (s *PublicSiotchainAPI) Coinbase() (helper.Address, error) {
 	return s.Mineraddr()
 }
 
@@ -77,7 +77,7 @@ func (s *PublicMinerAPI) Mining() bool {
 
 // SubmitWork can be used by external miner to submit their POW solution. It returns an indication if the work was
 // accepted. Note, this is not an indication if the provided work was valid!
-func (s *PublicMinerAPI) SubmitWork(nonce rpc.HexNumber, solution, digest common.Hash) bool {
+func (s *PublicMinerAPI) SubmitWork(nonce rpc.HexNumber, solution, digest helper.Hash) bool {
 	return s.agent.SubmitWork(nonce.Uint64(), digest, solution)
 }
 
@@ -101,7 +101,7 @@ func (s *PublicMinerAPI) GetWork() (work [3]string, err error) {
 // SubmitHashrate can be used for remote miners to submit their hash rate. This enables the node to report the combined
 // hash rate of all miners which submit work through this node. It accepts the miner hash rate and an identifier which
 // must be unique between nodes.
-func (s *PublicMinerAPI) SubmitHashrate(hashrate rpc.HexNumber, id common.Hash) bool {
+func (s *PublicMinerAPI) SubmitHashrate(hashrate rpc.HexNumber, id helper.Hash) bool {
 	s.agent.SubmitHashrate(id, hashrate.Uint64())
 	return true
 }
@@ -154,7 +154,7 @@ func (s *PrivateMinerAPI) SetGasPrice(gasPrice rpc.HexNumber) bool {
 }
 
 // SetMiner sets the mineraddr of the miner
-func (s *PrivateMinerAPI) SetMiner(mineraddr common.Address) bool {
+func (s *PrivateMinerAPI) SetMiner(mineraddr helper.Address) bool {
 	s.e.SetMiner(mineraddr)
 	return true
 }
@@ -357,7 +357,7 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(number uint64, config *vm.LogConf
 }
 
 // TraceBlockByHash processes the block by hash.
-func (api *PrivateDebugAPI) TraceBlockByHash(hash common.Hash, config *vm.LogConfig) BlockTraceResult {
+func (api *PrivateDebugAPI) TraceBlockByHash(hash helper.Hash, config *vm.LogConfig) BlockTraceResult {
 	// Fetch the block that we aim to reprocess
 	block := api.siot.BlockChain().GetBlockByHash(hash)
 	if block == nil {
@@ -403,19 +403,19 @@ func (api *PrivateDebugAPI) traceBlock(block *types.Block, logConfig *vm.LogConf
 
 // callmsg is the message type used for call transations.
 type callmsg struct {
-	addr          common.Address
-	to            *common.Address
+	addr          helper.Address
+	to            *helper.Address
 	gas, gasPrice *big.Int
 	value         *big.Int
 	data          []byte
 }
 
 // accessor boilerplate to implement core.Message
-func (m callmsg) From() (common.Address, error)         { return m.addr, nil }
-func (m callmsg) FromFrontier() (common.Address, error) { return m.addr, nil }
+func (m callmsg) From() (helper.Address, error)         { return m.addr, nil }
+func (m callmsg) FromFrontier() (helper.Address, error) { return m.addr, nil }
 func (m callmsg) Nonce() uint64                         { return 0 }
 func (m callmsg) CheckNonce() bool                      { return false }
-func (m callmsg) To() *common.Address                   { return m.to }
+func (m callmsg) To() *helper.Address                   { return m.to }
 func (m callmsg) GasPrice() *big.Int                    { return m.gasPrice }
 func (m callmsg) Gas() *big.Int                         { return m.gas }
 func (m callmsg) Value() *big.Int                       { return m.value }
@@ -438,7 +438,7 @@ func (t *timeoutError) Error() string {
 
 // TraceTransaction returns the structured logs created during the execution of EVM
 // and returns them as a JSON object.
-func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash common.Hash, config *TraceArgs) (interface{}, error) {
+func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash helper.Hash, config *TraceArgs) (interface{}, error) {
 	var tracer vm.Tracer
 	if config != nil && config.Tracer != nil {
 		timeout := defaultTraceTimeout

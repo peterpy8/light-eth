@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
@@ -79,10 +79,10 @@ type TxPool struct {
 	signer       types.Signer
 	mu           sync.RWMutex
 
-	pending map[common.Address]*txList         // All currently processable transactions
-	queue   map[common.Address]*txList         // Queued but non-processable transactions
-	all     map[common.Hash]*types.Transaction // All transactions to allow lookups
-	beats   map[common.Address]time.Time       // Last heartbeat from each known account
+	pending map[helper.Address]*txList         // All currently processable transactions
+	queue   map[helper.Address]*txList         // Queued but non-processable transactions
+	all     map[helper.Hash]*types.Transaction // All transactions to allow lookups
+	beats   map[helper.Address]time.Time       // Last heartbeat from each known account
 
 	wg   sync.WaitGroup // for shutdown sync
 	quit chan struct{}
@@ -94,10 +94,10 @@ func NewTxPool(config *params.ChainConfig, eventMux *event.TypeMux, currentState
 	pool := &TxPool{
 		config:       config,
 		signer:       types.NewEIP155Signer(config.ChainId),
-		pending:      make(map[common.Address]*txList),
-		queue:        make(map[common.Address]*txList),
-		all:          make(map[common.Hash]*types.Transaction),
-		beats:        make(map[common.Address]time.Time),
+		pending:      make(map[helper.Address]*txList),
+		queue:        make(map[helper.Address]*txList),
+		all:          make(map[helper.Hash]*types.Transaction),
+		beats:        make(map[helper.Address]time.Time),
 		eventMux:     eventMux,
 		currentState: currentStateFn,
 		gasLimit:     gasLimitFn,
@@ -203,15 +203,15 @@ func (pool *TxPool) Stats() (pending int, queued int) {
 
 // Content retrieves the data content of the transaction pool, returning all the
 // pending as well as queued transactions, grouped by account and sorted by nonce.
-func (pool *TxPool) Content() (map[common.Address]types.Transactions, map[common.Address]types.Transactions) {
+func (pool *TxPool) Content() (map[helper.Address]types.Transactions, map[helper.Address]types.Transactions) {
 	pool.mu.RLock()
 	defer pool.mu.RUnlock()
 
-	pending := make(map[common.Address]types.Transactions)
+	pending := make(map[helper.Address]types.Transactions)
 	for addr, list := range pool.pending {
 		pending[addr] = list.Flatten()
 	}
-	queued := make(map[common.Address]types.Transactions)
+	queued := make(map[helper.Address]types.Transactions)
 	for addr, list := range pool.queue {
 		queued[addr] = list.Flatten()
 	}
@@ -221,7 +221,7 @@ func (pool *TxPool) Content() (map[common.Address]types.Transactions, map[common
 // Pending retrieves all currently processable transactions, groupped by origin
 // account and sorted by nonce. The returned transaction set is a copy and can be
 // freely modified by calling code.
-func (pool *TxPool) Pending() map[common.Address]types.Transactions {
+func (pool *TxPool) Pending() map[helper.Address]types.Transactions {
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
 
@@ -231,7 +231,7 @@ func (pool *TxPool) Pending() map[common.Address]types.Transactions {
 	// invalidate any txs
 	pool.demoteUnexecutables()
 
-	pending := make(map[common.Address]types.Transactions)
+	pending := make(map[helper.Address]types.Transactions)
 	for addr, list := range pool.pending {
 		pending[addr] = list.Flatten()
 	}
@@ -285,7 +285,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	// Transactions can't be negative. This may never happen
 	// using RLP decoded transactions but may occur if you create
 	// a transaction using the RPC for example.
-	if tx.Value().Cmp(common.Big0) < 0 {
+	if tx.Value().Cmp(helper.Big0) < 0 {
 		return ErrNegativeValue
 	}
 
@@ -322,7 +322,7 @@ func (pool *TxPool) add(tx *types.Transaction) error {
 	if glog.V(logger.Debug) {
 		rcpt := "[NEW_CONTRACT]"
 		if to := tx.To(); to != nil {
-			rcpt = common.Bytes2Hex(to[:4])
+			rcpt = helper.Bytes2Hex(to[:4])
 		}
 		from, _ := types.Sender(pool.signer, tx) // from already verified during tx validation
 		glog.Infof("(t) 0x%x => %s (%v) %x\n", from[:4], rcpt, tx.Value, hash)
@@ -333,7 +333,7 @@ func (pool *TxPool) add(tx *types.Transaction) error {
 // enqueueTx inserts a new transaction into the non-executable transaction queue.
 //
 // Note, this method assumes the pool lock is held!
-func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) {
+func (pool *TxPool) enqueueTx(hash helper.Hash, tx *types.Transaction) {
 	// Try to insert the transaction into the future queue
 	from, _ := types.Sender(pool.signer, tx) // already validated
 	if pool.queue[from] == nil {
@@ -355,7 +355,7 @@ func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) {
 // promoteTx adds a transaction to the pending (processable) list of transactions.
 //
 // Note, this method assumes the pool lock is held!
-func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.Transaction) {
+func (pool *TxPool) promoteTx(addr helper.Address, hash helper.Hash, tx *types.Transaction) {
 	// Init delayed since tx pool could have been started before any state sync
 	if pool.pendingState == nil {
 		pool.resetState()
@@ -414,7 +414,7 @@ func (pool *TxPool) AddBatch(txs []*types.Transaction) {
 
 // Get returns a transaction if it is contained in the pool
 // and nil otherwise.
-func (pool *TxPool) Get(hash common.Hash) *types.Transaction {
+func (pool *TxPool) Get(hash helper.Hash) *types.Transaction {
 	pool.mu.RLock()
 	defer pool.mu.RUnlock()
 
@@ -422,7 +422,7 @@ func (pool *TxPool) Get(hash common.Hash) *types.Transaction {
 }
 
 // Remove removes the transaction with the given hash from the pool.
-func (pool *TxPool) Remove(hash common.Hash) {
+func (pool *TxPool) Remove(hash helper.Hash) {
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
 
@@ -441,7 +441,7 @@ func (pool *TxPool) RemoveBatch(txs types.Transactions) {
 
 // removeTx removes a single transaction from the queue, moving all subsequent
 // transactions back to the future queue.
-func (pool *TxPool) removeTx(hash common.Hash) {
+func (pool *TxPool) removeTx(hash helper.Hash) {
 	// Fetch the transaction we wish to delete
 	tx, ok := pool.all[hash]
 	if !ok {
@@ -557,16 +557,16 @@ func (pool *TxPool) promoteExecutables() {
 			}
 		}
 		// Gradually drop transactions from offenders
-		offenders := []common.Address{}
+		offenders := []helper.Address{}
 		for pending > maxPendingTotal && !spammers.Empty() {
 			// Retrieve the next offender if not local address
 			offender, _ := spammers.Pop()
-			offenders = append(offenders, offender.(common.Address))
+			offenders = append(offenders, offender.(helper.Address))
 
 			// Equalize balances until all the same or below threshold
 			if len(offenders) > 1 {
 				// Calculate the equalization threshold for all current offenders
-				threshold := pool.pending[offender.(common.Address)].Len()
+				threshold := pool.pending[offender.(helper.Address)].Len()
 
 				// Iteratively reduce all offenders until below limit or threshold reached
 				for pending > maxPendingTotal && pool.pending[offenders[len(offenders)-2]].Len() > threshold {
@@ -700,7 +700,7 @@ func (pool *TxPool) expirationLoop() {
 
 // addressByHeartbeat is an account address tagged with its last activity timestamp.
 type addressByHeartbeat struct {
-	address   common.Address
+	address   helper.Address
 	heartbeat time.Time
 }
 
@@ -713,7 +713,7 @@ func (a addresssByHeartbeat) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 // txSet represents a set of transaction hashes in which entries
 //  are automatically dropped after txSetDuration time
 type txSet struct {
-	txMap          map[common.Hash]struct{}
+	txMap          map[helper.Hash]struct{}
 	txOrd          map[uint64]txOrdType
 	addPtr, delPtr uint64
 }
@@ -722,28 +722,28 @@ const txSetDuration = time.Hour * 2
 
 // txOrdType represents an entry in the time-ordered list of transaction hashes
 type txOrdType struct {
-	hash common.Hash
+	hash helper.Hash
 	time time.Time
 }
 
 // newTxSet creates a new transaction set
 func newTxSet() *txSet {
 	return &txSet{
-		txMap: make(map[common.Hash]struct{}),
+		txMap: make(map[helper.Hash]struct{}),
 		txOrd: make(map[uint64]txOrdType),
 	}
 }
 
 // contains returns true if the set contains the given transaction hash
 // (not thread safe, should be called from a locked environment)
-func (self *txSet) contains(hash common.Hash) bool {
+func (self *txSet) contains(hash helper.Hash) bool {
 	_, ok := self.txMap[hash]
 	return ok
 }
 
 // add adds a transaction hash to the set, then removes entries older than txSetDuration
 // (not thread safe, should be called from a locked environment)
-func (self *txSet) add(hash common.Hash) {
+func (self *txSet) add(hash helper.Hash) {
 	self.txMap[hash] = struct{}{}
 	now := time.Now()
 	self.txOrd[self.addPtr] = txOrdType{hash: hash, time: now}

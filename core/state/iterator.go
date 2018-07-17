@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 )
 
@@ -18,13 +18,13 @@ type NodeIterator struct {
 	stateIt *trie.NodeIterator // Primary iterator for the global state trie
 	dataIt  *trie.NodeIterator // Secondary iterator for the data trie of a externalLogic
 
-	accountHash common.Hash // Hash of the node containing the account
-	codeHash    common.Hash // Hash of the externalLogic source code
+	accountHash helper.Hash // Hash of the node containing the account
+	codeHash    helper.Hash // Hash of the externalLogic source code
 	code        []byte      // Source code associated with a externalLogic
 
-	Hash   common.Hash // Hash of the current entry being iterated (nil if not standalone)
+	Hash   helper.Hash // Hash of the current entry being iterated (nil if not standalone)
 	Entry  interface{} // Current state entry being iterated (internal representation)
-	Parent common.Hash // Hash of the first full ancestor node (nil if current is the root)
+	Parent helper.Hash // Hash of the first full ancestor node (nil if current is the root)
 
 	Error error // Failure set in case of an internal error in the iterator
 }
@@ -93,7 +93,7 @@ func (it *NodeIterator) step() error {
 	var account struct {
 		Nonce    uint64
 		Balance  *big.Int
-		Root     common.Hash
+		Root     helper.Hash
 		CodeHash []byte
 	}
 	if err := rlp.Decode(bytes.NewReader(it.stateIt.LeafBlob), &account); err != nil {
@@ -108,7 +108,7 @@ func (it *NodeIterator) step() error {
 		it.dataIt = nil
 	}
 	if bytes.Compare(account.CodeHash, emptyCodeHash) != 0 {
-		it.codeHash = common.BytesToHash(account.CodeHash)
+		it.codeHash = helper.BytesToHash(account.CodeHash)
 		it.code, err = it.state.db.Get(account.CodeHash)
 		if err != nil {
 			return fmt.Errorf("code %x: %v", account.CodeHash, err)
@@ -122,7 +122,7 @@ func (it *NodeIterator) step() error {
 // The method returns whether there are any more data left for inspection.
 func (it *NodeIterator) retrieve() bool {
 	// Clear out any previously set values
-	it.Hash, it.Entry = common.Hash{}, nil
+	it.Hash, it.Entry = helper.Hash{}, nil
 
 	// If the iteration's done, return no available data
 	if it.state == nil {
@@ -132,7 +132,7 @@ func (it *NodeIterator) retrieve() bool {
 	switch {
 	case it.dataIt != nil:
 		it.Hash, it.Entry, it.Parent = it.dataIt.Hash, it.dataIt.Node, it.dataIt.Parent
-		if it.Parent == (common.Hash{}) {
+		if it.Parent == (helper.Hash{}) {
 			it.Parent = it.accountHash
 		}
 	case it.code != nil:

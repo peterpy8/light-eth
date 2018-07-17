@@ -1,4 +1,4 @@
-package common
+package helper
 
 import (
 	"encoding/hex"
@@ -16,7 +16,7 @@ const (
 	AddressLength = 20
 )
 
-var hashJsonLengthErr = errors.New("common: unmarshalJSON failed: hash must be exactly 32 bytes")
+var hashJsonLengthErr = errors.New("helper: unmarshalJSON failed: hash must be exactly 32 bytes")
 
 type (
 	// Hash represents the 32 byte Keccak256 hash of arbitrary data.

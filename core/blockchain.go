@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -24,7 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/pow"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/hashicorp/golang-lru"
 )
@@ -155,7 +155,7 @@ func (self *BlockChain) getProcInterrupt() bool {
 func (self *BlockChain) loadLastState() error {
 	// Restore the last known head block
 	head := GetHeadBlockHash(self.chainDb)
-	if head == (common.Hash{}) {
+	if head == (helper.Hash{}) {
 		// Corrupt or empty database, init from scratch
 		self.Reset()
 	} else {
@@ -169,7 +169,7 @@ func (self *BlockChain) loadLastState() error {
 	}
 	// Restore the last known head header
 	currentHeader := self.currentBlock.Header()
-	if head := GetHeadHeaderHash(self.chainDb); head != (common.Hash{}) {
+	if head := GetHeadHeaderHash(self.chainDb); head != (helper.Hash{}) {
 		if header := self.GetHeaderByHash(head); header != nil {
 			currentHeader = header
 		}
@@ -177,7 +177,7 @@ func (self *BlockChain) loadLastState() error {
 	self.hc.SetCurrentHeader(currentHeader)
 	// Restore the last known head fast block
 	self.currentFastBlock = self.currentBlock
-	if head := GetHeadFastBlockHash(self.chainDb); head != (common.Hash{}) {
+	if head := GetHeadFastBlockHash(self.chainDb); head != (helper.Hash{}) {
 		if block := self.GetBlockByHash(head); block != nil {
 			self.currentFastBlock = block
 		}
@@ -188,7 +188,7 @@ func (self *BlockChain) loadLastState() error {
 		return err
 	}
 	self.stateCache = statedb
-	self.stateCache.GetAccount(common.Address{})
+	self.stateCache.GetAccount(helper.Address{})
 
 	// Issue a status log for the user
 	headerTd := self.GetTd(currentHeader.Hash(), currentHeader.Number.Uint64())
@@ -210,7 +210,7 @@ func (bc *BlockChain) SetHead(head uint64) {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
 
-	delFn := func(hash common.Hash, num uint64) {
+	delFn := func(hash helper.Hash, num uint64) {
 		DeleteBody(bc.chainDb, hash, num)
 	}
 	bc.hc.SetHead(head, delFn)
@@ -248,7 +248,7 @@ func (bc *BlockChain) SetHead(head uint64) {
 
 // FastSyncCommitHead sets the current head block to the one defined by the hash
 // irrelevant what the chain contents were prior.
-func (self *BlockChain) FastSyncCommitHead(hash common.Hash) error {
+func (self *BlockChain) FastSyncCommitHead(hash helper.Hash) error {
 	// Make sure that both the block as well at its state trie exists
 	block := self.GetBlockByHash(hash)
 	if block == nil {
@@ -275,7 +275,7 @@ func (self *BlockChain) GasLimit() *big.Int {
 }
 
 // LastBlockHash return the hash of the HEAD block.
-func (self *BlockChain) LastBlockHash() common.Hash {
+func (self *BlockChain) LastBlockHash() helper.Hash {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 
@@ -302,7 +302,7 @@ func (self *BlockChain) CurrentFastBlock() *types.Block {
 
 // Status returns status information about the current chain such as the HEAD Td,
 // the HEAD hash and the hash of the genesis block.
-func (self *BlockChain) Status() (td *big.Int, currentBlock common.Hash, genesisBlock common.Hash) {
+func (self *BlockChain) Status() (td *big.Int, currentBlock helper.Hash, genesisBlock helper.Hash) {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 
@@ -346,7 +346,7 @@ func (self *BlockChain) State() (*state.StateDB, error) {
 }
 
 // StateAt returns a new mutable state based on a particular point in time.
-func (self *BlockChain) StateAt(root common.Hash) (*state.StateDB, error) {
+func (self *BlockChain) StateAt(root helper.Hash) (*state.StateDB, error) {
 	return self.stateCache.New(root)
 }
 
@@ -449,7 +449,7 @@ func (bc *BlockChain) Genesis() *types.Block {
 
 // GetBody retrieves a block body (transactions and uncles) from the database by
 // hash, caching it if found.
-func (self *BlockChain) GetBody(hash common.Hash) *types.Body {
+func (self *BlockChain) GetBody(hash helper.Hash) *types.Body {
 	// Short circuit if the body's already in the cache, retrieve otherwise
 	if cached, ok := self.bodyCache.Get(hash); ok {
 		body := cached.(*types.Body)
@@ -466,7 +466,7 @@ func (self *BlockChain) GetBody(hash common.Hash) *types.Body {
 
 // GetBodyRLP retrieves a block body in RLP encoding from the database by hash,
 // caching it if found.
-func (self *BlockChain) GetBodyRLP(hash common.Hash) rlp.RawValue {
+func (self *BlockChain) GetBodyRLP(hash helper.Hash) rlp.RawValue {
 	// Short circuit if the body's already in the cache, retrieve otherwise
 	if cached, ok := self.bodyRLPCache.Get(hash); ok {
 		return cached.(rlp.RawValue)
@@ -482,13 +482,13 @@ func (self *BlockChain) GetBodyRLP(hash common.Hash) rlp.RawValue {
 
 // HasBlock checks if a block is fully present in the database or not, caching
 // it if present.
-func (bc *BlockChain) HasBlock(hash common.Hash) bool {
+func (bc *BlockChain) HasBlock(hash helper.Hash) bool {
 	return bc.GetBlockByHash(hash) != nil
 }
 
 // HasBlockAndState checks if a block and associated state trie is fully present
 // in the database or not, caching it if present.
-func (bc *BlockChain) HasBlockAndState(hash common.Hash) bool {
+func (bc *BlockChain) HasBlockAndState(hash helper.Hash) bool {
 	// Check first that the block itself is known
 	block := bc.GetBlockByHash(hash)
 	if block == nil {
@@ -501,7 +501,7 @@ func (bc *BlockChain) HasBlockAndState(hash common.Hash) bool {
 
 // GetBlock retrieves a block from the database by hash and number,
 // caching it if found.
-func (self *BlockChain) GetBlock(hash common.Hash, number uint64) *types.Block {
+func (self *BlockChain) GetBlock(hash helper.Hash, number uint64) *types.Block {
 	// Short circuit if the block's already in the cache, retrieve otherwise
 	if block, ok := self.blockCache.Get(hash); ok {
 		return block.(*types.Block)
@@ -516,7 +516,7 @@ func (self *BlockChain) GetBlock(hash common.Hash, number uint64) *types.Block {
 }
 
 // GetBlockByHash retrieves a block from the database by hash, caching it if found.
-func (self *BlockChain) GetBlockByHash(hash common.Hash) *types.Block {
+func (self *BlockChain) GetBlockByHash(hash helper.Hash) *types.Block {
 	return self.GetBlock(hash, self.hc.GetBlockNumber(hash))
 }
 
@@ -524,7 +524,7 @@ func (self *BlockChain) GetBlockByHash(hash common.Hash) *types.Block {
 // (associated with its hash) if found.
 func (self *BlockChain) GetBlockByNumber(number uint64) *types.Block {
 	hash := GetCanonicalHash(self.chainDb, number)
-	if hash == (common.Hash{}) {
+	if hash == (helper.Hash{}) {
 		return nil
 	}
 	return self.GetBlock(hash, number)
@@ -532,7 +532,7 @@ func (self *BlockChain) GetBlockByNumber(number uint64) *types.Block {
 
 // [deprecated by siot/62]
 // GetBlocksFromHash returns the block corresponding to hash and up to n-1 ancestors.
-func (self *BlockChain) GetBlocksFromHash(hash common.Hash, n int) (blocks []*types.Block) {
+func (self *BlockChain) GetBlocksFromHash(hash helper.Hash, n int) (blocks []*types.Block) {
 	number := self.hc.GetBlockNumber(hash)
 	for i := 0; i < n; i++ {
 		block := self.GetBlock(hash, number)
@@ -595,7 +595,7 @@ const (
 
 // Rollback is designed to remove a chain of links from the database that aren't
 // certain enough to be valid.
-func (self *BlockChain) Rollback(chain []common.Hash) {
+func (self *BlockChain) Rollback(chain []helper.Hash) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 
@@ -768,7 +768,7 @@ func (self *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain
 	if stats.ignored > 0 {
 		ignored = fmt.Sprintf(" (%d ignored)", stats.ignored)
 	}
-	glog.V(logger.Info).Infof("imported %d receipts in %9v. #%d [%x… / %x…]%s", stats.processed, common.PrettyDuration(time.Since(start)), last.Number(), first.Hash().Bytes()[:4], last.Hash().Bytes()[:4], ignored)
+	glog.V(logger.Info).Infof("imported %d receipts in %9v. #%d [%x… / %x…]%s", stats.processed, helper.PrettyDuration(time.Since(start)), last.Number(), first.Hash().Bytes()[:4], last.Hash().Bytes()[:4], ignored)
 
 	return 0, nil
 }
@@ -945,7 +945,7 @@ func (self *BlockChain) InsertChain(chain types.Blocks) (int, error) {
 		switch status {
 		case CanonStatTy:
 			if glog.V(logger.Debug) {
-				glog.Infof("inserted block #%d [%x…] in %9v: %3d txs %7v gas %d uncles.", block.Number(), block.Hash().Bytes()[0:4], common.PrettyDuration(time.Since(bstart)), len(block.Transactions()), block.GasUsed(), len(block.Uncles()))
+				glog.Infof("inserted block #%d [%x…] in %9v: %3d txs %7v gas %d uncles.", block.Number(), block.Hash().Bytes()[0:4], helper.PrettyDuration(time.Since(bstart)), len(block.Transactions()), block.GasUsed(), len(block.Uncles()))
 			}
 			blockInsertTimer.UpdateSince(bstart)
 			events = append(events, ChainEvent{block, block.Hash(), logs})
@@ -964,7 +964,7 @@ func (self *BlockChain) InsertChain(chain types.Blocks) (int, error) {
 			}
 		case SideStatTy:
 			if glog.V(logger.Detail) {
-				glog.Infof("inserted forked block #%d [%x…] (TD=%v) in %9v: %3d txs %d uncles.", block.Number(), block.Hash().Bytes()[0:4], block.Difficulty(), common.PrettyDuration(time.Since(bstart)), len(block.Transactions()), len(block.Uncles()))
+				glog.Infof("inserted forked block #%d [%x…] (TD=%v) in %9v: %3d txs %d uncles.", block.Number(), block.Hash().Bytes()[0:4], block.Difficulty(), helper.PrettyDuration(time.Since(bstart)), len(block.Transactions()), len(block.Uncles()))
 			}
 			blockInsertTimer.UpdateSince(bstart)
 			events = append(events, ChainSideEvent{block, logs})
@@ -1023,7 +1023,7 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 		} else {
 			hashes = fmt.Sprintf("%x…", end.Hash().Bytes()[:4])
 		}
-		glog.Infof("imported %d blocks, %5d txs (%7.3f Mg) in %9v (%6.3f Mg/s). #%v [%s]%s", st.processed, txcount, float64(st.usedGas)/1000000, common.PrettyDuration(elapsed), float64(st.usedGas)*1000/float64(elapsed), end.Number(), hashes, extra)
+		glog.Infof("imported %d blocks, %5d txs (%7.3f Mg) in %9v (%6.3f Mg/s). #%v [%s]%s", st.processed, txcount, float64(st.usedGas)/1000000, helper.PrettyDuration(elapsed), float64(st.usedGas)*1000/float64(elapsed), end.Number(), hashes, extra)
 
 		*st = insertStats{startTime: now, lastIndex: index}
 	}
@@ -1048,11 +1048,11 @@ func (self *BlockChain) reorg(oldBlock, newBlock *types.Block) error {
 		newStart          = newBlock
 		deletedTxs        types.Transactions
 		deletedLogs       vm.Logs
-		deletedLogsByHash = make(map[common.Hash]vm.Logs)
+		deletedLogsByHash = make(map[helper.Hash]vm.Logs)
 		// collectLogs collects the logs that were generated during the
 		// processing of the block that corresponds with the given hash.
 		// These logs are later announced as deleted.
-		collectLogs = func(h common.Hash) {
+		collectLogs = func(h helper.Hash) {
 			// Coalesce logs
 			receipts := GetBlockReceipts(self.chainDb, h, self.hc.GetBlockNumber(h))
 			for _, receipt := range receipts {
@@ -1256,37 +1256,37 @@ func (self *BlockChain) CurrentHeader() *types.Header {
 
 // GetTd retrieves a block's total difficulty in the canonical chain from the
 // database by hash and number, caching it if found.
-func (self *BlockChain) GetTd(hash common.Hash, number uint64) *big.Int {
+func (self *BlockChain) GetTd(hash helper.Hash, number uint64) *big.Int {
 	return self.hc.GetTd(hash, number)
 }
 
 // GetTdByHash retrieves a block's total difficulty in the canonical chain from the
 // database by hash, caching it if found.
-func (self *BlockChain) GetTdByHash(hash common.Hash) *big.Int {
+func (self *BlockChain) GetTdByHash(hash helper.Hash) *big.Int {
 	return self.hc.GetTdByHash(hash)
 }
 
 // GetHeader retrieves a block header from the database by hash and number,
 // caching it if found.
-func (self *BlockChain) GetHeader(hash common.Hash, number uint64) *types.Header {
+func (self *BlockChain) GetHeader(hash helper.Hash, number uint64) *types.Header {
 	return self.hc.GetHeader(hash, number)
 }
 
 // GetHeaderByHash retrieves a block header from the database by hash, caching it if
 // found.
-func (self *BlockChain) GetHeaderByHash(hash common.Hash) *types.Header {
+func (self *BlockChain) GetHeaderByHash(hash helper.Hash) *types.Header {
 	return self.hc.GetHeaderByHash(hash)
 }
 
 // HasHeader checks if a block header is present in the database or not, caching
 // it if present.
-func (bc *BlockChain) HasHeader(hash common.Hash) bool {
+func (bc *BlockChain) HasHeader(hash helper.Hash) bool {
 	return bc.hc.HasHeader(hash)
 }
 
 // GetBlockHashesFromHash retrieves a number of block hashes starting at a given
 // hash, fetching towards the genesis block.
-func (self *BlockChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []common.Hash {
+func (self *BlockChain) GetBlockHashesFromHash(hash helper.Hash, max uint64) []helper.Hash {
 	return self.hc.GetBlockHashesFromHash(hash, max)
 }
 

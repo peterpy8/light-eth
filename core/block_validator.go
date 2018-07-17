@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -129,7 +129,7 @@ func (v *BlockValidator) VerifyUncles(block, parent *types.Block) error {
 	}
 
 	uncles := set.New()
-	ancestors := make(map[common.Hash]*types.Block)
+	ancestors := make(map[helper.Hash]*types.Block)
 	for _, ancestor := range v.bc.GetBlocksFromHash(block.ParentHash(), 7) {
 		ancestors[ancestor.Hash()] = ancestor
 		// Include ancestors uncles in the uncle set. Uncles must be unique.
@@ -193,7 +193,7 @@ func ValidateHeader(config *params.ChainConfig, pow pow.PoW, header *types.Heade
 	}
 
 	if uncle {
-		if header.Time.Cmp(common.MaxBig) == 1 {
+		if header.Time.Cmp(helper.MaxBig) == 1 {
 			return BlockTSTooBigErr
 		}
 	} else {
@@ -236,7 +236,7 @@ func ValidateHeader(config *params.ChainConfig, pow pow.PoW, header *types.Heade
 		return err
 	}
 	if config.EIP150Block != nil && config.EIP150Block.Cmp(header.Number) == 0 {
-		if config.EIP150Hash != (common.Hash{}) && config.EIP150Hash != header.Hash() {
+		if config.EIP150Hash != (helper.Hash{}) && config.EIP150Hash != header.Hash() {
 			return ValidationError("Homestead gas reprice fork hash mismatch: have 0x%x, want 0x%x", header.Hash(), config.EIP150Hash)
 		}
 	}
@@ -247,7 +247,7 @@ func ValidateHeader(config *params.ChainConfig, pow pow.PoW, header *types.Heade
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
 func CalcDifficulty(config *params.ChainConfig, time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {
-	//if config.IsHomestead(new(big.Int).Add(parentNumber, common.Big1)) {
+	//if config.IsHomestead(new(big.Int).Add(parentNumber, helper.Big1)) {
 	//	return calcDifficultyHomestead(time, parentTime, parentNumber, parentDiff)
 	//} else {
 	//	return calcDifficultyFrontier(time, parentTime, parentNumber, parentDiff)
@@ -265,7 +265,7 @@ func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *
 
 	x.Sub(bigTime, bigParentTime)
 	x.Div(x, big10)
-	x.Sub(common.Big1, x)
+	x.Sub(helper.Big1, x)
 
 	if x.Cmp(bigMinus99) < 0 {
 		x.Set(bigMinus99)
@@ -281,13 +281,13 @@ func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *
 	}
 
 	// for the exponential factor
-	periodCount := new(big.Int).Add(parentNumber, common.Big1)
+	periodCount := new(big.Int).Add(parentNumber, helper.Big1)
 	periodCount.Div(periodCount, ExpDiffPeriod)
 
 	// the exponential factor, commonly referred to as "the bomb"
-	if periodCount.Cmp(common.Big1) > 0 {
-		y.Sub(periodCount, common.Big2)
-		y.Exp(common.Big2, y, nil)
+	if periodCount.Cmp(helper.Big1) > 0 {
+		y.Sub(periodCount, helper.Big2)
+		y.Exp(helper.Big2, y, nil)
 		x.Add(x, y)
 	}
 
@@ -312,14 +312,14 @@ func calcDifficultyFrontier(time, parentTime uint64, parentNumber, parentDiff *b
 		diff.Set(params.MinimumDifficulty)
 	}
 
-	periodCount := new(big.Int).Add(parentNumber, common.Big1)
+	periodCount := new(big.Int).Add(parentNumber, helper.Big1)
 	periodCount.Div(periodCount, ExpDiffPeriod)
-	if periodCount.Cmp(common.Big1) > 0 {
+	if periodCount.Cmp(helper.Big1) > 0 {
 		// diff = diff + 2^(periodCount - 2)
-		expDiff := periodCount.Sub(periodCount, common.Big2)
-		expDiff.Exp(common.Big2, expDiff, nil)
+		expDiff := periodCount.Sub(periodCount, helper.Big2)
+		expDiff.Exp(helper.Big2, expDiff, nil)
 		diff.Add(diff, expDiff)
-		diff = common.BigMax(diff, params.MinimumDifficulty)
+		diff = helper.BigMax(diff, params.MinimumDifficulty)
 	}
 
 	return diff
@@ -347,13 +347,13 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 	*/
 	gl := new(big.Int).Sub(parent.GasLimit(), decay)
 	gl = gl.Add(gl, contrib)
-	gl.Set(common.BigMax(gl, params.MinGasLimit))
+	gl.Set(helper.BigMax(gl, params.MinGasLimit))
 
 	// however, if we're now below the target (TargetGasLimit) we increase the
 	// limit as much as we can (parentGasLimit / 1024 -1)
 	if gl.Cmp(params.TargetGasLimit) < 0 {
 		gl.Add(parent.GasLimit(), decay)
-		gl.Set(common.BigMin(gl, params.TargetGasLimit))
+		gl.Set(helper.BigMin(gl, params.TargetGasLimit))
 	}
 	return gl
 }

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -271,7 +271,7 @@ func (c *Config) resolvePath(path string) string {
 		if c.Name == "siotchain" {
 			oldpath = filepath.Join(c.DataDir, path)
 		}
-		if oldpath != "" && common.FileExist(oldpath) {
+		if oldpath != "" && helper.FileExist(oldpath) {
 			// TODO: print warning
 			return oldpath
 		}
@@ -347,7 +347,7 @@ func (c *Config) parsePersistentNodes(file string) []*discover.Node {
 	}
 	// Load the nodes from the config file.
 	var nodelist []string
-	if err := common.LoadJSON(path, &nodelist); err != nil {
+	if err := helper.LoadJSON(path, &nodelist); err != nil {
 		glog.V(logger.Error).Infof("Can't load node file %s: %v", path, err)
 		return nil
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 )
@@ -17,7 +17,7 @@ var ErrInvalidChainId = errors.New("invalid chaid id for signer")
 // the signer used to derive it.
 type sigCache struct {
 	signer Signer
-	from   common.Address
+	from   helper.Address
 }
 
 // MakeSigner returns a Signer based on the given chain config and block number.
@@ -54,7 +54,7 @@ func SignECDSA(s Signer, tx *Transaction, prv *ecdsa.PrivateKey) (*Transaction, 
 // Sender may cache the address, allowing it to be used regardless of
 // signing method. The cache is invalidated if the cached signer does
 // not match the signer used in the current call.
-func Sender(signer Signer, tx *Transaction) (common.Address, error) {
+func Sender(signer Signer, tx *Transaction) (helper.Address, error) {
 	if sc := tx.from.Load(); sc != nil {
 		sigCache := sc.(sigCache)
 		// If the signer used to derive from in a previous
@@ -67,9 +67,9 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 
 	pubkey, err := signer.PublicKey(tx)
 	if err != nil {
-		return common.Address{}, err
+		return helper.Address{}, err
 	}
-	var addr common.Address
+	var addr helper.Address
 	copy(addr[:], crypto.Keccak256(pubkey[1:])[12:])
 	tx.from.Store(sigCache{signer: signer, from: addr})
 	return addr, nil
@@ -82,7 +82,7 @@ func SignatureValues(signer Signer, tx *Transaction) (v byte, r *big.Int, s *big
 
 type Signer interface {
 	// Hash returns the rlp encoded hash for signatures
-	Hash(tx *Transaction) common.Hash
+	Hash(tx *Transaction) helper.Hash
 	// PubilcKey returns the public key derived from the signature
 	PublicKey(tx *Transaction) ([]byte, error)
 	// SignECDSA signs the transaction with the given and returns a copy of the tx
@@ -171,7 +171,7 @@ func (s EIP155Signer) WithSignature(tx *Transaction, sig []byte) (*Transaction, 
 
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
-func (s EIP155Signer) Hash(tx *Transaction) common.Hash {
+func (s EIP155Signer) Hash(tx *Transaction) helper.Hash {
 	return rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,
@@ -281,7 +281,7 @@ func (fs FrontierSigner) SignECDSA(tx *Transaction, prv *ecdsa.PrivateKey) (*Tra
 
 // Hash returns the hash to be sned by the sender.
 // It does not uniquely identify the transaction.
-func (fs FrontierSigner) Hash(tx *Transaction) common.Hash {
+func (fs FrontierSigner) Hash(tx *Transaction) helper.Hash {
 	return rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,

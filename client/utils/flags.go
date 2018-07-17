@@ -16,7 +16,7 @@ import (
 
 	"github.com/ethereum/ethash"
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -175,7 +175,7 @@ var (
 	GasPriceFlag = cli.StringFlag{
 		Name:  "gasprice",
 		Usage: "Minimal gas price to accept for mining a transactions",
-		Value: new(big.Int).Mul(big.NewInt(20), common.Shannon).String(),
+		Value: new(big.Int).Mul(big.NewInt(20), helper.Shannon).String(),
 	}
 	ExtraDataFlag = cli.StringFlag{
 		Name:  "extradata",
@@ -337,12 +337,12 @@ var (
 	GpoMinGasPriceFlag = cli.StringFlag{
 		Name:  "gpomin",
 		Usage: "Minimum suggested gas price",
-		Value: new(big.Int).Mul(big.NewInt(20), common.Shannon).String(),
+		Value: new(big.Int).Mul(big.NewInt(20), helper.Shannon).String(),
 	}
 	GpoMaxGasPriceFlag = cli.StringFlag{
 		Name:  "gpomax",
 		Usage: "Maximum suggested gas price",
-		Value: new(big.Int).Mul(big.NewInt(500), common.Shannon).String(),
+		Value: new(big.Int).Mul(big.NewInt(500), helper.Shannon).String(),
 	}
 	GpoFullBlockRatioFlag = cli.IntFlag{
 		Name:  "gpofull",
@@ -517,8 +517,8 @@ func MakeDatabaseHandles() int {
 // a key index in the key store to an internal account representation.
 func MakeAddress(accman *wallet.Manager, account string) (wallet.Account, error) {
 	// If the specified account is a valid address, return it
-	if common.IsHexAddress(account) {
-		return wallet.Account{Address: common.HexToAddress(account)}, nil
+	if helper.IsHexAddress(account) {
+		return wallet.Account{Address: helper.HexToAddress(account)}, nil
 	}
 	// Otherwise try to interpret the account as a keystore index
 	index, err := strconv.Atoi(account)
@@ -530,15 +530,15 @@ func MakeAddress(accman *wallet.Manager, account string) (wallet.Account, error)
 
 // MakeEtherbase retrieves the etherbase either from the directly specified
 // cmd line flags or from the keystore if CLI indexed.
-func MakeEtherbase(accman *wallet.Manager, ctx *cli.Context) common.Address {
+func MakeEtherbase(accman *wallet.Manager, ctx *cli.Context) helper.Address {
 	accounts := accman.Accounts()
 	if !ctx.GlobalIsSet(MinerFlag.Name) && len(accounts) == 0 {
 		glog.V(logger.Error).Infoln("WARNING: No etherbase set and no wallet found as default")
-		return common.Address{}
+		return helper.Address{}
 	}
 	etherbase := ctx.GlobalString(MinerFlag.Name)
 	if etherbase == "" {
-		return common.Address{}
+		return helper.Address{}
 	}
 	// If the specified etherbase is a valid address, return it
 	account, err := MakeAddress(accman, etherbase)
@@ -645,18 +645,18 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 		ChainConfig:     MakeChainConfig(ctx, stack),
 		FastSync:        ctx.GlobalBool(FastSyncFlag.Name),
 		MaxPeers:        ctx.GlobalInt(MaxPeersFlag.Name),
-		DatabaseCache:   ctx.GlobalInt(CacheFlag.Name),
-		DatabaseHandles: MakeDatabaseHandles(),
-		NetworkId:       ctx.GlobalInt(NetworkIdFlag.Name),
-		MinerThreads:    ctx.GlobalInt(MinerThreadsFlag.Name),
-		ExtraData:       MakeMinerExtra(extra, ctx),
+		DatabaseCache:           ctx.GlobalInt(CacheFlag.Name),
+		DatabaseHandles:         MakeDatabaseHandles(),
+		NetworkId:               ctx.GlobalInt(NetworkIdFlag.Name),
+		MinerThreads:            ctx.GlobalInt(MinerThreadsFlag.Name),
+		ExtraData:               MakeMinerExtra(extra, ctx),
 		NatSpec:                 ctx.GlobalBool(NatspecEnabledFlag.Name),
 		DocRoot:                 ctx.GlobalString(DocRootFlag.Name),
 		EnableJit:               jitEnabled,
 		ForceJit:                ctx.GlobalBool(VMForceJitFlag.Name),
-		GasPrice:                common.String2Big(ctx.GlobalString(GasPriceFlag.Name)),
-		GpoMinGasPrice:          common.String2Big(ctx.GlobalString(GpoMinGasPriceFlag.Name)),
-		GpoMaxGasPrice:          common.String2Big(ctx.GlobalString(GpoMaxGasPriceFlag.Name)),
+		GasPrice:                helper.String2Big(ctx.GlobalString(GasPriceFlag.Name)),
+		GpoMinGasPrice:          helper.String2Big(ctx.GlobalString(GpoMinGasPriceFlag.Name)),
+		GpoMaxGasPrice:          helper.String2Big(ctx.GlobalString(GpoMaxGasPriceFlag.Name)),
 		GpoFullBlockRatio:       ctx.GlobalInt(GpoFullBlockRatioFlag.Name),
 		GpobaseStepDown:         ctx.GlobalInt(GpobaseStepDownFlag.Name),
 		GpobaseStepUp:           ctx.GlobalInt(GpobaseStepUpFlag.Name),
@@ -704,7 +704,7 @@ func SetupNetwork(ctx *cli.Context) {
 		core.BlockReward = big.NewInt(1.5e+18)
 		core.ExpDiffPeriod = big.NewInt(math.MaxInt64)
 	}
-	params.TargetGasLimit = common.String2Big(ctx.GlobalString(TargetGasLimitFlag.Name))
+	params.TargetGasLimit = helper.String2Big(ctx.GlobalString(TargetGasLimitFlag.Name))
 }
 
 // MakeChainConfig reads the chain configuration from the database in ctx.Datadir.
@@ -767,7 +767,7 @@ func MakeChainConfigFromDb(ctx *cli.Context, db siotdb.Database) *params.ChainCo
 				config.EIP150Block = params.MainNetHomesteadGasRepriceBlock
 			}
 		}
-		if config.EIP150Hash == (common.Hash{}) {
+		if config.EIP150Hash == (helper.Hash{}) {
 			if ctx.GlobalBool(TestNetFlag.Name) {
 				config.EIP150Hash = params.TestNetHomesteadGasRepriceHash
 			} else {

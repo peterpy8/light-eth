@@ -3,13 +3,13 @@ package vm
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 // ExternalLogicRef is a reference to the externalLogic's backing object
 type ExternalLogicRef interface {
 	ReturnGas(*big.Int, *big.Int)
-	Address() common.Address
+	Address() helper.Address
 	Value() *big.Int
 }
 
@@ -19,7 +19,7 @@ type ExternalLogic struct {
 	// CallerAddress is the result of the caller which initialised this
 	// externalLogic. However when the "call method" is delegated this value
 	// needs to be initialised to that of the caller's caller.
-	CallerAddress common.Address
+	CallerAddress helper.Address
 	caller        ExternalLogicRef
 	self          ExternalLogicRef
 
@@ -61,7 +61,7 @@ func (c *ExternalLogic) AsDelegate() *ExternalLogic {
 //
 // Caller will recursively call caller when the externalLogic is a delegate
 // call, including that of caller's caller.
-func (c *ExternalLogic) Caller() common.Address {
+func (c *ExternalLogic) Caller() helper.Address {
 	return c.CallerAddress
 }
 
@@ -89,7 +89,7 @@ func (c *ExternalLogic) ReturnGas(gas, price *big.Int) {
 }
 
 // Address returns the externalLogics address
-func (c *ExternalLogic) Address() common.Address {
+func (c *ExternalLogic) Address() helper.Address {
 	return c.self.Address()
 }
 

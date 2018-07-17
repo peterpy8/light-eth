@@ -1,4 +1,4 @@
-// Package nat provides access to common network port mapping protocols.
+// Package nat provides access to helper network port mapping protocols.
 package nat
 
 import (

@@ -3,7 +3,7 @@ package core
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 )
@@ -42,7 +42,7 @@ type ChainSplitEvent struct {
 
 type ChainEvent struct {
 	Block *types.Block
-	Hash  common.Hash
+	Hash  helper.Hash
 	Logs  vm.Logs
 }
 

@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 )
 
@@ -16,21 +16,21 @@ import (
 type StateSync trie.TrieSync
 
 // NewStateSync create a new state trie download scheduler.
-func NewStateSync(root common.Hash, database siotdb.Database) *StateSync {
+func NewStateSync(root helper.Hash, database siotdb.Database) *StateSync {
 	var syncer *trie.TrieSync
 
-	callback := func(leaf []byte, parent common.Hash) error {
+	callback := func(leaf []byte, parent helper.Hash) error {
 		var obj struct {
 			Nonce    uint64
 			Balance  *big.Int
-			Root     common.Hash
+			Root     helper.Hash
 			CodeHash []byte
 		}
 		if err := rlp.Decode(bytes.NewReader(leaf), &obj); err != nil {
 			return err
 		}
 		syncer.AddSubTrie(obj.Root, 64, parent, nil)
-		syncer.AddRawEntry(common.BytesToHash(obj.CodeHash), 64, parent)
+		syncer.AddRawEntry(helper.BytesToHash(obj.CodeHash), 64, parent)
 
 		return nil
 	}
@@ -39,7 +39,7 @@ func NewStateSync(root common.Hash, database siotdb.Database) *StateSync {
 }
 
 // Missing retrieves the known missing nodes from the state trie for retrieval.
-func (s *StateSync) Missing(max int) []common.Hash {
+func (s *StateSync) Missing(max int) []helper.Hash {
 	return (*trie.TrieSync)(s).Missing(max)
 }
 

@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 type keyStorePlain struct {
 	keysDirPath string
 }
 
-func (ks keyStorePlain) GetKey(addr common.Address, filename, auth string) (*Key, error) {
+func (ks keyStorePlain) GetKey(addr helper.Address, filename, auth string) (*Key, error) {
 	fd, err := os.Open(filename)
 	if err != nil {
 		return nil, err

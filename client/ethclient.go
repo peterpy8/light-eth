@@ -7,10 +7,10 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 	"github.com/ethereum/go-ethereum/net/p2p"
@@ -42,7 +42,7 @@ func NewClient(c *rpc.Client) *Client {
 //
 // Note that loading full blocks requires two requests. Use HeaderByHash
 // if you don't need all transactions or uncle headers.
-func (ec *Client) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
+func (ec *Client) BlockByHash(ctx context.Context, hash helper.Hash) (*types.Block, error) {
 	return ec.getBlock(ctx, "siot_getBlockByHash", hash, true)
 }
 
@@ -56,9 +56,9 @@ func (ec *Client) BlockByNumber(ctx context.Context, number *big.Int) (*types.Bl
 }
 
 type rpcBlock struct {
-	Hash         common.Hash          `json:"hash"`
+	Hash         helper.Hash          `json:"hash"`
 	Transactions []*types.Transaction `json:"transactions"`
-	UncleHashes  []common.Hash        `json:"uncles"`
+	UncleHashes  []helper.Hash        `json:"uncles"`
 }
 
 func (ec *Client) getBlock(ctx context.Context, method string, args ...interface{}) (*types.Block, error) {
@@ -114,7 +114,7 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 }
 
 // HeaderByHash returns the block header with the given hash.
-func (ec *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
+func (ec *Client) HeaderByHash(ctx context.Context, hash helper.Hash) (*types.Header, error) {
 	var head *types.Header
 	err := ec.c.CallContext(ctx, &head, "siot_getBlockByHash", hash, false)
 	return head, err
@@ -129,7 +129,7 @@ func (ec *Client) HeaderByNumber(ctx context.Context, number *big.Int) (*types.H
 }
 
 // TransactionByHash returns the transaction with the given hash.
-func (ec *Client) TransactionByHash(ctx context.Context, hash common.Hash) (*types.Transaction, error) {
+func (ec *Client) TransactionByHash(ctx context.Context, hash helper.Hash) (*types.Transaction, error) {
 	var tx *types.Transaction
 	err := ec.c.CallContext(ctx, &tx, "siot_getTransactionByHash", hash)
 	if err == nil {
@@ -141,14 +141,14 @@ func (ec *Client) TransactionByHash(ctx context.Context, hash common.Hash) (*typ
 }
 
 // TransactionCount returns the total number of transactions in the given block.
-func (ec *Client) TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error) {
+func (ec *Client) TransactionCount(ctx context.Context, blockHash helper.Hash) (uint, error) {
 	var num rpc.HexNumber
 	err := ec.c.CallContext(ctx, &num, "siot_getBlockTransactionCountByHash", blockHash)
 	return num.Uint(), err
 }
 
 // TransactionInBlock returns a single transaction at index in the given block.
-func (ec *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*types.Transaction, error) {
+func (ec *Client) TransactionInBlock(ctx context.Context, blockHash helper.Hash, index uint) (*types.Transaction, error) {
 	var tx *types.Transaction
 	err := ec.c.CallContext(ctx, &tx, "siot_getTransactionByBlockHashAndIndex", blockHash, index)
 	if err == nil {
@@ -165,7 +165,7 @@ func (ec *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash,
 
 // TransactionReceipt returns the receipt of a transaction by transaction hash.
 // Note that the receipt is not available for pending transactions.
-func (ec *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+func (ec *Client) TransactionReceipt(ctx context.Context, txHash helper.Hash) (*types.Receipt, error) {
 	var r *types.Receipt
 	err := ec.c.CallContext(ctx, &r, "siot_getTransactionReceipt", txHash)
 	if err == nil && r != nil && len(r.PostState) == 0 {
@@ -240,26 +240,26 @@ func (ec *Client) NewAccount(ctx context.Context, password string) (rpc.HexBytes
 	return result, err
 }
 
-func (ec *Client) UnlockAccount(ctx context.Context, account common.Address, password string) (bool, error) {
+func (ec *Client) UnlockAccount(ctx context.Context, account helper.Address, password string) (bool, error) {
 	var result bool
 	err := ec.c.CallContext(ctx, &result, "user_unlockAccount", account, password)
 	return result, err
 }
 
-func (ec *Client) LockAccount(ctx context.Context) (common.Address, error) {
-	var result common.Address
+func (ec *Client) LockAccount(ctx context.Context) (helper.Address, error) {
+	var result helper.Address
 	err := ec.c.CallContext(ctx, &result, "user_lockAccount")
 	return result, err
 }
 // BalanceAt returns the wei balance of the given account.
 // The block number can be nil, in which case the balance is taken from the latest known block.
-func (ec *Client) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+func (ec *Client) BalanceAt(ctx context.Context, account helper.Address, blockNumber *big.Int) (*big.Int, error) {
 	var result rpc.HexNumber
 	err := ec.c.CallContext(ctx, &result, "siot_getBalance", account, toBlockNumArg(blockNumber))
 	return (*big.Int)(&result), err
 }
 
-func (ec *Client) SendAsset(ctx context.Context, sender common.Address, receiver common.Address, value *big.Int) (rpc.HexBytes, error) {
+func (ec *Client) SendAsset(ctx context.Context, sender helper.Address, receiver helper.Address, value *big.Int) (rpc.HexBytes, error) {
 	var result rpc.HexBytes
 	value.Mul(value, big.NewInt(1000000000000))
 	args := siotapi.SendTxArgs{From: sender, To: &receiver, Value: rpc.NewHexNumber(value), Data: ""}
@@ -279,7 +279,7 @@ func (ec *Client) GetPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
 	return result, err
 }
 
-func (ec *Client) SetMiner(ctx context.Context, account common.Address) (bool, error) {
+func (ec *Client) SetMiner(ctx context.Context, account helper.Address) (bool, error) {
 	var result bool
 	err := ec.c.CallContext(ctx, &result, "miner_setMiner", account)
 	return result, err
@@ -301,7 +301,7 @@ func (ec *Client) StopMining(ctx context.Context) (bool, error) {
 
 // StorageAt returns the value of key in the externalLogic storage of the given account.
 // The block number can be nil, in which case the value is taken from the latest known block.
-func (ec *Client) StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
+func (ec *Client) StorageAt(ctx context.Context, account helper.Address, key helper.Hash, blockNumber *big.Int) ([]byte, error) {
 	var result rpc.HexBytes
 	err := ec.c.CallContext(ctx, &result, "siot_getStorageAt", account, key, toBlockNumArg(blockNumber))
 	return result, err
@@ -309,7 +309,7 @@ func (ec *Client) StorageAt(ctx context.Context, account common.Address, key com
 
 // CodeAt returns the externalLogic code of the given account.
 // The block number can be nil, in which case the code is taken from the latest known block.
-func (ec *Client) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
+func (ec *Client) CodeAt(ctx context.Context, account helper.Address, blockNumber *big.Int) ([]byte, error) {
 	var result rpc.HexBytes
 	err := ec.c.CallContext(ctx, &result, "siot_getCode", account, toBlockNumArg(blockNumber))
 	return result, err
@@ -317,7 +317,7 @@ func (ec *Client) CodeAt(ctx context.Context, account common.Address, blockNumbe
 
 // NonceAt returns the account nonce of the given account.
 // The block number can be nil, in which case the nonce is taken from the latest known block.
-func (ec *Client) NonceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error) {
+func (ec *Client) NonceAt(ctx context.Context, account helper.Address, blockNumber *big.Int) (uint64, error) {
 	var result rpc.HexNumber
 	err := ec.c.CallContext(ctx, &result, "siot_getTransactionCount", account, toBlockNumArg(blockNumber))
 	return result.Uint64(), err
@@ -353,21 +353,21 @@ func toFilterArg(q siotchain.FilterQuery) interface{} {
 // Pending State
 
 // PendingBalanceAt returns the wei balance of the given account in the pending state.
-func (ec *Client) PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error) {
+func (ec *Client) PendingBalanceAt(ctx context.Context, account helper.Address) (*big.Int, error) {
 	var result rpc.HexNumber
 	err := ec.c.CallContext(ctx, &result, "siot_getBalance", account, "pending")
 	return (*big.Int)(&result), err
 }
 
 // PendingStorageAt returns the value of key in the externalLogic storage of the given account in the pending state.
-func (ec *Client) PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error) {
+func (ec *Client) PendingStorageAt(ctx context.Context, account helper.Address, key helper.Hash) ([]byte, error) {
 	var result rpc.HexBytes
 	err := ec.c.CallContext(ctx, &result, "siot_getStorageAt", account, key, "pending")
 	return result, err
 }
 
 // PendingCodeAt returns the externalLogic code of the given account in the pending state.
-func (ec *Client) PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error) {
+func (ec *Client) PendingCodeAt(ctx context.Context, account helper.Address) ([]byte, error) {
 	var result rpc.HexBytes
 	err := ec.c.CallContext(ctx, &result, "siot_getCode", account, "pending")
 	return result, err
@@ -375,7 +375,7 @@ func (ec *Client) PendingCodeAt(ctx context.Context, account common.Address) ([]
 
 // PendingNonceAt returns the account nonce of the given account in the pending state.
 // This is the nonce that should be used for the next transaction.
-func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
+func (ec *Client) PendingNonceAt(ctx context.Context, account helper.Address) (uint64, error) {
 	var result rpc.HexNumber
 	err := ec.c.CallContext(ctx, &result, "siot_getTransactionCount", account, "pending")
 	return result.Uint64(), err
@@ -404,7 +404,7 @@ func (ec *Client) CallExternalLogic(ctx context.Context, msg siotchain.CallMsg, 
 	if err != nil {
 		return nil, err
 	}
-	return common.FromHex(hex), nil
+	return helper.FromHex(hex), nil
 }
 
 // PendingCallExternalLogic executes a message call transaction using the EVM.
@@ -415,7 +415,7 @@ func (ec *Client) PendingCallExternalLogic(ctx context.Context, msg siotchain.Ca
 	if err != nil {
 		return nil, err
 	}
-	return common.FromHex(hex), nil
+	return helper.FromHex(hex), nil
 }
 
 // SuggestGasPrice retrieves the currently suggested gas price to allow a timely
@@ -450,7 +450,7 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	if err != nil {
 		return err
 	}
-	return ec.c.CallContext(ctx, nil, "siot_sendRawTransaction", common.ToHex(data))
+	return ec.c.CallContext(ctx, nil, "siot_sendRawTransaction", helper.ToHex(data))
 }
 
 func toCallArg(msg siotchain.CallMsg) interface{} {

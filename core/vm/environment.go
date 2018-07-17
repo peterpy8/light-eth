@@ -3,7 +3,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -19,13 +19,13 @@ type Environment interface {
 	// Set database to previous snapshot
 	RevertToSnapshot(int)
 	// Address of the original invoker (first occurrence of the VM invoker)
-	Origin() common.Address
+	Origin() helper.Address
 	// The block number this VM is invoked on
 	BlockNumber() *big.Int
 	// The n'th hash ago from this block number
-	GetHash(uint64) common.Hash
+	GetHash(uint64) helper.Hash
 	// The handler's address
-	Coinbase() common.Address
+	Coinbase() helper.Address
 	// The current time (block time)
 	Time() *big.Int
 	// Difficulty set on the current block
@@ -33,7 +33,7 @@ type Environment interface {
 	// The gas limit of the block
 	GasLimit() *big.Int
 	// Determines whether it's possible to transact
-	CanTransfer(from common.Address, balance *big.Int) bool
+	CanTransfer(from helper.Address, balance *big.Int) bool
 	// Transfers amount from one account to the other
 	Transfer(from, to Account, amount *big.Int)
 	// Adds a LOG to the state
@@ -45,13 +45,13 @@ type Environment interface {
 	// Set the current calling depth
 	SetDepth(i int)
 	// Call another externalLogic
-	Call(me ExternalLogicRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
+	Call(me ExternalLogicRef, addr helper.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
 	// Take another's externalLogic code and execute within our own context
-	CallCode(me ExternalLogicRef, addr common.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
+	CallCode(me ExternalLogicRef, addr helper.Address, data []byte, gas, price, value *big.Int) ([]byte, error)
 	// Same as CallCode except sender and value is propagated from parent to child scope
-	DelegateCall(me ExternalLogicRef, addr common.Address, data []byte, gas, price *big.Int) ([]byte, error)
+	DelegateCall(me ExternalLogicRef, addr helper.Address, data []byte, gas, price *big.Int) ([]byte, error)
 	// Create a new externalLogic
-	Create(me ExternalLogicRef, data []byte, gas, price, value *big.Int) ([]byte, common.Address, error)
+	Create(me ExternalLogicRef, data []byte, gas, price, value *big.Int) ([]byte, helper.Address, error)
 }
 
 // Vm is the basic interface for an implementation of the EVM.
@@ -64,35 +64,35 @@ type Vm interface {
 
 // Database is a EVM database for full state querying.
 type Database interface {
-	GetAccount(common.Address) Account
-	CreateAccount(common.Address) Account
+	GetAccount(helper.Address) Account
+	CreateAccount(helper.Address) Account
 
-	AddBalance(common.Address, *big.Int)
-	GetBalance(common.Address) *big.Int
+	AddBalance(helper.Address, *big.Int)
+	GetBalance(helper.Address) *big.Int
 
-	GetNonce(common.Address) uint64
-	SetNonce(common.Address, uint64)
+	GetNonce(helper.Address) uint64
+	SetNonce(helper.Address, uint64)
 
-	GetCodeHash(common.Address) common.Hash
-	GetCodeSize(common.Address) int
-	GetCode(common.Address) []byte
-	SetCode(common.Address, []byte)
+	GetCodeHash(helper.Address) helper.Hash
+	GetCodeSize(helper.Address) int
+	GetCode(helper.Address) []byte
+	SetCode(helper.Address, []byte)
 
 	AddRefund(*big.Int)
 	GetRefund() *big.Int
 
-	GetState(common.Address, common.Hash) common.Hash
-	SetState(common.Address, common.Hash, common.Hash)
+	GetState(helper.Address, helper.Hash) helper.Hash
+	SetState(helper.Address, helper.Hash, helper.Hash)
 
-	Suicide(common.Address) bool
-	HasSuicided(common.Address) bool
+	Suicide(helper.Address) bool
+	HasSuicided(helper.Address) bool
 
 	// Exist reports whether the given account exists in state.
 	// Notably this should also return true for suicided wallet.
-	Exist(common.Address) bool
+	Exist(helper.Address) bool
 	// Empty returns whether the given account is empty. Empty
 	// is defined according to EIP161 (balance = nonce = code = 0).
-	Empty(common.Address) bool
+	Empty(helper.Address) bool
 }
 
 // Account represents a externalLogic or basic Siotchain account.
@@ -102,9 +102,9 @@ type Account interface {
 	SetBalance(*big.Int)
 	SetNonce(uint64)
 	Balance() *big.Int
-	Address() common.Address
+	Address() helper.Address
 	ReturnGas(*big.Int, *big.Int)
-	SetCode(common.Hash, []byte)
-	ForEachStorage(cb func(key, value common.Hash) bool)
+	SetCode(helper.Hash, []byte)
+	ForEachStorage(cb func(key, value helper.Hash) bool)
 	Value() *big.Int
 }

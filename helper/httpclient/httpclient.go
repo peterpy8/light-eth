@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -50,7 +50,7 @@ func (self *HTTPClient) HasScheme(scheme string) bool {
 	return false
 }
 
-func (self *HTTPClient) GetAuthContent(uri string, hash common.Hash) ([]byte, error) {
+func (self *HTTPClient) GetAuthContent(uri string, hash helper.Hash) ([]byte, error) {
 	// retrieve content
 	content, err := self.Get(uri, "")
 	if err != nil {

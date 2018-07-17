@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // headerCheckFn is a callback type for verifying a header's presence in the local chain.
-type headerCheckFn func(common.Hash) bool
+type headerCheckFn func(helper.Hash) bool
 
 // blockAndStateCheckFn is a callback type for verifying block and associated states' presence in the local chain.
-type blockAndStateCheckFn func(common.Hash) bool
+type blockAndStateCheckFn func(helper.Hash) bool
 
 // headerRetrievalFn is a callback type for retrieving a header from the local chain.
-type headerRetrievalFn func(common.Hash) *types.Header
+type headerRetrievalFn func(helper.Hash) *types.Header
 
 // blockRetrievalFn is a callback type for retrieving a block from the local chain.
-type blockRetrievalFn func(common.Hash) *types.Block
+type blockRetrievalFn func(helper.Hash) *types.Block
 
 // headHeaderRetrievalFn is a callback type for retrieving the head header from the local chain.
 type headHeaderRetrievalFn func() *types.Header
@@ -30,10 +30,10 @@ type headBlockRetrievalFn func() *types.Block
 type headFastBlockRetrievalFn func() *types.Block
 
 // headBlockCommitterFn is a callback for directly committing the head block to a certain entity.
-type headBlockCommitterFn func(common.Hash) error
+type headBlockCommitterFn func(helper.Hash) error
 
 // tdRetrievalFn is a callback type for retrieving the total difficulty of a local block.
-type tdRetrievalFn func(common.Hash) *big.Int
+type tdRetrievalFn func(helper.Hash) *big.Int
 
 // headerChainInsertFn is a callback type to insert a batch of headers into the local chain.
 type headerChainInsertFn func([]*types.Header, int) (int, error)
@@ -45,7 +45,7 @@ type blockChainInsertFn func(types.Blocks) (int, error)
 type receiptChainInsertFn func(types.Blocks, []types.Receipts) (int, error)
 
 // chainRollbackFn is a callback type to remove a few recently added elements from the local chain.
-type chainRollbackFn func([]common.Hash)
+type chainRollbackFn func([]helper.Hash)
 
 // peerDropFn is a callback type for dropping a peer detected as malicious.
 type peerDropFn func(id string)

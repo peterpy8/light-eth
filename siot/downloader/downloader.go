@@ -13,7 +13,7 @@ import (
 	"time"
 
 	siot "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
@@ -117,7 +117,7 @@ type Downloader struct {
 	dropPeer         peerDropFn               // Drops a peer for misbehaving
 
 	// Status
-	synchroniseMock func(id string, hash common.Hash) error // Replacement for synchronise during testing
+	synchroniseMock func(id string, hash helper.Hash) error // Replacement for synchronise during testing
 	synchronising   int32
 	notified        int32
 
@@ -268,7 +268,7 @@ func (d *Downloader) UnregisterPeer(id string) error {
 
 // Synchronise tries to sync up our local block chain with a remote peer, both
 // adding various sanity checks as well as wrapping it with various log entries.
-func (d *Downloader) Synchronise(id string, head common.Hash, td *big.Int, mode SyncMode) error {
+func (d *Downloader) Synchronise(id string, head helper.Hash, td *big.Int, mode SyncMode) error {
 	glog.V(logger.Detail).Infof("Attempting synchronisation: %v, head [%x…], TD %v", id, head[:4], td)
 
 	err := d.synchronise(id, head, td, mode)
@@ -294,7 +294,7 @@ func (d *Downloader) Synchronise(id string, head common.Hash, td *big.Int, mode 
 // synchronise will select the peer and use it for synchronising. If an empty string is given
 // it will use the best peer possible and synchronize if it's TD is higher than our own. If any of the
 // checks fail an error will be returned. This method is synchronous
-func (d *Downloader) synchronise(id string, hash common.Hash, td *big.Int, mode SyncMode) error {
+func (d *Downloader) synchronise(id string, hash helper.Hash, td *big.Int, mode SyncMode) error {
 	// Mock out the synchronisation if testing
 	if d.synchroniseMock != nil {
 		return d.synchroniseMock(id, hash)
@@ -358,7 +358,7 @@ func (d *Downloader) synchronise(id string, hash common.Hash, td *big.Int, mode 
 
 // syncWithPeer starts a block synchronization based on the hash chain from the
 // specified peer and head hash.
-func (d *Downloader) syncWithPeer(p *peer, hash common.Hash, td *big.Int) (err error) {
+func (d *Downloader) syncWithPeer(p *peer, hash helper.Hash, td *big.Int) (err error) {
 	d.mux.Post(StartEvent{})
 	defer func() {
 		// reset on error
@@ -377,7 +377,7 @@ func (d *Downloader) syncWithPeer(p *peer, hash common.Hash, td *big.Int) (err e
 		glog.V(logger.Debug).Infof("Synchronisation terminated after %v", time.Since(start))
 	}(time.Now())
 
-	// Look up the sync boundaries: the common ancestor and the target block
+	// Look up the sync boundaries: the helper ancestor and the target block
 	latest, err := d.fetchHeight(p)
 	if err != nil {
 		return err
@@ -545,13 +545,13 @@ func (d *Downloader) fetchHeight(p *peer) (*types.Header, error) {
 	}
 }
 
-// findAncestor tries to locate the common ancestor link of the local chain and
+// findAncestor tries to locate the helper ancestor link of the local chain and
 // a remote peers blockchain. In the general case when our node was in sync and
 // on the correct chain, checking the top N links should already get us a match.
 // In the rare scenario when we ended up on a long reorganisation (i.e. none of
-// the head links match), we do a binary search to find the common ancestor.
+// the head links match), we do a binary search to find the helper ancestor.
 func (d *Downloader) findAncestor(p *peer, height uint64) (uint64, error) {
-	glog.V(logger.Debug).Infof("%v: looking for common ancestor (remote height %d)", p, height)
+	glog.V(logger.Debug).Infof("%v: looking for helper ancestor (remote height %d)", p, height)
 
 	// Figure out the valid ancestor range to prevent rewrite attacks
 	floor, ceil := int64(-1), d.headHeader().Number.Uint64()
@@ -581,7 +581,7 @@ func (d *Downloader) findAncestor(p *peer, height uint64) (uint64, error) {
 	go p.getAbsHeaders(uint64(from), count, 15, false)
 
 	// Wait for the remote response to the head fetch
-	number, hash := uint64(0), common.Hash{}
+	number, hash := uint64(0), helper.Hash{}
 	timeout := time.After(d.requestTTL())
 
 	for finished := false; !finished; {
@@ -608,7 +608,7 @@ func (d *Downloader) findAncestor(p *peer, height uint64) (uint64, error) {
 					return 0, errInvalidChain
 				}
 			}
-			// Check if a common ancestor was found
+			// Check if a helper ancestor was found
 			finished = true
 			for i := len(headers) - 1; i >= 0; i-- {
 				// Skip any headers that underflow/overflow our requested set
@@ -639,12 +639,12 @@ func (d *Downloader) findAncestor(p *peer, height uint64) (uint64, error) {
 		}
 	}
 	// If the head fetch already found an ancestor, return
-	if !common.EmptyHash(hash) {
+	if !helper.EmptyHash(hash) {
 		if int64(number) <= floor {
 			glog.V(logger.Warn).Infof("%v: potential rewrite attack: #%d [%x…] <= #%d limit", p, number, hash[:4], floor)
 			return 0, errInvalidAncestor
 		}
-		glog.V(logger.Debug).Infof("%v: common ancestor: #%d [%x…]", p, number, hash[:4])
+		glog.V(logger.Debug).Infof("%v: helper ancestor: #%d [%x…]", p, number, hash[:4])
 		return number, nil
 	}
 	// Ancestor not found, we need to binary search over our chain
@@ -707,7 +707,7 @@ func (d *Downloader) findAncestor(p *peer, height uint64) (uint64, error) {
 		glog.V(logger.Warn).Infof("%v: potential rewrite attack: #%d [%x…] <= #%d limit", p, start, hash[:4], floor)
 		return 0, errInvalidAncestor
 	}
-	glog.V(logger.Debug).Infof("%v: common ancestor: #%d [%x…]", p, start, hash[:4])
+	glog.V(logger.Debug).Infof("%v: helper ancestor: #%d [%x…]", p, start, hash[:4])
 	return start, nil
 }
 
@@ -947,7 +947,7 @@ func (d *Downloader) fetchNodeData() error {
 				}
 				// Log a message to the user and return
 				if delivered > 0 {
-					glog.V(logger.Info).Infof("imported %3d state entries in %9v: processed %d, pending at least %d", delivered, common.PrettyDuration(time.Since(start)), syncStatsStateDone, pending)
+					glog.V(logger.Info).Infof("imported %3d state entries in %9v: processed %d, pending at least %d", delivered, helper.PrettyDuration(time.Since(start)), syncStatsStateDone, pending)
 				}
 			})
 		}
@@ -1159,11 +1159,11 @@ func (d *Downloader) processHeaders(origin uint64, td *big.Int) error {
 	defer func() {
 		if len(rollback) > 0 {
 			// Flatten the headers and roll them back
-			hashes := make([]common.Hash, len(rollback))
+			hashes := make([]helper.Hash, len(rollback))
 			for i, header := range rollback {
 				hashes[i] = header.Hash()
 			}
-			lastHeader, lastFastBlock, lastBlock := d.headHeader().Number, common.Big0, common.Big0
+			lastHeader, lastFastBlock, lastBlock := d.headHeader().Number, helper.Big0, helper.Big0
 			if d.headFastBlock != nil {
 				lastFastBlock = d.headFastBlock().Number()
 			}
@@ -1171,7 +1171,7 @@ func (d *Downloader) processHeaders(origin uint64, td *big.Int) error {
 				lastBlock = d.headBlock().Number()
 			}
 			d.rollback(hashes)
-			curFastBlock, curBlock := common.Big0, common.Big0
+			curFastBlock, curBlock := helper.Big0, helper.Big0
 			if d.headFastBlock != nil {
 				curFastBlock = d.headFastBlock().Number()
 			}
@@ -1223,7 +1223,7 @@ func (d *Downloader) processHeaders(origin uint64, td *big.Int) error {
 				// L: Queue block 11 for import
 				// L: Notice that R's head and TD increased compared to ours, start sync
 				// L: Import of block 11 finishes
-				// L: Sync begins, and finds common ancestor at 11
+				// L: Sync begins, and finds helper ancestor at 11
 				// L: Request new headers up from 11 (R's TD was higher, it must have something)
 				// R: Nothing to give
 				if d.mode != LightSync {

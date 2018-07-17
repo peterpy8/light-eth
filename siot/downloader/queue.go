@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -36,7 +36,7 @@ var (
 type fetchRequest struct {
 	Peer    *peer               // Peer to which the request was sent
 	From    uint64              // [siot/62] Requested chain element index (used for skeleton fills only)
-	Hashes  map[common.Hash]int // [siot/61] Requested hashes with their insertion index (priority)
+	Hashes  map[helper.Hash]int // [siot/61] Requested hashes with their insertion index (priority)
 	Headers []*types.Header     // [siot/62] Requested headers, sorted by request order
 	Time    time.Time           // Time when the request was made
 }
@@ -57,7 +57,7 @@ type queue struct {
 	mode          SyncMode // Synchronisation mode to decide on the block parts to schedule for fetching
 	fastSyncPivot uint64   // Block number where the fast sync pivots into archive synchronisation mode
 
-	headerHead common.Hash // [siot/62] Hash of the last queued header to verify order
+	headerHead helper.Hash // [siot/62] Hash of the last queued header to verify order
 
 	// Headers are "special", they download in batches, supported by a skeleton chain
 	headerTaskPool  map[uint64]*types.Header       // [siot/62] Pending header retrieval tasks, mapping starting indexes to skeleton headers
@@ -70,18 +70,18 @@ type queue struct {
 	headerContCh    chan bool                      // [siot/62] Channel to notify when header download finishes
 
 	// All data retrievals below are based on an already assembles header chain
-	blockTaskPool  map[common.Hash]*types.Header // [siot/62] Pending block (body) retrieval tasks, mapping hashes to headers
+	blockTaskPool  map[helper.Hash]*types.Header // [siot/62] Pending block (body) retrieval tasks, mapping hashes to headers
 	blockTaskQueue *prque.Prque                  // [siot/62] Priority queue of the headers to fetch the blocks (bodies) for
 	blockPendPool  map[string]*fetchRequest      // [siot/62] Currently pending block (body) retrieval operations
-	blockDonePool  map[common.Hash]struct{}      // [siot/62] Set of the completed block (body) fetches
+	blockDonePool  map[helper.Hash]struct{}      // [siot/62] Set of the completed block (body) fetches
 
-	receiptTaskPool  map[common.Hash]*types.Header // [siot/63] Pending receipt retrieval tasks, mapping hashes to headers
+	receiptTaskPool  map[helper.Hash]*types.Header // [siot/63] Pending receipt retrieval tasks, mapping hashes to headers
 	receiptTaskQueue *prque.Prque                  // [siot/63] Priority queue of the headers to fetch the receipts for
 	receiptPendPool  map[string]*fetchRequest      // [siot/63] Currently pending receipt retrieval operations
-	receiptDonePool  map[common.Hash]struct{}      // [siot/63] Set of the completed receipt fetches
+	receiptDonePool  map[helper.Hash]struct{}      // [siot/63] Set of the completed receipt fetches
 
 	stateTaskIndex int                      // [siot/63] Counter indexing the added hashes to ensure prioritised retrieval order
-	stateTaskPool  map[common.Hash]int      // [siot/63] Pending node data retrieval tasks, mapping to their priority
+	stateTaskPool  map[helper.Hash]int      // [siot/63] Pending node data retrieval tasks, mapping to their priority
 	stateTaskQueue *prque.Prque             // [siot/63] Priority queue of the hashes to fetch the node data for
 	statePendPool  map[string]*fetchRequest // [siot/63] Currently pending node data retrieval operations
 
@@ -104,15 +104,15 @@ func newQueue(stateDb siotdb.Database) *queue {
 	return &queue{
 		headerPendPool:   make(map[string]*fetchRequest),
 		headerContCh:     make(chan bool),
-		blockTaskPool:    make(map[common.Hash]*types.Header),
+		blockTaskPool:    make(map[helper.Hash]*types.Header),
 		blockTaskQueue:   prque.New(),
 		blockPendPool:    make(map[string]*fetchRequest),
-		blockDonePool:    make(map[common.Hash]struct{}),
-		receiptTaskPool:  make(map[common.Hash]*types.Header),
+		blockDonePool:    make(map[helper.Hash]struct{}),
+		receiptTaskPool:  make(map[helper.Hash]*types.Header),
 		receiptTaskQueue: prque.New(),
 		receiptPendPool:  make(map[string]*fetchRequest),
-		receiptDonePool:  make(map[common.Hash]struct{}),
-		stateTaskPool:    make(map[common.Hash]int),
+		receiptDonePool:  make(map[helper.Hash]struct{}),
+		stateTaskPool:    make(map[helper.Hash]int),
 		stateTaskQueue:   prque.New(),
 		statePendPool:    make(map[string]*fetchRequest),
 		stateDatabase:    stateDb,
@@ -134,22 +134,22 @@ func (q *queue) Reset() {
 	q.mode = FullSync
 	q.fastSyncPivot = 0
 
-	q.headerHead = common.Hash{}
+	q.headerHead = helper.Hash{}
 
 	q.headerPendPool = make(map[string]*fetchRequest)
 
-	q.blockTaskPool = make(map[common.Hash]*types.Header)
+	q.blockTaskPool = make(map[helper.Hash]*types.Header)
 	q.blockTaskQueue.Reset()
 	q.blockPendPool = make(map[string]*fetchRequest)
-	q.blockDonePool = make(map[common.Hash]struct{})
+	q.blockDonePool = make(map[helper.Hash]struct{})
 
-	q.receiptTaskPool = make(map[common.Hash]*types.Header)
+	q.receiptTaskPool = make(map[helper.Hash]*types.Header)
 	q.receiptTaskQueue.Reset()
 	q.receiptPendPool = make(map[string]*fetchRequest)
-	q.receiptDonePool = make(map[common.Hash]struct{})
+	q.receiptDonePool = make(map[helper.Hash]struct{})
 
 	q.stateTaskIndex = 0
-	q.stateTaskPool = make(map[common.Hash]int)
+	q.stateTaskPool = make(map[helper.Hash]int)
 	q.stateTaskQueue.Reset()
 	q.statePendPool = make(map[string]*fetchRequest)
 	q.stateScheduler = nil
@@ -349,7 +349,7 @@ func (q *queue) Schedule(headers []*types.Header, from uint64) []*types.Header {
 			glog.V(logger.Warn).Infof("Header #%v [%x…] broke chain ordering, expected %d", header.Number, hash[:4], from)
 			break
 		}
-		if q.headerHead != (common.Hash{}) && q.headerHead != header.ParentHash {
+		if q.headerHead != (helper.Hash{}) && q.headerHead != header.ParentHash {
 			glog.V(logger.Warn).Infof("Header #%v [%x…] broke chain ancestry", header.Number, hash[:4])
 			break
 		}
@@ -376,10 +376,10 @@ func (q *queue) Schedule(headers []*types.Header, from uint64) []*types.Header {
 			glog.V(logger.Debug).Infof("Switching state downloads to %d [%x…]", header.Number.Uint64(), header.Hash().Bytes()[:4])
 
 			q.stateTaskIndex = 0
-			q.stateTaskPool = make(map[common.Hash]int)
+			q.stateTaskPool = make(map[helper.Hash]int)
 			q.stateTaskQueue.Reset()
 			for _, req := range q.statePendPool {
-				req.Hashes = make(map[common.Hash]int) // Make sure executing requests fail, but don't disappear
+				req.Hashes = make(map[helper.Hash]int) // Make sure executing requests fail, but don't disappear
 			}
 
 			q.stateSchedLock.Lock()
@@ -552,15 +552,15 @@ func (q *queue) reserveHashes(p *peer, count int, taskQueue *prque.Prque, taskGe
 		return nil
 	}
 	// Retrieve a batch of hashes, skipping previously failed ones
-	send := make(map[common.Hash]int)
-	skip := make(map[common.Hash]int)
+	send := make(map[helper.Hash]int)
+	skip := make(map[helper.Hash]int)
 
 	for proc := 0; (allowance == 0 || proc < allowance) && len(send) < count && !taskQueue.Empty(); proc++ {
 		hash, priority := taskQueue.Pop()
-		if p.Lacks(hash.(common.Hash)) {
-			skip[hash.(common.Hash)] = int(priority)
+		if p.Lacks(hash.(helper.Hash)) {
+			skip[hash.(helper.Hash)] = int(priority)
 		} else {
-			send[hash.(common.Hash)] = int(priority)
+			send[hash.(helper.Hash)] = int(priority)
 		}
 	}
 	// Merge all the skipped hashes back
@@ -614,8 +614,8 @@ func (q *queue) ReserveReceipts(p *peer, count int) (*fetchRequest, bool, error)
 // Note, this method expects the queue lock to be already held for writing. The
 // reason the lock is not obtained in here is because the parameters already need
 // to access the queue, so they already need a lock anyway.
-func (q *queue) reserveHeaders(p *peer, count int, taskPool map[common.Hash]*types.Header, taskQueue *prque.Prque,
-	pendPool map[string]*fetchRequest, donePool map[common.Hash]struct{}, isNoop func(*types.Header) bool) (*fetchRequest, bool, error) {
+func (q *queue) reserveHeaders(p *peer, count int, taskPool map[helper.Hash]*types.Header, taskQueue *prque.Prque,
+	pendPool map[string]*fetchRequest, donePool map[helper.Hash]struct{}, isNoop func(*types.Header) bool) (*fetchRequest, bool, error) {
 	// Short circuit if the pool has been depleted, or if the peer's already
 	// downloading something (sanity check not to corrupt state)
 	if taskQueue.Empty() {
@@ -640,7 +640,7 @@ func (q *queue) reserveHeaders(p *peer, count int, taskPool map[common.Hash]*typ
 		// If we're the first to request this task, initialise the result container
 		index := int(header.Number.Int64() - int64(q.resultOffset))
 		if index >= len(q.resultCache) || index < 0 {
-			common.Report("index allocation went beyond available resultCache space")
+			helper.Report("index allocation went beyond available resultCache space")
 			return nil, false, errInvalidChain
 		}
 		if q.resultCache[index] == nil {
@@ -962,8 +962,8 @@ func (q *queue) DeliverReceipts(id string, receiptList [][]*types.Receipt) (int,
 // Note, this method expects the queue lock to be already held for writing. The
 // reason the lock is not obtained in here is because the parameters already need
 // to access the queue, so they already need a lock anyway.
-func (q *queue) deliver(id string, taskPool map[common.Hash]*types.Header, taskQueue *prque.Prque,
-	pendPool map[string]*fetchRequest, donePool map[common.Hash]struct{}, reqTimer metrics.Timer,
+func (q *queue) deliver(id string, taskPool map[helper.Hash]*types.Header, taskQueue *prque.Prque,
+	pendPool map[string]*fetchRequest, donePool map[helper.Hash]struct{}, reqTimer metrics.Timer,
 	results int, reconstruct func(header *types.Header, index int, result *fetchResult) error) (int, error) {
 
 	// Short circuit if the data was never requested
@@ -1056,7 +1056,7 @@ func (q *queue) DeliverNodeData(id string, data [][]byte, callback func(int, boo
 	process := []trie.SyncResult{}
 	for _, blob := range data {
 		// Skip any state trie entries that were not requested
-		hash := common.BytesToHash(crypto.Keccak256(blob))
+		hash := helper.BytesToHash(crypto.Keccak256(blob))
 		if _, ok := request.Hashes[hash]; !ok {
 			errs = append(errs, fmt.Errorf("non-requested state data %x", hash))
 			continue

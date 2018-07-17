@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/robertkrimen/otto"
 )
@@ -112,27 +112,27 @@ type dbWrapper struct {
 }
 
 // getBalance retrieves an account's balance
-func (dw *dbWrapper) getBalance(addr common.Address) *big.Int {
+func (dw *dbWrapper) getBalance(addr helper.Address) *big.Int {
 	return dw.db.GetBalance(addr)
 }
 
 // getNonce retrieves an account's nonce
-func (dw *dbWrapper) getNonce(addr common.Address) uint64 {
+func (dw *dbWrapper) getNonce(addr helper.Address) uint64 {
 	return dw.db.GetNonce(addr)
 }
 
 // getCode retrieves an account's code
-func (dw *dbWrapper) getCode(addr common.Address) []byte {
+func (dw *dbWrapper) getCode(addr helper.Address) []byte {
 	return dw.db.GetCode(addr)
 }
 
 // getState retrieves an account's state data for the given hash
-func (dw *dbWrapper) getState(addr common.Address, hash common.Hash) common.Hash {
+func (dw *dbWrapper) getState(addr helper.Address, hash helper.Hash) helper.Hash {
 	return dw.db.GetState(addr, hash)
 }
 
 // exists returns true iff the account exists
-func (dw *dbWrapper) exists(addr common.Address) bool {
+func (dw *dbWrapper) exists(addr helper.Address) bool {
 	return dw.db.Exist(addr)
 }
 

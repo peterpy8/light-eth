@@ -20,7 +20,7 @@ func (m *Memory) Set(offset, size uint64, value []byte) {
 	}
 
 	// It's possible the offset is greater than 0 and size equals 0. This is because
-	// the calcMemSize (common.go) could potentially return 0 when size is zero (NO-OP)
+	// the calcMemSize (helper.go) could potentially return 0 when size is zero (NO-OP)
 	if size > 0 {
 		copy(m.store[offset:offset+size], value)
 	}

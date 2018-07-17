@@ -10,7 +10,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
@@ -48,27 +48,27 @@ func WriteGenesisBlock(chainDb siotdb.Database, reader io.Reader) (*types.Block,
 	}
 
 	// creating with empty hash always works
-	statedb, _ := state.New(common.Hash{}, chainDb)
+	statedb, _ := state.New(helper.Hash{}, chainDb)
 	for addr, account := range genesis.Alloc {
-		address := common.HexToAddress(addr)
-		statedb.AddBalance(address, common.String2Big(account.Balance))
-		statedb.SetCode(address, common.Hex2Bytes(account.Code))
+		address := helper.HexToAddress(addr)
+		statedb.AddBalance(address, helper.String2Big(account.Balance))
+		statedb.SetCode(address, helper.Hex2Bytes(account.Code))
 		for key, value := range account.Storage {
-			statedb.SetState(address, common.HexToHash(key), common.HexToHash(value))
+			statedb.SetState(address, helper.HexToHash(key), helper.HexToHash(value))
 		}
 	}
 	root, stateBatch := statedb.CommitBatch(false)
 
-	difficulty := common.String2Big(genesis.Difficulty)
+	difficulty := helper.String2Big(genesis.Difficulty)
 	block := types.NewBlock(&types.Header{
-		Nonce:      types.EncodeNonce(common.String2Big(genesis.Nonce).Uint64()),
-		Time:       common.String2Big(genesis.Timestamp),
-		ParentHash: common.HexToHash(genesis.ParentHash),
-		Extra:      common.FromHex(genesis.ExtraData),
-		GasLimit:   common.String2Big(genesis.GasLimit),
+		Nonce:      types.EncodeNonce(helper.String2Big(genesis.Nonce).Uint64()),
+		Time:       helper.String2Big(genesis.Timestamp),
+		ParentHash: helper.HexToHash(genesis.ParentHash),
+		Extra:      helper.FromHex(genesis.ExtraData),
+		GasLimit:   helper.String2Big(genesis.GasLimit),
 		Difficulty: difficulty,
-		MixDigest:  common.HexToHash(genesis.Mixhash),
-		Coinbase:   common.HexToAddress(genesis.Coinbase),
+		MixDigest:  helper.HexToHash(genesis.Mixhash),
+		Coinbase:   helper.HexToAddress(genesis.Coinbase),
 		Root:       root,
 	}, nil, nil, nil)
 
@@ -108,8 +108,8 @@ func WriteGenesisBlock(chainDb siotdb.Database, reader io.Reader) (*types.Block,
 
 // GenesisBlockForTesting creates a block in which addr has the given wei balance.
 // The state trie of the block is written to db. the passed db needs to contain a state root
-func GenesisBlockForTesting(db siotdb.Database, addr common.Address, balance *big.Int) *types.Block {
-	statedb, _ := state.New(common.Hash{}, db)
+func GenesisBlockForTesting(db siotdb.Database, addr helper.Address, balance *big.Int) *types.Block {
+	statedb, _ := state.New(helper.Hash{}, db)
 	obj := statedb.GetOrNewStateObject(addr)
 	obj.SetBalance(balance)
 	root, err := statedb.Commit(false)
@@ -125,7 +125,7 @@ func GenesisBlockForTesting(db siotdb.Database, addr common.Address, balance *bi
 }
 
 type GenesisAccount struct {
-	Address common.Address
+	Address helper.Address
 	Balance *big.Int
 }
 

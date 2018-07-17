@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 var (
@@ -25,7 +25,7 @@ func (err *ParentErr) Error() string {
 	return err.Message
 }
 
-func ParentError(hash common.Hash) error {
+func ParentError(hash helper.Hash) error {
 	return &ParentErr{Message: fmt.Sprintf("Block's parent unknown %x", hash)}
 }
 
@@ -90,7 +90,7 @@ func IsNonceErr(err error) bool {
 // BlockNonceErr indicates that a block's nonce is invalid.
 type BlockNonceErr struct {
 	Number *big.Int
-	Hash   common.Hash
+	Hash   helper.Hash
 	Nonce  uint64
 }
 
@@ -135,7 +135,7 @@ func IsTDError(e error) bool {
 
 type KnownBlockError struct {
 	number *big.Int
-	hash   common.Hash
+	hash   helper.Hash
 }
 
 func (self *KnownBlockError) Error() string {
@@ -162,7 +162,7 @@ func IsValueTransferErr(e error) bool {
 	return ok
 }
 
-type BadHashError common.Hash
+type BadHashError helper.Hash
 
 func (h BadHashError) Error() string {
 	return fmt.Sprintf("Found known bad hash in chain %x", h[:])

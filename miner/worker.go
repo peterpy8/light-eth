@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -94,7 +94,7 @@ type worker struct {
 	proc    core.Validator
 	chainDb siotdb.Database
 
-	coinbase common.Address
+	coinbase helper.Address
 	gasPrice *big.Int
 	extra    []byte
 
@@ -102,10 +102,10 @@ type worker struct {
 	current   *Work
 
 	uncleMu        sync.Mutex
-	possibleUncles map[common.Hash]*types.Block
+	possibleUncles map[helper.Hash]*types.Block
 
 	txQueueMu sync.Mutex
-	txQueue   map[common.Hash]*types.Transaction
+	txQueue   map[helper.Hash]*types.Transaction
 
 	// atomic status counters
 	mining int32
@@ -114,7 +114,7 @@ type worker struct {
 	fullValidation bool
 }
 
-func newWorker(config *params.ChainConfig, coinbase common.Address, siot Backend, mux *event.TypeMux) *worker {
+func newWorker(config *params.ChainConfig, coinbase helper.Address, siot Backend, mux *event.TypeMux) *worker {
 	worker := &worker{
 		config:         config,
 		siot:            siot,
@@ -124,9 +124,9 @@ func newWorker(config *params.ChainConfig, coinbase common.Address, siot Backend
 		gasPrice:       new(big.Int),
 		chain:          siot.BlockChain(),
 		proc:           siot.BlockChain().Validator(),
-		possibleUncles: make(map[common.Hash]*types.Block),
+		possibleUncles: make(map[helper.Hash]*types.Block),
 		coinbase:       coinbase,
-		txQueue:        make(map[common.Hash]*types.Transaction),
+		txQueue:        make(map[helper.Hash]*types.Transaction),
 		agents:         make(map[Agent]struct{}),
 		fullValidation: false,
 	}
@@ -139,7 +139,7 @@ func newWorker(config *params.ChainConfig, coinbase common.Address, siot Backend
 	return worker
 }
 
-func (self *worker) SetMiner(addr common.Address) {
+func (self *worker) SetMiner(addr helper.Address) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	self.coinbase = addr
@@ -222,7 +222,7 @@ func (self *worker) update() {
 				self.currentMu.Lock()
 
 				acc, _ := types.Sender(self.current.signer, ev.Tx)
-				txs := map[common.Address]types.Transactions{acc: types.Transactions{ev.Tx}}
+				txs := map[helper.Address]types.Transactions{acc: types.Transactions{ev.Tx}}
 				txset := types.NewTransactionsByPriceAndNonce(txs)
 
 				self.current.commitTransactions(self.mux, txset, self.gasPrice, self.chain)
@@ -449,7 +449,7 @@ func (self *worker) commitNewWork() {
 	num := parent.Number()
 	header := &types.Header{
 		ParentHash: parent.Hash(),
-		Number:     num.Add(num, common.Big1),
+		Number:     num.Add(num, helper.Big1),
 		Difficulty: core.CalcDifficulty(self.config, uint64(tstamp), parent.Time().Uint64(), parent.Number(), parent.Difficulty()),
 		GasLimit:   core.CalcGasLimit(parent),
 		GasUsed:    new(big.Int),
@@ -464,7 +464,7 @@ func (self *worker) commitNewWork() {
 		if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
 			// Depending whether we support or oppose the fork, override differently
 			if self.config.DAOForkSupport {
-				header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
+				header.Extra = helper.CopyBytes(params.DAOForkBlockExtra)
 			} else if bytes.Compare(header.Extra, params.DAOForkBlockExtra) == 0 {
 				header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
 			}
@@ -491,7 +491,7 @@ func (self *worker) commitNewWork() {
 	// compute uncles for the new block.
 	var (
 		uncles    []*types.Header
-		badUncles []common.Hash
+		badUncles []helper.Hash
 	)
 	for hash, uncle := range self.possibleUncles {
 		if len(uncles) == 2 {
@@ -572,7 +572,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		// Ignore any transactions (and wallet subsequently) with low gas limits
 		if tx.GasPrice().Cmp(gasPrice) < 0 && !env.ownedAccounts.Has(from) {
 			// Pop the current low-priced transaction without shifting in the next from the account
-			glog.V(logger.Info).Infof("Transaction (%x) below gas price (tx=%v ask=%v). All sequential txs from this address(%x) will be ignored\n", tx.Hash().Bytes()[:4], common.CurrencyToString(tx.GasPrice()), common.CurrencyToString(gasPrice), from[:4])
+			glog.V(logger.Info).Infof("Transaction (%x) below gas price (tx=%v ask=%v). All sequential txs from this address(%x) will be ignored\n", tx.Hash().Bytes()[:4], helper.CurrencyToString(tx.GasPrice()), helper.CurrencyToString(gasPrice), from[:4])
 
 			env.lowGasTxs = append(env.lowGasTxs, tx)
 			txs.Pop()
@@ -580,7 +580,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			continue
 		}
 		// Start executing the transaction
-		env.state.StartRecord(tx.Hash(), common.Hash{}, env.tcount)
+		env.state.StartRecord(tx.Hash(), helper.Hash{}, env.tcount)
 
 		err, logs := env.commitTransaction(tx, bc, gp)
 		switch {

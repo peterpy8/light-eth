@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Backend interface provides the common API services (that are provided by
+// Backend interface provides the helper API services (that are provided by
 // both full and light clients) with access to necessary functions.
 type Backend interface {
 	// general Siotchain API
@@ -32,28 +32,28 @@ type Backend interface {
 	HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error)
 	BlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Block, error)
 	StateAndHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (State, *types.Header, error)
-	GetBlock(ctx context.Context, blockHash common.Hash) (*types.Block, error)
-	GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error)
-	GetTd(blockHash common.Hash) *big.Int
+	GetBlock(ctx context.Context, blockHash helper.Hash) (*types.Block, error)
+	GetReceipts(ctx context.Context, blockHash helper.Hash) (types.Receipts, error)
+	GetTd(blockHash helper.Hash) *big.Int
 	GetVMEnv(ctx context.Context, msg core.Message, state State, header *types.Header) (vm.Environment, func() error, error)
 	// TxPool API
 	SendTx(ctx context.Context, signedTx *types.Transaction) error
-	RemoveTx(txHash common.Hash)
+	RemoveTx(txHash helper.Hash)
 	GetPoolTransactions() types.Transactions
-	GetPoolTransaction(txHash common.Hash) *types.Transaction
-	GetPoolNonce(ctx context.Context, addr common.Address) (uint64, error)
+	GetPoolTransaction(txHash helper.Hash) *types.Transaction
+	GetPoolNonce(ctx context.Context, addr helper.Address) (uint64, error)
 	Stats() (pending int, queued int)
-	TxPoolContent() (map[common.Address]types.Transactions, map[common.Address]types.Transactions)
+	TxPoolContent() (map[helper.Address]types.Transactions, map[helper.Address]types.Transactions)
 
 	ChainConfig() *params.ChainConfig
 	CurrentBlock() *types.Block
 }
 
 type State interface {
-	GetBalance(ctx context.Context, addr common.Address) (*big.Int, error)
-	GetCode(ctx context.Context, addr common.Address) ([]byte, error)
-	GetState(ctx context.Context, a common.Address, b common.Hash) (common.Hash, error)
-	GetNonce(ctx context.Context, addr common.Address) (uint64, error)
+	GetBalance(ctx context.Context, addr helper.Address) (*big.Int, error)
+	GetCode(ctx context.Context, addr helper.Address) ([]byte, error)
+	GetState(ctx context.Context, a helper.Address, b helper.Hash) (helper.Hash, error)
+	GetNonce(ctx context.Context, addr helper.Address) (uint64, error)
 }
 
 func GetAPIs(apiBackend Backend) []rpc.API {

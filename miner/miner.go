@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -37,9 +37,9 @@ type Miner struct {
 	MinAcceptedGasPrice *big.Int
 
 	threads  int
-	coinbase common.Address
+	coinbase helper.Address
 	mining   int32
-	siot      Backend
+	siot     Backend
 	pow      pow.PoW
 
 	canStart    int32 // can start indicates whether we can start the mining operation
@@ -51,7 +51,7 @@ func New(siot Backend, config *params.ChainConfig, mux *event.TypeMux, pow pow.P
 		siot:      siot,
 		mux:      mux,
 		pow:      pow,
-		worker:   newWorker(config, common.Address{}, siot, mux),
+		worker:   newWorker(config, helper.Address{}, siot, mux),
 		canStart: 1,
 	}
 	go miner.update()
@@ -100,7 +100,7 @@ func (m *Miner) SetGasPrice(price *big.Int) {
 	m.worker.setGasPrice(price)
 }
 
-func (self *Miner) Start(coinbase common.Address, threads int) {
+func (self *Miner) Start(coinbase helper.Address, threads int) {
 	atomic.StoreInt32(&self.shouldStart, 1)
 	self.threads = threads
 	self.worker.coinbase = coinbase
@@ -170,7 +170,7 @@ func (self *Miner) Pending() (*types.Block, *state.StateDB) {
 	return self.worker.pending()
 }
 
-func (self *Miner) SetMiner(addr common.Address) {
+func (self *Miner) SetMiner(addr helper.Address) {
 	self.coinbase = addr
 	self.worker.SetMiner(addr)
 }

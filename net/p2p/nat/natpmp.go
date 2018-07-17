@@ -10,7 +10,7 @@ import (
 )
 
 // natPMPClient adapts the NAT-PMP protocol implementation so it conforms to
-// the common interface.
+// the helper interface.
 type pmp struct {
 	gw net.IP
 	c  *natpmp.Client

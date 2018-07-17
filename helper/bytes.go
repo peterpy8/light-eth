@@ -1,5 +1,5 @@
-// Package common contains various helper functions.
-package common
+// Package helper contains various helper functions.
+package helper
 
 import (
 	"bytes"

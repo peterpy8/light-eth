@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 /*
@@ -25,7 +25,7 @@ func (db *MemDatabase) Put(key []byte, value []byte) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 
-	db.db[string(key)] = common.CopyBytes(value)
+	db.db[string(key)] = helper.CopyBytes(value)
 	return nil
 }
 
@@ -58,10 +58,10 @@ func (db *MemDatabase) Keys() [][]byte {
 }
 
 /*
-func (db *MemDatabase) GetKeys() []*common.Key {
+func (db *MemDatabase) GetKeys() []*helper.Key {
 	data, _ := db.Get([]byte("KeyRing"))
 
-	return []*common.Key{common.NewKeyFromBytes(data)}
+	return []*helper.Key{helper.NewKeyFromBytes(data)}
 }
 */
 
@@ -91,7 +91,7 @@ func (b *memBatch) Put(key, value []byte) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	b.writes = append(b.writes, kv{common.CopyBytes(key), common.CopyBytes(value)})
+	b.writes = append(b.writes, kv{helper.CopyBytes(key), helper.CopyBytes(value)})
 	return nil
 }
 

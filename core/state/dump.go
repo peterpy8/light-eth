@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 type DumpAccount struct {
@@ -24,7 +24,7 @@ type Dump struct {
 
 func (self *StateDB) RawDump() Dump {
 	dump := Dump{
-		Root:     common.Bytes2Hex(self.trie.Root()),
+		Root:     helper.Bytes2Hex(self.trie.Root()),
 		Accounts: make(map[string]DumpAccount),
 	}
 
@@ -36,20 +36,20 @@ func (self *StateDB) RawDump() Dump {
 			panic(err)
 		}
 
-		obj := newObject(nil, common.BytesToAddress(addr), data, nil)
+		obj := newObject(nil, helper.BytesToAddress(addr), data, nil)
 		account := DumpAccount{
 			Balance:  data.Balance.String(),
 			Nonce:    data.Nonce,
-			Root:     common.Bytes2Hex(data.Root[:]),
-			CodeHash: common.Bytes2Hex(data.CodeHash),
-			Code:     common.Bytes2Hex(obj.Code(self.db)),
+			Root:     helper.Bytes2Hex(data.Root[:]),
+			CodeHash: helper.Bytes2Hex(data.CodeHash),
+			Code:     helper.Bytes2Hex(obj.Code(self.db)),
 			Storage:  make(map[string]string),
 		}
 		storageIt := obj.getTrie(self.db).Iterator()
 		for storageIt.Next() {
-			account.Storage[common.Bytes2Hex(self.trie.GetKey(storageIt.Key))] = common.Bytes2Hex(storageIt.Value)
+			account.Storage[helper.Bytes2Hex(self.trie.GetKey(storageIt.Key))] = helper.Bytes2Hex(storageIt.Value)
 		}
-		dump.Accounts[common.Bytes2Hex(addr)] = account
+		dump.Accounts[helper.Bytes2Hex(addr)] = account
 	}
 	return dump
 }

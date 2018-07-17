@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -25,7 +25,7 @@ import (
 const (
 	alpha      = 3  // Kademlia concurrency factor
 	bucketSize = 16 // Kademlia bucket size
-	hashBits   = len(common.Hash{}) * 8
+	hashBits   = len(helper.Hash{}) * 8
 	nBuckets   = hashBits + 1 // Number of buckets
 
 	maxBondingPingPongs = 16
@@ -387,7 +387,7 @@ func (tab *Table) doRefresh(done chan struct{}) {
 
 // closest returns the n nodes in the table that are closest to the
 // given id. The caller must hold tab.mutex.
-func (tab *Table) closest(target common.Hash, nresults int) *nodesByDistance {
+func (tab *Table) closest(target helper.Hash, nresults int) *nodesByDistance {
 	// This is a very wasteful way to find the closest nodes but
 	// obviously correct. I believe that tree-based buckets would make
 	// this easier to implement efficiently.
@@ -643,7 +643,7 @@ func (b *bucket) bump(n *Node) bool {
 // distance to target.
 type nodesByDistance struct {
 	entries []*Node
-	target  common.Hash
+	target  helper.Hash
 }
 
 // push adds the given node to the list, keeping the total size below maxElems.

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/net/p2p"
 	"github.com/ethereum/go-ethereum/net/p2p/discover"
@@ -315,5 +315,5 @@ func (s *PublicWeb3API) ClientVersion() string {
 
 // It assumes the input is hex encoded.
 func (s *PublicWeb3API) Sha3(input string) string {
-	return common.ToHex(crypto.Keccak256(common.FromHex(input)))
+	return helper.ToHex(crypto.Keccak256(helper.FromHex(input)))
 }

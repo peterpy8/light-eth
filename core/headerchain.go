@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/logger"
@@ -39,7 +39,7 @@ type HeaderChain struct {
 	genesisHeader *types.Header
 
 	currentHeader     *types.Header // Current head of the header chain (may be above the block chain!)
-	currentHeaderHash common.Hash   // Hash of the current head of the header chain (prevent recomputing all the time)
+	currentHeaderHash helper.Hash   // Hash of the current head of the header chain (prevent recomputing all the time)
 
 	headerCache *lru.Cache // Cache for the most recent block headers
 	tdCache     *lru.Cache // Cache for the most recent block total difficulties
@@ -91,7 +91,7 @@ func NewHeaderChain(chainDb siotdb.Database, config *params.ChainConfig, getVali
 	}
 
 	hc.currentHeader = hc.genesisHeader
-	if head := GetHeadBlockHash(chainDb); head != (common.Hash{}) {
+	if head := GetHeadBlockHash(chainDb); head != (helper.Hash{}) {
 		if chead := hc.GetHeaderByHash(head); chead != nil {
 			hc.currentHeader = chead
 		}
@@ -103,7 +103,7 @@ func NewHeaderChain(chainDb siotdb.Database, config *params.ChainConfig, getVali
 
 // GetBlockNumber retrieves the block number belonging to the given hash
 // from the cache or database
-func (hc *HeaderChain) GetBlockNumber(hash common.Hash) uint64 {
+func (hc *HeaderChain) GetBlockNumber(hash helper.Hash) uint64 {
 	if cached, ok := hc.numberCache.Get(hash); ok {
 		return cached.(uint64)
 	}
@@ -152,7 +152,7 @@ func (hc *HeaderChain) WriteHeader(header *types.Header) (status WriteStatus, er
 		// Delete any canonical number assignments above the new head
 		for i := number + 1; ; i++ {
 			hash := GetCanonicalHash(hc.chainDb, i)
-			if hash == (common.Hash{}) {
+			if hash == (helper.Hash{}) {
 				break
 			}
 			DeleteCanonicalHash(hc.chainDb, i)
@@ -312,28 +312,28 @@ func (hc *HeaderChain) InsertHeaderChain(chain []*types.Header, checkFreq int, w
 	if stats.ignored > 0 {
 		ignored = fmt.Sprintf(" (%d ignored)", stats.ignored)
 	}
-	glog.V(logger.Info).Infof("imported %d headers%s in %9v. #%v [%x… / %x…]", stats.processed, ignored, common.PrettyDuration(time.Since(start)), last.Number, first.Hash().Bytes()[:4], last.Hash().Bytes()[:4])
+	glog.V(logger.Info).Infof("imported %d headers%s in %9v. #%v [%x… / %x…]", stats.processed, ignored, helper.PrettyDuration(time.Since(start)), last.Number, first.Hash().Bytes()[:4], last.Hash().Bytes()[:4])
 
 	return 0, nil
 }
 
 // GetBlockHashesFromHash retrieves a number of block hashes starting at a given
 // hash, fetching towards the genesis block.
-func (hc *HeaderChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []common.Hash {
+func (hc *HeaderChain) GetBlockHashesFromHash(hash helper.Hash, max uint64) []helper.Hash {
 	// Get the origin header from which to fetch
 	header := hc.GetHeaderByHash(hash)
 	if header == nil {
 		return nil
 	}
 	// Iterate the headers until enough is collected or the genesis reached
-	chain := make([]common.Hash, 0, max)
+	chain := make([]helper.Hash, 0, max)
 	for i := uint64(0); i < max; i++ {
 		next := header.ParentHash
 		if header = hc.GetHeader(next, header.Number.Uint64()-1); header == nil {
 			break
 		}
 		chain = append(chain, next)
-		if header.Number.Cmp(common.Big0) == 0 {
+		if header.Number.Cmp(helper.Big0) == 0 {
 			break
 		}
 	}
@@ -342,7 +342,7 @@ func (hc *HeaderChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []co
 
 // GetTd retrieves a block's total difficulty in the canonical chain from the
 // database by hash and number, caching it if found.
-func (hc *HeaderChain) GetTd(hash common.Hash, number uint64) *big.Int {
+func (hc *HeaderChain) GetTd(hash helper.Hash, number uint64) *big.Int {
 	// Short circuit if the td's already in the cache, retrieve otherwise
 	if cached, ok := hc.tdCache.Get(hash); ok {
 		return cached.(*big.Int)
@@ -358,13 +358,13 @@ func (hc *HeaderChain) GetTd(hash common.Hash, number uint64) *big.Int {
 
 // GetTdByHash retrieves a block's total difficulty in the canonical chain from the
 // database by hash, caching it if found.
-func (hc *HeaderChain) GetTdByHash(hash common.Hash) *big.Int {
+func (hc *HeaderChain) GetTdByHash(hash helper.Hash) *big.Int {
 	return hc.GetTd(hash, hc.GetBlockNumber(hash))
 }
 
 // WriteTd stores a block's total difficulty into the database, also caching it
 // along the way.
-func (hc *HeaderChain) WriteTd(hash common.Hash, number uint64, td *big.Int) error {
+func (hc *HeaderChain) WriteTd(hash helper.Hash, number uint64, td *big.Int) error {
 	if err := WriteTd(hc.chainDb, hash, number, td); err != nil {
 		return err
 	}
@@ -374,7 +374,7 @@ func (hc *HeaderChain) WriteTd(hash common.Hash, number uint64, td *big.Int) err
 
 // GetHeader retrieves a block header from the database by hash and number,
 // caching it if found.
-func (hc *HeaderChain) GetHeader(hash common.Hash, number uint64) *types.Header {
+func (hc *HeaderChain) GetHeader(hash helper.Hash, number uint64) *types.Header {
 	// Short circuit if the header's already in the cache, retrieve otherwise
 	if header, ok := hc.headerCache.Get(hash); ok {
 		return header.(*types.Header)
@@ -390,13 +390,13 @@ func (hc *HeaderChain) GetHeader(hash common.Hash, number uint64) *types.Header 
 
 // GetHeaderByHash retrieves a block header from the database by hash, caching it if
 // found.
-func (hc *HeaderChain) GetHeaderByHash(hash common.Hash) *types.Header {
+func (hc *HeaderChain) GetHeaderByHash(hash helper.Hash) *types.Header {
 	return hc.GetHeader(hash, hc.GetBlockNumber(hash))
 }
 
 // HasHeader checks if a block header is present in the database or not, caching
 // it if present.
-func (hc *HeaderChain) HasHeader(hash common.Hash) bool {
+func (hc *HeaderChain) HasHeader(hash helper.Hash) bool {
 	return hc.GetHeaderByHash(hash) != nil
 }
 
@@ -404,7 +404,7 @@ func (hc *HeaderChain) HasHeader(hash common.Hash) bool {
 // caching it (associated with its hash) if found.
 func (hc *HeaderChain) GetHeaderByNumber(number uint64) *types.Header {
 	hash := GetCanonicalHash(hc.chainDb, number)
-	if hash == (common.Hash{}) {
+	if hash == (helper.Hash{}) {
 		return nil
 	}
 	return hc.GetHeader(hash, number)
@@ -427,7 +427,7 @@ func (hc *HeaderChain) SetCurrentHeader(head *types.Header) {
 
 // DeleteCallback is a callback function that is called by SetHead before
 // each header is deleted.
-type DeleteCallback func(common.Hash, uint64)
+type DeleteCallback func(helper.Hash, uint64)
 
 // SetHead rewinds the local chain to a new head. Everything above the new head
 // will be deleted and the new one set.

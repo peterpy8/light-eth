@@ -4,7 +4,7 @@ package siotchain
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"golang.org/x/net/context"
@@ -31,24 +31,24 @@ type Subscription interface {
 // number argument can be nil to select the latest canonical block. Reading block headers
 // should be preferred over full blocks whenever possible.
 type ChainReader interface {
-	BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error)
+	BlockByHash(ctx context.Context, hash helper.Hash) (*types.Block, error)
 	BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error)
-	HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error)
+	HeaderByHash(ctx context.Context, hash helper.Hash) (*types.Header, error)
 	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
-	TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error)
-	TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*types.Transaction, error)
-	TransactionByHash(ctx context.Context, txHash common.Hash) (*types.Transaction, error)
-	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
+	TransactionCount(ctx context.Context, blockHash helper.Hash) (uint, error)
+	TransactionInBlock(ctx context.Context, blockHash helper.Hash, index uint) (*types.Transaction, error)
+	TransactionByHash(ctx context.Context, txHash helper.Hash) (*types.Transaction, error)
+	TransactionReceipt(ctx context.Context, txHash helper.Hash) (*types.Receipt, error)
 }
 
 // ChainStateReader wraps access to the state trie of the canonical blockchain. Note that
 // implementations of the interface may be unable to return state values for old blocks.
 // In many cases, using CallExternalLogic can be preferable to reading raw externalLogic storage.
 type ChainStateReader interface {
-	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
-	StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error)
-	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
-	NonceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error)
+	BalanceAt(ctx context.Context, account helper.Address, blockNumber *big.Int) (*big.Int, error)
+	StorageAt(ctx context.Context, account helper.Address, key helper.Hash, blockNumber *big.Int) ([]byte, error)
+	CodeAt(ctx context.Context, account helper.Address, blockNumber *big.Int) ([]byte, error)
+	NonceAt(ctx context.Context, account helper.Address, blockNumber *big.Int) (uint64, error)
 }
 
 // SyncProgress gives progress indications when the node is synchronising with
@@ -74,8 +74,8 @@ type ChainHeadEventer interface {
 
 // CallMsg contains parameters for externalLogic calls.
 type CallMsg struct {
-	From     common.Address  // the sender of the 'transaction'
-	To       *common.Address // the destination externalLogic (nil for externalLogic creation)
+	From     helper.Address  // the sender of the 'transaction'
+	To       *helper.Address // the destination externalLogic (nil for externalLogic creation)
 	Gas      *big.Int        // if nil, the call executes with near-infinite gas
 	GasPrice *big.Int        // wei <-> gas exchange ratio
 	Value    *big.Int        // amount of wei sent along with the call
@@ -94,7 +94,7 @@ type ExternalLogicCaller interface {
 type FilterQuery struct {
 	FromBlock *big.Int         // beginning of the queried range, nil means genesis block
 	ToBlock   *big.Int         // end of the range, nil means latest block
-	Addresses []common.Address // restricts matches to events created by specific externalLogics
+	Addresses []helper.Address // restricts matches to events created by specific externalLogics
 
 	// The Topic list restricts matches to particular event topics. Each event has a list
 	// of topics. Topics matches a prefix of that list. An empty element slice matches any
@@ -107,7 +107,7 @@ type FilterQuery struct {
 	// {{}, {B}}          matches any topic in first position, B in second position
 	// {{A}}, {B}}        matches topic A in first position, B in second position
 	// {{A, B}}, {C, D}}  matches topic (A OR B) in first position, (C OR D) in second position
-	Topics [][]common.Hash
+	Topics [][]helper.Hash
 }
 
 // LogFilterer provides access to externalLogic log events using a one-off query or continuous
@@ -141,10 +141,10 @@ type GasPricer interface {
 // transfers) initiated by the user. The PendingNonceAt operation is a good way to
 // retrieve the next available transaction nonce for a specific account.
 type PendingStateReader interface {
-	PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error)
-	PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error)
-	PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error)
-	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
+	PendingBalanceAt(ctx context.Context, account helper.Address) (*big.Int, error)
+	PendingStorageAt(ctx context.Context, account helper.Address, key helper.Hash) ([]byte, error)
+	PendingCodeAt(ctx context.Context, account helper.Address) ([]byte, error)
+	PendingNonceAt(ctx context.Context, account helper.Address) (uint64, error)
 	PendingTransactionCount(ctx context.Context) (uint, error)
 }
 

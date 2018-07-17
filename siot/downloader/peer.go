@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 const (
@@ -23,14 +23,14 @@ const (
 )
 
 // Head hash and total difficulty retriever for
-type currentHeadRetrievalFn func() (common.Hash, *big.Int)
+type currentHeadRetrievalFn func() (helper.Hash, *big.Int)
 
 // Block header and body fetchers belonging to siot/62 and above
-type relativeHeaderFetcherFn func(common.Hash, int, int, bool) error
+type relativeHeaderFetcherFn func(helper.Hash, int, int, bool) error
 type absoluteHeaderFetcherFn func(uint64, int, int, bool) error
-type blockBodyFetcherFn func([]common.Hash) error
-type receiptFetcherFn func([]common.Hash) error
-type stateFetcherFn func([]common.Hash) error
+type blockBodyFetcherFn func([]helper.Hash) error
+type receiptFetcherFn func([]helper.Hash) error
+type stateFetcherFn func([]helper.Hash) error
 
 var (
 	errAlreadyFetching   = errors.New("already fetching blocks from peer")
@@ -59,7 +59,7 @@ type peer struct {
 	receiptStarted time.Time // Time instance when the last receipt fetch was started
 	stateStarted   time.Time // Time instance when the last node data fetch was started
 
-	lacking map[common.Hash]struct{} // Set of hashes not to request (didn't have previously)
+	lacking map[helper.Hash]struct{} // Set of hashes not to request (didn't have previously)
 
 	currentHead currentHeadRetrievalFn // Method to fetch the currently known head of the peer
 
@@ -81,7 +81,7 @@ func newPeer(id string, version int, currentHead currentHeadRetrievalFn,
 	getReceipts receiptFetcherFn, getNodeData stateFetcherFn) *peer {
 	return &peer{
 		id:      id,
-		lacking: make(map[common.Hash]struct{}),
+		lacking: make(map[helper.Hash]struct{}),
 
 		currentHead:    currentHead,
 		getRelHeaders:  getRelHeaders,
@@ -110,7 +110,7 @@ func (p *peer) Reset() {
 	p.receiptThroughput = 0
 	p.stateThroughput = 0
 
-	p.lacking = make(map[common.Hash]struct{})
+	p.lacking = make(map[helper.Hash]struct{})
 }
 
 // FetchHeaders sends a header retrieval request to the remote peer.
@@ -144,7 +144,7 @@ func (p *peer) FetchBodies(request *fetchRequest) error {
 	p.blockStarted = time.Now()
 
 	// Convert the header set to a retrievable slice
-	hashes := make([]common.Hash, 0, len(request.Headers))
+	hashes := make([]helper.Hash, 0, len(request.Headers))
 	for _, header := range request.Headers {
 		hashes = append(hashes, header.Hash())
 	}
@@ -166,7 +166,7 @@ func (p *peer) FetchReceipts(request *fetchRequest) error {
 	p.receiptStarted = time.Now()
 
 	// Convert the header set to a retrievable slice
-	hashes := make([]common.Hash, 0, len(request.Headers))
+	hashes := make([]helper.Hash, 0, len(request.Headers))
 	for _, header := range request.Headers {
 		hashes = append(hashes, header.Hash())
 	}
@@ -188,7 +188,7 @@ func (p *peer) FetchNodeData(request *fetchRequest) error {
 	p.stateStarted = time.Now()
 
 	// Convert the hash set to a retrievable slice
-	hashes := make([]common.Hash, 0, len(request.Hashes))
+	hashes := make([]helper.Hash, 0, len(request.Hashes))
 	for hash, _ := range request.Hashes {
 		hashes = append(hashes, hash)
 	}
@@ -293,7 +293,7 @@ func (p *peer) NodeDataCapacity(targetRTT time.Duration) int {
 // MarkLacking appends a new entity to the set of items (blocks, receipts, states)
 // that a peer is known not to have (i.e. have been requested before). If the
 // set reaches its maximum allowed capacity, items are randomly dropped off.
-func (p *peer) MarkLacking(hash common.Hash) {
+func (p *peer) MarkLacking(hash helper.Hash) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
@@ -308,7 +308,7 @@ func (p *peer) MarkLacking(hash common.Hash) {
 
 // Lacks retrieves whether the hash of a blockchain item is on the peers lacking
 // list (i.e. whether we know that the peer does not have it).
-func (p *peer) Lacks(hash common.Hash) bool {
+func (p *peer) Lacks(hash helper.Hash) bool {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 

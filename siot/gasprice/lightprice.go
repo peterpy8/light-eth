@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
@@ -23,7 +23,7 @@ const (
 // blocks. Suitable for both light and full clients.
 type LightPriceOracle struct {
 	backend   siotapi.Backend
-	lastHead  common.Hash
+	lastHead  helper.Hash
 	lastPrice *big.Int
 	cacheLock sync.RWMutex
 	fetchLock sync.Mutex

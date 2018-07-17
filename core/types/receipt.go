@@ -7,9 +7,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 var (
@@ -26,24 +26,24 @@ type Receipt struct {
 	Logs              vm.Logs
 
 	// Implementation fields (don't reorder!)
-	TxHash          common.Hash
-	ExternalLogicAddress common.Address
-	GasUsed         *big.Int
+	TxHash               helper.Hash
+	ExternalLogicAddress helper.Address
+	GasUsed              *big.Int
 }
 
 type jsonReceipt struct {
-	PostState         *common.Hash    `json:"root"`
-	CumulativeGasUsed *hexBig         `json:"cumulativeGasUsed"`
-	Bloom             *Bloom          `json:"logsBloom"`
-	Logs              *vm.Logs        `json:"logs"`
-	TxHash            *common.Hash    `json:"transactionHash"`
-	ExternalLogicAddress   *common.Address `json:"externalLogicAddress"`
-	GasUsed           *hexBig         `json:"gasUsed"`
+	PostState         *helper.Hash         `json:"root"`
+	CumulativeGasUsed *hexBig              `json:"cumulativeGasUsed"`
+	Bloom             *Bloom               `json:"logsBloom"`
+	Logs              *vm.Logs             `json:"logs"`
+	TxHash            *helper.Hash         `json:"transactionHash"`
+	ExternalLogicAddress   *helper.Address `json:"externalLogicAddress"`
+	GasUsed           *hexBig              `json:"gasUsed"`
 }
 
 // NewReceipt creates a barebone transaction receipt, copying the init fields.
 func NewReceipt(root []byte, cumulativeGasUsed *big.Int) *Receipt {
-	return &Receipt{PostState: common.CopyBytes(root), CumulativeGasUsed: new(big.Int).Set(cumulativeGasUsed)}
+	return &Receipt{PostState: helper.CopyBytes(root), CumulativeGasUsed: new(big.Int).Set(cumulativeGasUsed)}
 }
 
 // EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
@@ -70,7 +70,7 @@ func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 
 // MarshalJSON encodes receipts into the web3 RPC response block format.
 func (r *Receipt) MarshalJSON() ([]byte, error) {
-	root := common.BytesToHash(r.PostState)
+	root := helper.BytesToHash(r.PostState)
 
 	return json.Marshal(&jsonReceipt{
 		PostState:         &root,
@@ -136,13 +136,13 @@ func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 // fields of a receipt from an RLP stream.
 func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 	var receipt struct {
-		PostState         []byte
-		CumulativeGasUsed *big.Int
-		Bloom             Bloom
-		TxHash            common.Hash
-		ExternalLogicAddress   common.Address
-		Logs              []*vm.LogForStorage
-		GasUsed           *big.Int
+		PostState            []byte
+		CumulativeGasUsed    *big.Int
+		Bloom                Bloom
+		TxHash               helper.Hash
+		ExternalLogicAddress helper.Address
+		Logs                 []*vm.LogForStorage
+		GasUsed              *big.Int
 	}
 	if err := s.Decode(&receipt); err != nil {
 		return err

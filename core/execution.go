@@ -3,14 +3,14 @@ package core
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 )
 
 // Call executes within the given externalLogic
-func Call(env vm.Environment, caller vm.ExternalLogicRef, addr common.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
+func Call(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {
@@ -62,7 +62,7 @@ func Call(env vm.Environment, caller vm.ExternalLogicRef, addr common.Address, i
 }
 
 // CallCode executes the given address' code as the given externalLogic address
-func CallCode(env vm.Environment, caller vm.ExternalLogicRef, addr common.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
+func CallCode(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {
@@ -98,18 +98,18 @@ func CallCode(env vm.Environment, caller vm.ExternalLogicRef, addr common.Addres
 }
 
 // Create creates a new externalLogic with the given code
-func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, gasPrice, value *big.Int) (ret []byte, address common.Address, err error) {
+func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, gasPrice, value *big.Int) (ret []byte, address helper.Address, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 
-		return nil, common.Address{}, vm.DepthError
+		return nil, helper.Address{}, vm.DepthError
 	}
 	if !env.CanTransfer(caller.Address(), value) {
 		caller.ReturnGas(gas, gasPrice)
 
-		return nil, common.Address{}, ValueTransferErr("insufficient funds to transfer value. Req %v, has %v", value, env.Db().GetBalance(caller.Address()))
+		return nil, helper.Address{}, ValueTransferErr("insufficient funds to transfer value. Req %v, has %v", value, env.Db().GetBalance(caller.Address()))
 	}
 
 	// Create a new account on the state
@@ -168,7 +168,7 @@ func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, ga
 }
 
 // DelegateCall is equivalent to CallCode except that sender and value propagates from parent scope to child scope
-func DelegateCall(env vm.Environment, caller vm.ExternalLogicRef, addr common.Address, input []byte, gas, gasPrice *big.Int) (ret []byte, err error) {
+func DelegateCall(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {

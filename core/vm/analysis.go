@@ -3,7 +3,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 var bigMaxUint64 = new(big.Int).SetUint64(^uint64(0))
@@ -11,10 +11,10 @@ var bigMaxUint64 = new(big.Int).SetUint64(^uint64(0))
 // destinations stores one map per externalLogic (keyed by hash of code).
 // The maps contain an entry for each location of a JUMPDEST
 // instruction.
-type destinations map[common.Hash]map[uint64]struct{}
+type destinations map[helper.Hash]map[uint64]struct{}
 
 // has checks whether code has a JUMPDEST at dest.
-func (d destinations) has(codehash common.Hash, code []byte, dest *big.Int) bool {
+func (d destinations) has(codehash helper.Hash, code []byte, dest *big.Int) bool {
 	// PC cannot go beyond len(code) and certainly can't be bigger than 64bits.
 	// Don't bother checking for JUMPDEST in that case.
 	if dest.Cmp(bigMaxUint64) > 0 {

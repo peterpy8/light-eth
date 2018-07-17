@@ -10,10 +10,10 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 var ErrInvalidSig = errors.New("invalid transaction v, r, s values")
@@ -44,7 +44,7 @@ type Transaction struct {
 type txdata struct {
 	AccountNonce    uint64
 	Price, GasLimit *big.Int
-	Recipient       *common.Address `rlp:"nil"` // nil means externalLogic creation
+	Recipient       *helper.Address `rlp:"nil"` // nil means externalLogic creation
 	Amount          *big.Int
 	Payload         []byte
 	V               *big.Int // signature
@@ -52,11 +52,11 @@ type txdata struct {
 }
 
 type jsonTransaction struct {
-	Hash         *common.Hash    `json:"hash"`
+	Hash         *helper.Hash    `json:"hash"`
 	AccountNonce *hexUint64      `json:"nonce"`
 	Price        *hexBig         `json:"gasPrice"`
 	GasLimit     *hexBig         `json:"gas"`
-	Recipient    *common.Address `json:"to"`
+	Recipient    *helper.Address `json:"to"`
 	Amount       *hexBig         `json:"value"`
 	Payload      *hexBytes       `json:"input"`
 	V            *hexBig         `json:"v"`
@@ -64,7 +64,7 @@ type jsonTransaction struct {
 	S            *hexBig         `json:"s"`
 }
 
-func NewTransaction(nonce uint64, to common.Address, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
+func NewTransaction(nonce uint64, to helper.Address, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
 	return newTransaction(nonce, &to, amount, gasLimit, gasPrice, data)
 }
 
@@ -72,9 +72,9 @@ func NewExternalLogicCreation(nonce uint64, amount, gasLimit, gasPrice *big.Int,
 	return newTransaction(nonce, nil, amount, gasLimit, gasPrice, data)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
+func newTransaction(nonce uint64, to *helper.Address, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
 	if len(data) > 0 {
-		data = common.CopyBytes(data)
+		data = helper.CopyBytes(data)
 	}
 	d := txdata{
 		AccountNonce: nonce,
@@ -142,7 +142,7 @@ func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
 	_, size, _ := s.Kind()
 	err := s.Decode(&tx.data)
 	if err == nil {
-		tx.size.Store(common.StorageSize(rlp.ListSize(size)))
+		tx.size.Store(helper.StorageSize(rlp.ListSize(size)))
 	}
 
 	return err
@@ -210,14 +210,14 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (tx *Transaction) Data() []byte       { return common.CopyBytes(tx.data.Payload) }
+func (tx *Transaction) Data() []byte       { return helper.CopyBytes(tx.data.Payload) }
 func (tx *Transaction) Gas() *big.Int      { return new(big.Int).Set(tx.data.GasLimit) }
 func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
 func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.data.Amount) }
 func (tx *Transaction) Nonce() uint64      { return tx.data.AccountNonce }
 func (tx *Transaction) CheckNonce() bool   { return true }
 
-func (tx *Transaction) To() *common.Address {
+func (tx *Transaction) To() *helper.Address {
 	if tx.data.Recipient == nil {
 		return nil
 	} else {
@@ -228,9 +228,9 @@ func (tx *Transaction) To() *common.Address {
 
 // Hash hashes the RLP encoding of tx.
 // It uniquely identifies the transaction.
-func (tx *Transaction) Hash() common.Hash {
+func (tx *Transaction) Hash() helper.Hash {
 	if hash := tx.hash.Load(); hash != nil {
-		return hash.(common.Hash)
+		return hash.(helper.Hash)
 	}
 	v := rlpHash(tx)
 	tx.hash.Store(v)
@@ -239,18 +239,18 @@ func (tx *Transaction) Hash() common.Hash {
 
 // SigHash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
-func (tx *Transaction) SigHash(signer Signer) common.Hash {
+func (tx *Transaction) SigHash(signer Signer) helper.Hash {
 	return signer.Hash(tx)
 }
 
-func (tx *Transaction) Size() common.StorageSize {
+func (tx *Transaction) Size() helper.StorageSize {
 	if size := tx.size.Load(); size != nil {
-		return size.(common.StorageSize)
+		return size.(helper.StorageSize)
 	}
 	c := writeCounter(0)
 	rlp.Encode(&c, &tx.data)
-	tx.size.Store(common.StorageSize(c))
-	return common.StorageSize(c)
+	tx.size.Store(helper.StorageSize(c))
+	return helper.StorageSize(c)
 }
 
 /*
@@ -268,20 +268,20 @@ func (tx *Transaction) Size() common.StorageSize {
 // where siot_getblockbynumber uses tx.From() and needs to work for
 // both txs before and after the first homestead block. Signatures
 // valid in homestead are a subset of valid ones in Frontier)
-func (tx *Transaction) From() (common.Address, error) {
+func (tx *Transaction) From() (helper.Address, error) {
 	if tx.signer == nil {
-		return common.Address{}, errNoSigner
+		return helper.Address{}, errNoSigner
 	}
 
 	if from := tx.from.Load(); from != nil {
-		return from.(common.Address), nil
+		return from.(helper.Address), nil
 	}
 
 	pubkey, err := tx.signer.PublicKey(tx)
 	if err != nil {
-		return common.Address{}, err
+		return helper.Address{}, err
 	}
-	var addr common.Address
+	var addr helper.Address
 	copy(addr[:], crypto.Keccak256(pubkey[1:])[12:])
 	tx.from.Store(addr)
 	return addr, nil
@@ -411,7 +411,7 @@ func (s Transactions) GetRlp(i int) []byte {
 func TxDifference(a, b Transactions) (keep Transactions) {
 	keep = make(Transactions, 0, len(a))
 
-	remove := make(map[common.Hash]struct{})
+	remove := make(map[helper.Hash]struct{})
 	for _, tx := range b {
 		remove[tx.Hash()] = struct{}{}
 	}
@@ -458,7 +458,7 @@ func (s *TxByPrice) Pop() interface{} {
 // transactions in a profit-maximising sorted order, while supporting removing
 // entire batches of transactions for non-executable wallet.
 type TransactionsByPriceAndNonce struct {
-	txs   map[common.Address]Transactions // Per account nonce-sorted list of transactions
+	txs   map[helper.Address]Transactions // Per account nonce-sorted list of transactions
 	heads TxByPrice                       // Next transaction for each unique account (price heap)
 }
 
@@ -467,7 +467,7 @@ type TransactionsByPriceAndNonce struct {
 //
 // Note, the input map is reowned so the caller should not interact any more with
 // if after providng it to the constructor.
-func NewTransactionsByPriceAndNonce(txs map[common.Address]Transactions) *TransactionsByPriceAndNonce {
+func NewTransactionsByPriceAndNonce(txs map[helper.Address]Transactions) *TransactionsByPriceAndNonce {
 	// Initialize a price based heap with the head transactions
 	heads := make(TxByPrice, 0, len(txs))
 	for acc, accTxs := range txs {
@@ -515,15 +515,15 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 //
 // NOTE: In a future PR this will be removed.
 type Message struct {
-	to                      *common.Address
-	from                    common.Address
+	to                      *helper.Address
+	from                    helper.Address
 	nonce                   uint64
 	amount, price, gasLimit *big.Int
 	data                    []byte
 	checkNonce              bool
 }
 
-func NewMessage(from common.Address, to *common.Address, nonce uint64, amount, gasLimit, price *big.Int, data []byte, checkNonce bool) Message {
+func NewMessage(from helper.Address, to *helper.Address, nonce uint64, amount, gasLimit, price *big.Int, data []byte, checkNonce bool) Message {
 	return Message{
 		from:       from,
 		to:         to,
@@ -536,8 +536,8 @@ func NewMessage(from common.Address, to *common.Address, nonce uint64, amount, g
 	}
 }
 
-func (m Message) From() common.Address { return m.from }
-func (m Message) To() *common.Address  { return m.to }
+func (m Message) From() helper.Address { return m.from }
+func (m Message) To() *helper.Address  { return m.to }
 func (m Message) GasPrice() *big.Int   { return m.price }
 func (m Message) Value() *big.Int      { return m.amount }
 func (m Message) Gas() *big.Int        { return m.gasLimit }

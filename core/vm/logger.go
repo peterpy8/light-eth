@@ -6,10 +6,10 @@ import (
 	"os"
 	"unicode"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
-type Storage map[common.Hash]common.Hash
+type Storage map[helper.Hash]helper.Hash
 
 func (self Storage) Copy() Storage {
 	cpy := make(Storage)
@@ -38,7 +38,7 @@ type StructLog struct {
 	GasCost *big.Int
 	Memory  []byte
 	Stack   []*big.Int
-	Storage map[common.Hash]common.Hash
+	Storage map[helper.Hash]helper.Hash
 	Depth   int
 	Err     error
 }
@@ -61,13 +61,13 @@ type StructLogger struct {
 	cfg LogConfig
 
 	logs          []StructLog
-	changedValues map[common.Address]Storage
+	changedValues map[helper.Address]Storage
 }
 
 // NewLogger returns a new logger
 func NewStructLogger(cfg *LogConfig) *StructLogger {
 	logger := &StructLogger{
-		changedValues: make(map[common.Address]Storage),
+		changedValues: make(map[helper.Address]Storage),
 	}
 	if cfg != nil {
 		logger.cfg = *cfg
@@ -97,8 +97,8 @@ func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, 
 	switch op {
 	case SSTORE:
 		var (
-			value   = common.BigToHash(stack.data[stack.len()-2])
-			address = common.BigToHash(stack.data[stack.len()-1])
+			value   = helper.BigToHash(stack.data[stack.len()-2])
+			address = helper.BigToHash(stack.data[stack.len()-1])
 		)
 		l.changedValues[externalLogic.Address()][address] = value
 	}
@@ -128,7 +128,7 @@ func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, 
 			storage = make(Storage)
 			// Get the externalLogic account and loop over each storage entry. This may involve looping over
 			// the trie and is a very expensive process.
-			env.Db().GetAccount(externalLogic.Address()).ForEachStorage(func(key, value common.Hash) bool {
+			env.Db().GetAccount(externalLogic.Address()).ForEachStorage(func(key, value helper.Hash) bool {
 				storage[key] = value
 				// Return true, indicating we'd like to continue.
 				return true
@@ -163,7 +163,7 @@ func StdErrFormat(logs []StructLog) {
 		fmt.Fprintln(os.Stderr, "STACK =", len(log.Stack))
 
 		for i := len(log.Stack) - 1; i >= 0; i-- {
-			fmt.Fprintf(os.Stderr, "%04d: %x\n", len(log.Stack)-i-1, common.LeftPadBytes(log.Stack[i].Bytes(), 32))
+			fmt.Fprintf(os.Stderr, "%04d: %x\n", len(log.Stack)-i-1, helper.LeftPadBytes(log.Stack[i].Bytes(), 32))
 		}
 
 		const maxMem = 10

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 var errMissingLogFields = errors.New("missing required JSON log fields")
@@ -16,30 +16,30 @@ var errMissingLogFields = errors.New("missing required JSON log fields")
 // opcode and stored/indexed by the node.
 type Log struct {
 	// Consensus fields.
-	Address common.Address // address of the externalLogic that generated the event
-	Topics  []common.Hash  // list of topics provided by the externalLogic.
+	Address helper.Address // address of the externalLogic that generated the event
+	Topics  []helper.Hash  // list of topics provided by the externalLogic.
 	Data    []byte         // supplied by the externalLogic, usually ABI-encoded
 
 	// Derived fields (don't reorder!).
 	BlockNumber uint64      // block in which the transaction was included
-	TxHash      common.Hash // hash of the transaction
+	TxHash      helper.Hash // hash of the transaction
 	TxIndex     uint        // index of the transaction in the block
-	BlockHash   common.Hash // hash of the block in which the transaction was included
+	BlockHash   helper.Hash // hash of the block in which the transaction was included
 	Index       uint        // index of the log in the receipt
 }
 
 type jsonLog struct {
-	Address     *common.Address `json:"address"`
-	Topics      *[]common.Hash  `json:"topics"`
+	Address     *helper.Address `json:"address"`
+	Topics      *[]helper.Hash  `json:"topics"`
 	Data        string          `json:"data"`
 	BlockNumber string          `json:"blockNumber"`
 	TxIndex     string          `json:"transactionIndex"`
-	TxHash      *common.Hash    `json:"transactionHash"`
-	BlockHash   *common.Hash    `json:"blockHash"`
+	TxHash      *helper.Hash    `json:"transactionHash"`
+	BlockHash   *helper.Hash    `json:"blockHash"`
 	Index       string          `json:"logIndex"`
 }
 
-func NewLog(address common.Address, topics []common.Hash, data []byte, number uint64) *Log {
+func NewLog(address helper.Address, topics []helper.Hash, data []byte, number uint64) *Log {
 	return &Log{Address: address, Topics: topics, Data: data, BlockNumber: number}
 }
 
@@ -49,8 +49,8 @@ func (l *Log) EncodeRLP(w io.Writer) error {
 
 func (l *Log) DecodeRLP(s *rlp.Stream) error {
 	var log struct {
-		Address common.Address
-		Topics  []common.Hash
+		Address helper.Address
+		Topics  []helper.Hash
 		Data    []byte
 	}
 	if err := s.Decode(&log); err != nil {

@@ -14,9 +14,9 @@ import (
 
 	"github.com/ethereum/ethash"
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/httpclient"
-	//"github.com/ethereum/go-ethereum/common/registrar/ethreg"
+	"github.com/ethereum/go-ethereum/helper"
+	"github.com/ethereum/go-ethereum/helper/httpclient"
+	//"github.com/ethereum/go-ethereum/helper/registrar/ethreg"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siot/downloader"
@@ -69,7 +69,7 @@ type Config struct {
 	PowShared bool
 	ExtraData []byte
 
-	MinerAddr    common.Address
+	MinerAddr    helper.Address
 	GasPrice     *big.Int
 	MinerThreads int
 
@@ -120,7 +120,7 @@ type Siotchain struct {
 	MinerThreads int
 	AutoDAG      bool
 	autodagquit  chan bool
-	mineraddr    common.Address
+	mineraddr    helper.Address
 
 	NatSpec       bool
 	PowTest       bool
@@ -133,7 +133,7 @@ func (s *Siotchain) AddLesServer(ls LesServer) {
 }
 
 // New creates a new Siotchain object (including the
-// initialisation of the common Siotchain object)
+// initialisation of the helper Siotchain object)
 func New(ctx *context.ServiceContext, config *Config) (*Siotchain, error) {
 	chainDb, err := CreateDB(ctx, config, "chaindata")
 	if err != nil {
@@ -329,9 +329,9 @@ func (s *Siotchain) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Siotchain) Mineraddr() (eb common.Address, err error) {
+func (s *Siotchain) Mineraddr() (eb helper.Address, err error) {
 	eb = s.mineraddr
-	if (eb == common.Address{}) {
+	if (eb == helper.Address{}) {
 		firstAccount, err := s.AccountManager().AccountByIndex(0)
 		eb = firstAccount.Address
 		if err != nil {
@@ -342,7 +342,7 @@ func (s *Siotchain) Mineraddr() (eb common.Address, err error) {
 }
 
 // set in js console via admin interface or wrapper from cli flags
-func (self *Siotchain) SetMiner(mineraddr common.Address) {
+func (self *Siotchain) SetMiner(mineraddr helper.Address) {
 	self.mineraddr = mineraddr
 	self.miner.SetMiner(mineraddr)
 }

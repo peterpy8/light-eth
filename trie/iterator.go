@@ -1,6 +1,6 @@
 package trie
 
-import "github.com/ethereum/go-ethereum/common"
+import "github.com/ethereum/go-ethereum/helper"
 
 // Iterator is a key-value trie iterator that traverses a Trie.
 type Iterator struct {
@@ -58,9 +58,9 @@ func (it *Iterator) makeKey() []byte {
 // nodeIteratorState represents the iteration state at one particular node of the
 // trie, which can be resumed at a later invocation.
 type nodeIteratorState struct {
-	hash   common.Hash // Hash of the node being iterated (nil if not standalone)
+	hash   helper.Hash // Hash of the node being iterated (nil if not standalone)
 	node   node        // Trie node being iterated
-	parent common.Hash // Hash of the first full ancestor node (nil if current is the root)
+	parent helper.Hash // Hash of the first full ancestor node (nil if current is the root)
 	child  int         // Child to be processed next
 }
 
@@ -69,9 +69,9 @@ type NodeIterator struct {
 	trie  *Trie                // Trie being iterated
 	stack []*nodeIteratorState // Hierarchy of trie nodes persisting the iteration state
 
-	Hash     common.Hash // Hash of the current node being iterated (nil if not standalone)
+	Hash     helper.Hash // Hash of the current node being iterated (nil if not standalone)
 	Node     node        // Current node being iterated (internal representation)
-	Parent   common.Hash // Hash of the first full ancestor node (nil if current is the root)
+	Parent   helper.Hash // Hash of the first full ancestor node (nil if current is the root)
 	Leaf     bool        // Flag whether the current node is a value (data) node
 	LeafBlob []byte      // Data blob contained within a leaf (otherwise nil)
 
@@ -129,7 +129,7 @@ func (it *NodeIterator) step() error {
 	for {
 		parent := it.stack[len(it.stack)-1]
 		ancestor := parent.hash
-		if (ancestor == common.Hash{}) {
+		if (ancestor == helper.Hash{}) {
 			ancestor = parent.parent
 		}
 		if node, ok := parent.node.(*fullNode); ok {
@@ -140,7 +140,7 @@ func (it *NodeIterator) step() error {
 			for parent.child++; parent.child < len(node.Children); parent.child++ {
 				if current := node.Children[parent.child]; current != nil {
 					it.stack = append(it.stack, &nodeIteratorState{
-						hash:   common.BytesToHash(node.flags.hash),
+						hash:   helper.BytesToHash(node.flags.hash),
 						node:   current,
 						parent: ancestor,
 						child:  -1,
@@ -155,7 +155,7 @@ func (it *NodeIterator) step() error {
 			}
 			parent.child++
 			it.stack = append(it.stack, &nodeIteratorState{
-				hash:   common.BytesToHash(node.flags.hash),
+				hash:   helper.BytesToHash(node.flags.hash),
 				node:   node.Val,
 				parent: ancestor,
 				child:  -1,
@@ -172,7 +172,7 @@ func (it *NodeIterator) step() error {
 				return err
 			}
 			it.stack = append(it.stack, &nodeIteratorState{
-				hash:   common.BytesToHash(hash),
+				hash:   helper.BytesToHash(hash),
 				node:   node,
 				parent: ancestor,
 				child:  -1,
@@ -191,7 +191,7 @@ func (it *NodeIterator) step() error {
 // The method returns whether there are any more data left for inspection.
 func (it *NodeIterator) retrieve() bool {
 	// Clear out any previously set values
-	it.Hash, it.Node, it.Parent, it.Leaf, it.LeafBlob = common.Hash{}, nil, common.Hash{}, false, nil
+	it.Hash, it.Node, it.Parent, it.Leaf, it.LeafBlob = helper.Hash{}, nil, helper.Hash{}, false, nil
 
 	// If the iteration's done, return no available data
 	if it.trie == nil {

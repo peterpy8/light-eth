@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 // Prove constructs a merkle proof for key. The result contains all
@@ -75,7 +75,7 @@ func (t *Trie) Prove(key []byte) []rlp.RawValue {
 // value for key in a trie with the given root hash. VerifyProof
 // returns an error if the proof contains invalid trie nodes or the
 // wrong value.
-func VerifyProof(rootHash common.Hash, key []byte, proof []rlp.RawValue) (value []byte, err error) {
+func VerifyProof(rootHash helper.Hash, key []byte, proof []rlp.RawValue) (value []byte, err error) {
 	key = compactHexDecode(key)
 	sha := sha3.NewKeccak256()
 	wantHash := rootHash.Bytes()

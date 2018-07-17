@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 )
@@ -31,7 +31,7 @@ func (s accountsByFile) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 // AmbiguousAddrError is returned when attempting to unlock
 // an address for which more than one file exists.
 type AmbiguousAddrError struct {
-	Addr    common.Address
+	Addr    helper.Address
 	Matches []Account
 }
 
@@ -52,14 +52,14 @@ type addrCache struct {
 	watcher  *watcher
 	mu       sync.Mutex
 	all      accountsByFile
-	byAddr   map[common.Address][]Account
+	byAddr   map[helper.Address][]Account
 	throttle *time.Timer
 }
 
 func newAddrCache(keydir string) *addrCache {
 	ac := &addrCache{
 		keydir: keydir,
-		byAddr: make(map[common.Address][]Account),
+		byAddr: make(map[helper.Address][]Account),
 	}
 	ac.watcher = newWatcher(ac)
 	return ac
@@ -74,7 +74,7 @@ func (ac *addrCache) accounts() []Account {
 	return cpy
 }
 
-func (ac *addrCache) hasAddress(addr common.Address) bool {
+func (ac *addrCache) hasAddress(addr helper.Address) bool {
 	ac.maybeReload()
 	ac.mu.Lock()
 	defer ac.mu.Unlock()
@@ -123,7 +123,7 @@ func removeAccount(slice []Account, elem Account) []Account {
 func (ac *addrCache) find(a Account) (Account, error) {
 	// Limit search to address candidates if possible.
 	matches := ac.all
-	if (a.Address != common.Address{}) {
+	if (a.Address != helper.Address{}) {
 		matches = ac.byAddr[a.Address]
 	}
 	if a.File != "" {
@@ -136,7 +136,7 @@ func (ac *addrCache) find(a Account) (Account, error) {
 				return matches[i], nil
 			}
 		}
-		if (a.Address == common.Address{}) {
+		if (a.Address == helper.Address{}) {
 			return Account{}, ErrNoMatch
 		}
 	}
@@ -209,7 +209,7 @@ func (ac *addrCache) scan() ([]Account, error) {
 		buf     = new(bufio.Reader)
 		addrs   []Account
 		keyJSON struct {
-			Address common.Address `json:"address"`
+			Address helper.Address `json:"address"`
 		}
 	)
 	for _, fi := range files {
@@ -225,12 +225,12 @@ func (ac *addrCache) scan() ([]Account, error) {
 		}
 		buf.Reset(fd)
 		// Parse the address.
-		keyJSON.Address = common.Address{}
+		keyJSON.Address = helper.Address{}
 		err = json.NewDecoder(buf).Decode(&keyJSON)
 		switch {
 		case err != nil:
 			glog.V(logger.Debug).Infof("can't decode key %s: %v", path, err)
-		case (keyJSON.Address == common.Address{}):
+		case (keyJSON.Address == helper.Address{}):
 			glog.V(logger.Debug).Infof("can't decode key %s: missing or zero address", path)
 		default:
 			addrs = append(addrs, Account{Address: keyJSON.Address, File: path})

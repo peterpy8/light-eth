@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
@@ -62,7 +62,7 @@ type BlockGen struct {
 
 // SetCoinbase sets the coinbase of the generated block.
 // It can be called at most once.
-func (b *BlockGen) SetCoinbase(addr common.Address) {
+func (b *BlockGen) SetCoinbase(addr helper.Address) {
 	if b.gasPool != nil {
 		if len(b.txs) > 0 {
 			panic("coinbase must be set before adding transactions")
@@ -88,9 +88,9 @@ func (b *BlockGen) SetExtra(data []byte) {
 // will panic during execution.
 func (b *BlockGen) AddTx(tx *types.Transaction) {
 	if b.gasPool == nil {
-		b.SetCoinbase(common.Address{})
+		b.SetCoinbase(helper.Address{})
 	}
-	b.statedb.StartRecord(tx.Hash(), common.Hash{}, len(b.txs))
+	b.statedb.StartRecord(tx.Hash(), helper.Hash{}, len(b.txs))
 	receipt, _, _, err := ApplyTransaction(b.config, nil, b.gasPool, b.statedb, b.header, tx, b.header.GasUsed)
 	if err != nil {
 		panic(err)
@@ -115,7 +115,7 @@ func (b *BlockGen) AddUncheckedReceipt(receipt *types.Receipt) {
 
 // TxNonce returns the next valid transaction nonce for the
 // account at addr. It panics if the account does not exist.
-func (b *BlockGen) TxNonce(addr common.Address) uint64 {
+func (b *BlockGen) TxNonce(addr helper.Address) uint64 {
 	if !b.statedb.Exist(addr) {
 		panic("account does not exist")
 	}
@@ -176,7 +176,7 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, db siotdb.Da
 			limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
 			if h.Number.Cmp(daoBlock) >= 0 && h.Number.Cmp(limit) < 0 {
 				if config.DAOForkSupport {
-					h.Extra = common.CopyBytes(params.DAOForkBlockExtra)
+					h.Extra = helper.CopyBytes(params.DAOForkBlockExtra)
 				}
 			}
 		}
@@ -223,7 +223,7 @@ func makeHeader(config *params.ChainConfig, parent *types.Block, state *state.St
 		Difficulty: CalcDifficulty(MakeChainConfig(), time.Uint64(), new(big.Int).Sub(time, big.NewInt(10)).Uint64(), parent.Number(), parent.Difficulty()),
 		GasLimit:   CalcGasLimit(parent),
 		GasUsed:    new(big.Int),
-		Number:     new(big.Int).Add(parent.Number(), common.Big1),
+		Number:     new(big.Int).Add(parent.Number(), helper.Big1),
 		Time:       time,
 	}
 }
@@ -269,7 +269,7 @@ func makeHeaderChain(parent *types.Header, n int, db siotdb.Database, seed int) 
 // makeBlockChain creates a deterministic chain of blocks rooted at parent.
 func makeBlockChain(parent *types.Block, n int, db siotdb.Database, seed int) []*types.Block {
 	blocks, _ := GenerateChain(params.TestChainConfig, parent, db, n, func(i int, b *BlockGen) {
-		b.SetCoinbase(common.Address{0: byte(seed), 19: byte(i)})
+		b.SetCoinbase(helper.Address{0: byte(seed), 19: byte(i)})
 	})
 	return blocks
 }

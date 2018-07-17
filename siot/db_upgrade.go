@@ -8,13 +8,13 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/common/rlp"
+	"github.com/ethereum/go-ethereum/helper/rlp"
 )
 
 var useSequentialKeys = []byte("dbUpgrade_20160530sequentialKeys")
@@ -245,7 +245,7 @@ func upgradeChainDatabase(db siotdb.Database) error {
 	if err != nil {
 		return nil
 	}
-	head := common.BytesToHash(data)
+	head := helper.BytesToHash(data)
 
 	if block := core.GetBlockByHashOld(db, head); block == nil {
 		return nil
@@ -265,7 +265,7 @@ func upgradeChainDatabase(db siotdb.Database) error {
 				continue
 			}
 			// Load the block, split and serialize (order!)
-			block := core.GetBlockByHashOld(db, common.BytesToHash(bytes.TrimPrefix(it.Key(), blockPrefix)))
+			block := core.GetBlockByHashOld(db, helper.BytesToHash(bytes.TrimPrefix(it.Key(), blockPrefix)))
 
 			if err := core.WriteTd(db, block.Hash(), block.NumberU64(), block.DeprecatedTd()); err != nil {
 				return err
@@ -330,7 +330,7 @@ func addMipmapBloomBins(db siotdb.Database) (err error) {
 	glog.V(logger.Info).Infoln("upgrading db log bloom bins")
 	for i := uint64(0); i <= latestBlock.NumberU64(); i++ {
 		hash := core.GetCanonicalHash(db, i)
-		if (hash == common.Hash{}) {
+		if (hash == helper.Hash{}) {
 			return fmt.Errorf("chain db corrupted. Could not find block %d.", i)
 		}
 		core.WriteMipmapBloom(db, i, core.GetBlockReceipts(db, hash, i))

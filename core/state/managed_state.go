@@ -3,7 +3,7 @@ package state
 import (
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 )
 
 type account struct {
@@ -17,14 +17,14 @@ type ManagedState struct {
 
 	mu sync.RWMutex
 
-	accounts map[common.Address]*account
+	accounts map[helper.Address]*account
 }
 
 // ManagedState returns a new managed state with the statedb as it's backing layer
 func ManageState(statedb *StateDB) *ManagedState {
 	return &ManagedState{
 		StateDB:  statedb.Copy(),
-		accounts: make(map[common.Address]*account),
+		accounts: make(map[helper.Address]*account),
 	}
 }
 
@@ -36,7 +36,7 @@ func (ms *ManagedState) SetState(statedb *StateDB) {
 }
 
 // RemoveNonce removed the nonce from the managed state and all future pending nonces
-func (ms *ManagedState) RemoveNonce(addr common.Address, n uint64) {
+func (ms *ManagedState) RemoveNonce(addr helper.Address, n uint64) {
 	if ms.hasAccount(addr) {
 		ms.mu.Lock()
 		defer ms.mu.Unlock()
@@ -51,7 +51,7 @@ func (ms *ManagedState) RemoveNonce(addr common.Address, n uint64) {
 }
 
 // NewNonce returns the new canonical nonce for the managed account
-func (ms *ManagedState) NewNonce(addr common.Address) uint64 {
+func (ms *ManagedState) NewNonce(addr helper.Address) uint64 {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
@@ -67,7 +67,7 @@ func (ms *ManagedState) NewNonce(addr common.Address) uint64 {
 }
 
 // GetNonce returns the canonical nonce for the managed or unmanaged account
-func (ms *ManagedState) GetNonce(addr common.Address) uint64 {
+func (ms *ManagedState) GetNonce(addr helper.Address) uint64 {
 	ms.mu.RLock()
 	defer ms.mu.RUnlock()
 
@@ -80,7 +80,7 @@ func (ms *ManagedState) GetNonce(addr common.Address) uint64 {
 }
 
 // SetNonce sets the new canonical nonce for the managed state
-func (ms *ManagedState) SetNonce(addr common.Address, nonce uint64) {
+func (ms *ManagedState) SetNonce(addr helper.Address, nonce uint64) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
@@ -91,19 +91,19 @@ func (ms *ManagedState) SetNonce(addr common.Address, nonce uint64) {
 }
 
 // HasAccount returns whether the given address is managed or not
-func (ms *ManagedState) HasAccount(addr common.Address) bool {
+func (ms *ManagedState) HasAccount(addr helper.Address) bool {
 	ms.mu.RLock()
 	defer ms.mu.RUnlock()
 	return ms.hasAccount(addr)
 }
 
-func (ms *ManagedState) hasAccount(addr common.Address) bool {
+func (ms *ManagedState) hasAccount(addr helper.Address) bool {
 	_, ok := ms.accounts[addr]
 	return ok
 }
 
 // populate the managed state
-func (ms *ManagedState) getAccount(addr common.Address) *account {
+func (ms *ManagedState) getAccount(addr helper.Address) *account {
 	if account, ok := ms.accounts[addr]; !ok {
 		so := ms.GetOrNewStateObject(addr)
 		ms.accounts[addr] = newAccount(so)

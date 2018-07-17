@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siotdb"
 	"github.com/ethereum/go-ethereum/event"
@@ -27,7 +27,7 @@ var (
 type filter struct {
 	typ      Type
 	deadline *time.Timer // filter is inactiv when deadline triggers
-	hashes   []common.Hash
+	hashes   []helper.Hash
 	crit     FilterCriteria
 	logs     []Log
 	s        *Subscription // associated subscription in event system
@@ -91,12 +91,12 @@ func (api *PublicFilterAPI) timeoutLoop() {
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newpendingtransactionfilter
 func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 	var (
-		pendingTxs   = make(chan common.Hash)
+		pendingTxs   = make(chan helper.Hash)
 		pendingTxSub = api.events.SubscribePendingTxEvents(pendingTxs)
 	)
 
 	api.filtersMu.Lock()
-	api.filters[pendingTxSub.ID] = &filter{typ: PendingTransactionsSubscription, deadline: time.NewTimer(deadline), hashes: make([]common.Hash, 0), s: pendingTxSub}
+	api.filters[pendingTxSub.ID] = &filter{typ: PendingTransactionsSubscription, deadline: time.NewTimer(deadline), hashes: make([]helper.Hash, 0), s: pendingTxSub}
 	api.filtersMu.Unlock()
 
 	go func() {
@@ -131,7 +131,7 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 	rpcSub := notifier.CreateSubscription()
 
 	go func() {
-		txHashes := make(chan common.Hash)
+		txHashes := make(chan helper.Hash)
 		pendingTxSub := api.events.SubscribePendingTxEvents(txHashes)
 
 		for {
@@ -162,7 +162,7 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 	)
 
 	api.filtersMu.Lock()
-	api.filters[headerSub.ID] = &filter{typ: BlocksSubscription, deadline: time.NewTimer(deadline), hashes: make([]common.Hash, 0), s: headerSub}
+	api.filters[headerSub.ID] = &filter{typ: BlocksSubscription, deadline: time.NewTimer(deadline), hashes: make([]helper.Hash, 0), s: headerSub}
 	api.filtersMu.Unlock()
 
 	go func() {
@@ -252,8 +252,8 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit FilterCriteria) (*rpc
 type FilterCriteria struct {
 	FromBlock *big.Int
 	ToBlock   *big.Int
-	Addresses []common.Address
-	Topics    [][]common.Hash
+	Addresses []helper.Address
+	Topics    [][]helper.Hash
 }
 
 // NewFilter creates a new filter and returns the filter id. It can be
@@ -363,7 +363,7 @@ func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]Log
 // GetFilterChanges returns the logs for the filter with the given id since
 // last time is was called. This can be used for polling.
 //
-// For pending transaction and block filters the result is []common.Hash.
+// For pending transaction and block filters the result is []helper.Hash.
 // (pending)Log filters return []Log. If the filter could not be found
 // []interface{}{} is returned.
 //
@@ -397,9 +397,9 @@ func (api *PublicFilterAPI) GetFilterChanges(id rpc.ID) interface{} {
 
 // returnHashes is a helper that will return an empty hash array case the given hash array is nil,
 // otherwise the given hashes array is returned.
-func returnHashes(hashes []common.Hash) []common.Hash {
+func returnHashes(hashes []helper.Hash) []helper.Hash {
 	if hashes == nil {
-		return []common.Hash{}
+		return []helper.Hash{}
 	}
 	return hashes
 }
@@ -439,11 +439,11 @@ func (args *FilterCriteria) UnmarshalJSON(data []byte) error {
 		args.ToBlock = big.NewInt(raw.ToBlock.Int64())
 	}
 
-	args.Addresses = []common.Address{}
+	args.Addresses = []helper.Address{}
 
 	if raw.Addresses != nil {
 		// raw.Address can contain a single address or an array of addresses
-		var addresses []common.Address
+		var addresses []helper.Address
 		if strAddrs, ok := raw.Addresses.([]interface{}); ok {
 			for i, addr := range strAddrs {
 				if strAddr, ok := addr.(string); ok {
@@ -451,7 +451,7 @@ func (args *FilterCriteria) UnmarshalJSON(data []byte) error {
 						strAddr = strAddr[2:]
 					}
 					if decAddr, err := hex.DecodeString(strAddr); err == nil {
-						addresses = append(addresses, common.BytesToAddress(decAddr))
+						addresses = append(addresses, helper.BytesToAddress(decAddr))
 					} else {
 						return fmt.Errorf("invalid address given")
 					}
@@ -464,7 +464,7 @@ func (args *FilterCriteria) UnmarshalJSON(data []byte) error {
 				singleAddr = singleAddr[2:]
 			}
 			if decAddr, err := hex.DecodeString(singleAddr); err == nil {
-				addresses = append(addresses, common.BytesToAddress(decAddr))
+				addresses = append(addresses, helper.BytesToAddress(decAddr))
 			} else {
 				return fmt.Errorf("invalid address given")
 			}
@@ -475,39 +475,39 @@ func (args *FilterCriteria) UnmarshalJSON(data []byte) error {
 	}
 
 	// helper function which parses a string to a topic hash
-	topicConverter := func(raw string) (common.Hash, error) {
+	topicConverter := func(raw string) (helper.Hash, error) {
 		if len(raw) == 0 {
-			return common.Hash{}, nil
+			return helper.Hash{}, nil
 		}
 		if len(raw) >= 2 && raw[0] == '0' && (raw[1] == 'x' || raw[1] == 'X') {
 			raw = raw[2:]
 		}
-		if len(raw) != 2*common.HashLength {
-			return common.Hash{}, errors.New("invalid topic(s)")
+		if len(raw) != 2*helper.HashLength {
+			return helper.Hash{}, errors.New("invalid topic(s)")
 		}
 		if decAddr, err := hex.DecodeString(raw); err == nil {
-			return common.BytesToHash(decAddr), nil
+			return helper.BytesToHash(decAddr), nil
 		}
-		return common.Hash{}, errors.New("invalid topic(s)")
+		return helper.Hash{}, errors.New("invalid topic(s)")
 	}
 
 	// topics is an array consisting of strings and/or arrays of strings.
-	// JSON null values are converted to common.Hash{} and ignored by the filter manager.
+	// JSON null values are converted to helper.Hash{} and ignored by the filter manager.
 	if len(raw.Topics) > 0 {
-		args.Topics = make([][]common.Hash, len(raw.Topics))
+		args.Topics = make([][]helper.Hash, len(raw.Topics))
 		for i, t := range raw.Topics {
 			if t == nil { // ignore topic when matching logs
-				args.Topics[i] = []common.Hash{common.Hash{}}
+				args.Topics[i] = []helper.Hash{helper.Hash{}}
 			} else if topic, ok := t.(string); ok { // match specific topic
 				top, err := topicConverter(topic)
 				if err != nil {
 					return err
 				}
-				args.Topics[i] = []common.Hash{top}
+				args.Topics[i] = []helper.Hash{top}
 			} else if topics, ok := t.([]interface{}); ok { // or case e.g. [null, "topic0", "topic1"]
 				for _, rawTopic := range topics {
 					if rawTopic == nil {
-						args.Topics[i] = append(args.Topics[i], common.Hash{})
+						args.Topics[i] = append(args.Topics[i], helper.Hash{})
 					} else if topic, ok := rawTopic.(string); ok {
 						parsed, err := topicConverter(topic)
 						if err != nil {

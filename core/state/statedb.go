@@ -15,7 +15,7 @@ import (
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/helper/rlp"
 	"github.com/siotchain/siot/trie"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 )
 
 // The starting nonce determines the default nonce when new wallet are being

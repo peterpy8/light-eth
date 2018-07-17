@@ -5,12 +5,12 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/pow"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/state"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/pow"
 	"gopkg.in/fatih/set.v0"
 )
 

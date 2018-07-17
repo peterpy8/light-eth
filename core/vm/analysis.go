@@ -3,7 +3,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
+	"github.com/siotchain/siot/helper"
 )
 
 var bigMaxUint64 = new(big.Int).SetUint64(^uint64(0))

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 const (

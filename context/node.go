@@ -10,13 +10,13 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/net/p2p"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/wallet"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/net/p2p"
+	"github.com/siotchain/siot/net/rpc"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 

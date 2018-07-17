@@ -1,6 +1,6 @@
 package trie
 
-import "github.com/ethereum/go-ethereum/helper"
+import "github.com/siotchain/siot/helper"
 
 // Iterator is a key-value trie iterator that traverses a Trie.
 type Iterator struct {

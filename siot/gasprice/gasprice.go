@@ -5,12 +5,12 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
+	"github.com/siotchain/siot/core"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
 )
 
 const (

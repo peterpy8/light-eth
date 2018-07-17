@@ -3,7 +3,7 @@ package params
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
+	"github.com/siotchain/siot/helper"
 )
 
 // MainnetChainConfig is the chain parameters to run a node on the main network.

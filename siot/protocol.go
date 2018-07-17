@@ -5,9 +5,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 // Constants to match up protocol versions and messages

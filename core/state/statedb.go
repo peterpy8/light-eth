@@ -7,14 +7,14 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/helper/rlp"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/helper/rlp"
+	"github.com/siotchain/siot/trie"
 	lru "github.com/hashicorp/golang-lru"
 )
 

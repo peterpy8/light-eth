@@ -10,10 +10,10 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 var ErrInvalidSig = errors.New("invalid transaction v, r, s values")

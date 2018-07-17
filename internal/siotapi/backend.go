@@ -4,16 +4,16 @@ package siotapi
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/siot/downloader"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/wallet"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/siot/downloader"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
 )
 

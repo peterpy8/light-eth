@@ -1,6 +1,6 @@
 package core
 
-import "github.com/ethereum/go-ethereum/helper"
+import "github.com/siotchain/siot/helper"
 
 // Set of manually tracked bad hashes (usually hard forks)
 var BadHashes = map[helper.Hash]bool{

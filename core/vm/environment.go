@@ -3,8 +3,8 @@ package vm
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/params"
 )
 
 // Environment is an EVM requirement and helper which allows access to outside

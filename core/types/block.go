@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto/sha3"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 var (

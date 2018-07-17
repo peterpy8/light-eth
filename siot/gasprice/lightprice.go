@@ -5,9 +5,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/internal/siotapi"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/internal/siotapi"
+	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
 )
 

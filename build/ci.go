@@ -40,7 +40,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/internal/buildtool"
+	"github.com/siotchain/siot/internal/buildtool"
 )
 
 var (
@@ -630,7 +630,7 @@ func doAndroidArchive(cmdline []string) {
 	// Build the Android archive and Maven resources
 	buildtool.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
 	buildtool.MustRun(gomobileTool("init"))
-	buildtool.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.siotchain", "-v", "github.com/ethereum/go-ethereum/mobile"))
+	buildtool.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.siotchain", "-v", "github.com/siotchain/siot/mobile"))
 
 	meta := newMavenMetadata(env)
 	buildtool.Render("build/mvn.pom", meta.Package+".pom", 0755, meta)
@@ -749,7 +749,7 @@ func doXCodeFramework(cmdline []string) {
 	if err := os.Mkdir(archive, os.ModePerm); err != nil {
 		log.Fatal(err)
 	}
-	bind := gomobileTool("bind", "--target", "ios", "--tags", "ios", "--prefix", "GE", "-v", "github.com/ethereum/go-ethereum/mobile")
+	bind := gomobileTool("bind", "--target", "ios", "--tags", "ios", "--prefix", "GE", "-v", "github.com/siotchain/siot/mobile")
 	bind.Dir, _ = filepath.Abs(archive)
 	buildtool.MustRun(bind)
 	buildtool.MustRunCommand("tar", "-zcvf", archive+".tar.gz", archive)

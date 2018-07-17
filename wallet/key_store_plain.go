@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/helper"
+	"github.com/siotchain/siot/helper"
 )
 
 type keyStorePlain struct {

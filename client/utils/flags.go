@@ -15,23 +15,23 @@ import (
 	"time"
 
 	"github.com/ethereum/ethash"
-	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/siot"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/helper/metrics"
-	"github.com/ethereum/go-ethereum/context"
-	"github.com/ethereum/go-ethereum/net/p2p/discover"
-	"github.com/ethereum/go-ethereum/net/p2p/nat"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/pow"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/wallet"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core"
+	"github.com/siotchain/siot/core/state"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/siot"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/helper/metrics"
+	"github.com/siotchain/siot/context"
+	"github.com/siotchain/siot/net/p2p/discover"
+	"github.com/siotchain/siot/net/p2p/nat"
+	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/net/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -603,7 +603,7 @@ func MakeNode(ctx *cli.Context, name, gitCommit string) *context.Node {
 	}
 	if ctx.GlobalBool(DevModeFlag.Name) {
 		if !ctx.GlobalIsSet(DataDirFlag.Name) {
-			config.DataDir = filepath.Join(os.TempDir(), "/ethereum_dev_mode")
+			config.DataDir = filepath.Join(os.TempDir(), "/siotchain_dev_mode")
 		}
 		// --dev mode does not need p2p networking.
 		config.MaxPeers = 0

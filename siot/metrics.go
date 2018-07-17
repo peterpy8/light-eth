@@ -1,8 +1,8 @@
 package siot
 
 import (
-	"github.com/ethereum/go-ethereum/helper/metrics"
-	"github.com/ethereum/go-ethereum/net/p2p"
+	"github.com/siotchain/siot/helper/metrics"
+	"github.com/siotchain/siot/net/p2p"
 )
 
 var (

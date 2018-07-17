@@ -3,9 +3,9 @@ package downloader
 import (
 	"sync"
 
-	siot "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	siot "github.com/siotchain/siot"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
 )
 

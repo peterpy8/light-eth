@@ -6,9 +6,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/logger"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto/sha3"
+	"github.com/siotchain/siot/logger"
 )
 
 var powlogger = logger.NewLogger("POW")

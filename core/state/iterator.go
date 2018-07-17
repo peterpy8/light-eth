@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/helper/rlp"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/helper/rlp"
+	"github.com/siotchain/siot/trie"
 )
 
 // NodeIterator is an iterator to traverse the entire state trie post-order,

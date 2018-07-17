@@ -18,12 +18,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/ecies"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/net/p2p/discover"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/crypto/ecies"
+	"github.com/siotchain/siot/crypto/secp256k1"
+	"github.com/siotchain/siot/crypto/sha3"
+	"github.com/siotchain/siot/net/p2p/discover"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 const (

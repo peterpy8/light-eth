@@ -14,11 +14,11 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto/ecies"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto/ecies"
+	"github.com/siotchain/siot/crypto/secp256k1"
+	"github.com/siotchain/siot/crypto/sha3"
+	"github.com/siotchain/siot/helper/rlp"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -65,9 +65,9 @@ func Ripemd160(data []byte) []byte {
 // Ecrecover returns the public key for the private key that was used to
 // calculate the signature.
 //
-// Note: secp256k1 expects the recover id to be either 0, 1. Ethereum
+// Note: secp256k1 expects the recover id to be either 0, 1. Siotchain
 // signatures have a recover id with an offset of 27. Callers must take
-// this into account and if "recovering" from an Ethereum signature adjust.
+// this into account and if "recovering" from an Siotchain signature adjust.
 func Ecrecover(hash, sig []byte) ([]byte, error) {
 	return secp256k1.RecoverPubkey(hash, sig)
 }
@@ -188,9 +188,9 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 // be aware that the given hash cannot be choosen by an adversery. Common
 // solution is to hash any input before calculating the signature.
 //
-// Note: the calculated signature is not Ethereum compliant. The yellow paper
-// dictates Ethereum singature to have a V value with and offset of 27 v in [27,28].
-// Use SignSiotchain to get an Ethereum compliant signature.
+// Note: the calculated signature is not Siotchain compliant. The yellow paper
+// dictates Siotchain singature to have a V value with and offset of 27 v in [27,28].
+// Use SignSiotchain to get an Siotchain compliant signature.
 func Sign(data []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 	if len(data) != 32 {
 		return nil, fmt.Errorf("hash is required to be exactly 32 bytes (%d)", len(data))
@@ -202,7 +202,7 @@ func Sign(data []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 	return
 }
 
-// SignSiotchain calculates an Ethereum ECDSA signature.
+// SignSiotchain calculates an Siotchain ECDSA signature.
 // This function is susceptible to choosen plaintext attacks that can leak
 // information about the private key that is used for signing. Callers must
 // be aware that the given hash cannot be freely choosen by an adversery.

@@ -10,13 +10,13 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/net/p2p/discover"
-	"github.com/ethereum/go-ethereum/net/p2p/nat"
+	"github.com/siotchain/siot/wallet"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/net/p2p/discover"
+	"github.com/siotchain/siot/net/p2p/nat"
 )
 
 var (

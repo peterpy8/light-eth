@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
+	"github.com/siotchain/siot/helper"
 )
 
 const (

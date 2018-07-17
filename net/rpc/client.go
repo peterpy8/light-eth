@@ -14,8 +14,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
 	"golang.org/x/net/context"
 )
 

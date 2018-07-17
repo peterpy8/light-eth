@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/helper/rlp"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/helper/rlp"
+	"github.com/siotchain/siot/trie"
 )
 
 // StateSync is the main state synchronisation scheduler, which provides yet the

@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/helper/rlp"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/helper/rlp"
+	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
-	"github.com/ethereum/go-ethereum/net/p2p"
-	"github.com/ethereum/go-ethereum/internal/siotapi"
+	"github.com/siotchain/siot/net/p2p"
+	"github.com/siotchain/siot/internal/siotapi"
 )
 
 // Client defines typed wrappers for the Siotchain RPC API.

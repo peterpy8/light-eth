@@ -3,8 +3,8 @@ package pow
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/types"
 )
 
 type Block interface {

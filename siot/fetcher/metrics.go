@@ -3,7 +3,7 @@
 package fetcher
 
 import (
-	"github.com/ethereum/go-ethereum/helper/metrics"
+	"github.com/siotchain/siot/helper/metrics"
 )
 
 var (

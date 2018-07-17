@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto"
 )
 
 type HTTPClient struct {

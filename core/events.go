@@ -3,9 +3,9 @@ package core
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/core/vm"
 )
 
 // TxPreEvent is posted when a transaction enters the transaction pool.

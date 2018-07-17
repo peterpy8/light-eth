@@ -8,14 +8,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/helper/metrics"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/state"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/helper/metrics"
+	"github.com/siotchain/siot/params"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/helper"
+	"github.com/siotchain/siot/helper"
 )
 
 /*

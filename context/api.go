@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/net/p2p"
-	"github.com/ethereum/go-ethereum/net/p2p/discover"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/net/p2p"
+	"github.com/siotchain/siot/net/p2p/discover"
+	"github.com/siotchain/siot/net/rpc"
 	"github.com/rcrowley/go-metrics"
 )
 

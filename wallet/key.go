@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/crypto/secp256k1"
 	"github.com/pborman/uuid"
 )
 

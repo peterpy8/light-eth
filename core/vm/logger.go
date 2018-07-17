@@ -6,7 +6,7 @@ import (
 	"os"
 	"unicode"
 
-	"github.com/ethereum/go-ethereum/helper"
+	"github.com/siotchain/siot/helper"
 )
 
 type Storage map[helper.Hash]helper.Hash

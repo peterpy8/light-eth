@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/siotchain/siot/core/state"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/params"
 )
 
 // ValidateDAOHeaderExtraData validates the extra-data field of a block header to

@@ -3,11 +3,11 @@ package context
 import (
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/net/p2p"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/wallet"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/net/p2p"
+	"github.com/siotchain/siot/net/rpc"
 )
 
 // ServiceContext is a collection of service independent options inherited from

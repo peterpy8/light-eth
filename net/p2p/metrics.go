@@ -5,7 +5,7 @@ package p2p
 import (
 	"net"
 
-	"github.com/ethereum/go-ethereum/helper/metrics"
+	"github.com/siotchain/siot/helper/metrics"
 )
 
 var (

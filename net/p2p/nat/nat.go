@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
 	"github.com/jackpal/go-nat-pmp"
 )
 

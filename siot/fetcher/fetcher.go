@@ -7,11 +7,11 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 

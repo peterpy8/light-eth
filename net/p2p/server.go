@@ -1,4 +1,4 @@
-// Package p2p implements the Ethereum p2p network protocols.
+// Package p2p implements the Siotchain p2p network protocols.
 package p2p
 
 import (
@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/net/p2p/discover"
-	"github.com/ethereum/go-ethereum/net/p2p/nat"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/net/p2p/discover"
+	"github.com/siotchain/siot/net/p2p/nat"
 )
 
 const (

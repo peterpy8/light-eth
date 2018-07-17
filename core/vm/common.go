@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/params"
 )
 
 // Type is the VM type accepted by **NewVm**

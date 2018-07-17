@@ -1,12 +1,12 @@
-// Package ethereum defines interfaces for interacting with Siotchain.
+// Package siotchain defines interfaces for interacting with Siotchain.
 package siotchain
 
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/core/vm"
 	"golang.org/x/net/context"
 )
 

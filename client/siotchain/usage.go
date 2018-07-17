@@ -5,7 +5,7 @@ package main
 import (
 	"io"
 
-	"github.com/ethereum/go-ethereum/client/utils"
+	"github.com/siotchain/siot/client/utils"
 	"gopkg.in/urfave/cli.v1"
 )
 

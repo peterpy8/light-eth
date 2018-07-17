@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/crypto"
 )
 
 var (

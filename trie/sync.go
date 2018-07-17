@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/database"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/database"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 

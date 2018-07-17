@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 var errMissingLogFields = errors.New("missing required JSON log fields")

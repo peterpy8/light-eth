@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/siotchain/siot/params"
 )
 
 var OutOfGasError = errors.New("Out of gas")

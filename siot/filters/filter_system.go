@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core"
+	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
 )
 

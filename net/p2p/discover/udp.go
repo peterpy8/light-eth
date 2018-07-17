@@ -9,11 +9,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/net/p2p/nat"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/crypto"
+	"github.com/siotchain/siot/logger"
+	"github.com/siotchain/siot/logger/glog"
+	"github.com/siotchain/siot/net/p2p/nat"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 const Version = 4

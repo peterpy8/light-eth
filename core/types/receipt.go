@@ -7,9 +7,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/helper/rlp"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/helper/rlp"
 )
 
 var (

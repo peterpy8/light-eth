@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/database"
-	"github.com/ethereum/go-ethereum/subscribe"
-	"github.com/ethereum/go-ethereum/net/rpc"
+	"github.com/siotchain/siot/helper"
+	"github.com/siotchain/siot/database"
+	"github.com/siotchain/siot/subscribe"
+	"github.com/siotchain/siot/net/rpc"
 )
 
 // filter is a helper struct that holds meta information over the filter type

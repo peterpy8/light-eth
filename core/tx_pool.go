@@ -11,10 +11,10 @@ import (
 	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/helper/metrics"
 	"github.com/ethereum/go-ethereum/params"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
@@ -73,8 +73,8 @@ type TxPool struct {
 	pendingState *state.ManagedState
 	gasLimit     func() *big.Int // The current gas limit function callback
 	minGasPrice  *big.Int
-	eventMux     *event.TypeMux
-	events       event.Subscription
+	eventMux     *subscribe.TypeMux
+	events       subscribe.Subscription
 	localTx      *txSet
 	signer       types.Signer
 	mu           sync.RWMutex
@@ -90,7 +90,7 @@ type TxPool struct {
 	homestead bool
 }
 
-func NewTxPool(config *params.ChainConfig, eventMux *event.TypeMux, currentStateFn stateFn, gasLimitFn func() *big.Int) *TxPool {
+func NewTxPool(config *params.ChainConfig, eventMux *subscribe.TypeMux, currentStateFn stateFn, gasLimitFn func() *big.Int) *TxPool {
 	pool := &TxPool{
 		config:       config,
 		signer:       types.NewEIP155Signer(config.ChainId),

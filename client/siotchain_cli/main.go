@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/siot"
 	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/logger"
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/helper/metrics"
 	"gopkg.in/urfave/cli.v1"
 	"github.com/ethereum/go-ethereum/client"
 	"math/big"

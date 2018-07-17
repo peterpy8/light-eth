@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/helper/metrics"
 	"github.com/ethereum/go-ethereum/context"
 	"gopkg.in/urfave/cli.v1"
 	"github.com/ethereum/go-ethereum/wallet"

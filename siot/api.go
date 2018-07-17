@@ -2,7 +2,6 @@ package siot
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -24,7 +23,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/net/rpc"
-	"golang.org/x/net/context"
 )
 
 const defaultTraceTimeout = 5 * time.Second
@@ -438,89 +436,89 @@ func (t *timeoutError) Error() string {
 
 // TraceTransaction returns the structured logs created during the execution of EVM
 // and returns them as a JSON object.
-func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash helper.Hash, config *TraceArgs) (interface{}, error) {
-	var tracer vm.Tracer
-	if config != nil && config.Tracer != nil {
-		timeout := defaultTraceTimeout
-		if config.Timeout != nil {
-			var err error
-			if timeout, err = time.ParseDuration(*config.Timeout); err != nil {
-				return nil, err
-			}
-		}
-
-		var err error
-		if tracer, err = siotapi.NewJavascriptTracer(*config.Tracer); err != nil {
-			return nil, err
-		}
-
-		// Handle timeouts and RPC cancellations
-		deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
-		go func() {
-			<-deadlineCtx.Done()
-			tracer.(*siotapi.JavascriptTracer).Stop(&timeoutError{})
-		}()
-		defer cancel()
-	} else if config == nil {
-		tracer = vm.NewStructLogger(nil)
-	} else {
-		tracer = vm.NewStructLogger(config.LogConfig)
-	}
-
-	// Retrieve the tx from the chain and the containing block
-	tx, blockHash, _, txIndex := core.GetTransaction(api.siot.ChainDb(), txHash)
-	if tx == nil {
-		return nil, fmt.Errorf("transaction %x not found", txHash)
-	}
-	block := api.siot.BlockChain().GetBlockByHash(blockHash)
-	if block == nil {
-		return nil, fmt.Errorf("block %x not found", blockHash)
-	}
-	// Create the state database to mutate and eventually trace
-	parent := api.siot.BlockChain().GetBlock(block.ParentHash(), block.NumberU64()-1)
-	if parent == nil {
-		return nil, fmt.Errorf("block parent %x not found", block.ParentHash())
-	}
-	stateDb, err := api.siot.BlockChain().StateAt(parent.Root())
-	if err != nil {
-		return nil, err
-	}
-
-	signer := types.MakeSigner(api.config, block.Number())
-	// Mutate the state and trace the selected transaction
-	for idx, tx := range block.Transactions() {
-		// Assemble the transaction call message
-		msg, err := tx.AsMessage(signer)
-		if err != nil {
-			return nil, fmt.Errorf("sender retrieval failed: %v", err)
-		}
-		// Mutate the state if we haven't reached the tracing transaction yet
-		if uint64(idx) < txIndex {
-			vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
-			_, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
-			if err != nil {
-				return nil, fmt.Errorf("mutation failed: %v", err)
-			}
-			stateDb.DeleteSuicides()
-			continue
-		}
-		// Otherwise trace the transaction and return
-		vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
-		ret, gas, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
-		if err != nil {
-			return nil, fmt.Errorf("tracing failed: %v", err)
-		}
-
-		switch tracer := tracer.(type) {
-		case *vm.StructLogger:
-			return &siotapi.ExecutionResult{
-				Gas:         gas,
-				ReturnValue: fmt.Sprintf("%x", ret),
-				StructLogs:  siotapi.FormatLogs(tracer.StructLogs()),
-			}, nil
-		case *siotapi.JavascriptTracer:
-			return tracer.GetResult()
-		}
-	}
-	return nil, errors.New("database inconsistency")
-}
+//func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash helper.Hash, config *TraceArgs) (interface{}, error) {
+//	var tracer vm.Tracer
+//	if config != nil && config.Tracer != nil {
+//		timeout := defaultTraceTimeout
+//		if config.Timeout != nil {
+//			var err error
+//			if timeout, err = time.ParseDuration(*config.Timeout); err != nil {
+//				return nil, err
+//			}
+//		}
+//
+//		var err error
+//		if tracer, err = siotapi.NewJavascriptTracer(*config.Tracer); err != nil {
+//			return nil, err
+//		}
+//
+//		// Handle timeouts and RPC cancellations
+//		deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
+//		go func() {
+//			<-deadlineCtx.Done()
+//			tracer.(*siotapi.JavascriptTracer).Stop(&timeoutError{})
+//		}()
+//		defer cancel()
+//	} else if config == nil {
+//		tracer = vm.NewStructLogger(nil)
+//	} else {
+//		tracer = vm.NewStructLogger(config.LogConfig)
+//	}
+//
+//	// Retrieve the tx from the chain and the containing block
+//	tx, blockHash, _, txIndex := core.GetTransaction(api.siot.ChainDb(), txHash)
+//	if tx == nil {
+//		return nil, fmt.Errorf("transaction %x not found", txHash)
+//	}
+//	block := api.siot.BlockChain().GetBlockByHash(blockHash)
+//	if block == nil {
+//		return nil, fmt.Errorf("block %x not found", blockHash)
+//	}
+//	// Create the state database to mutate and eventually trace
+//	parent := api.siot.BlockChain().GetBlock(block.ParentHash(), block.NumberU64()-1)
+//	if parent == nil {
+//		return nil, fmt.Errorf("block parent %x not found", block.ParentHash())
+//	}
+//	stateDb, err := api.siot.BlockChain().StateAt(parent.Root())
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	signer := types.MakeSigner(api.config, block.Number())
+//	// Mutate the state and trace the selected transaction
+//	for idx, tx := range block.Transactions() {
+//		// Assemble the transaction call message
+//		msg, err := tx.AsMessage(signer)
+//		if err != nil {
+//			return nil, fmt.Errorf("sender retrieval failed: %v", err)
+//		}
+//		// Mutate the state if we haven't reached the tracing transaction yet
+//		if uint64(idx) < txIndex {
+//			vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
+//			_, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
+//			if err != nil {
+//				return nil, fmt.Errorf("mutation failed: %v", err)
+//			}
+//			stateDb.DeleteSuicides()
+//			continue
+//		}
+//		// Otherwise trace the transaction and return
+//		vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
+//		ret, gas, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
+//		if err != nil {
+//			return nil, fmt.Errorf("tracing failed: %v", err)
+//		}
+//
+//		switch tracer := tracer.(type) {
+//		case *vm.StructLogger:
+//			return &siotapi.ExecutionResult{
+//				Gas:         gas,
+//				ReturnValue: fmt.Sprintf("%x", ret),
+//				StructLogs:  siotapi.FormatLogs(tracer.StructLogs()),
+//			}, nil
+//		case *siotapi.JavascriptTracer:
+//			return tracer.GetResult()
+//		}
+//	}
+//	return nil, errors.New("database inconsistency")
+//}

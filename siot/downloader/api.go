@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	siot "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
@@ -13,16 +13,16 @@ import (
 // It offers only methods that operates on data that can be available to anyone without security risks.
 type PublicDownloaderAPI struct {
 	d                         *Downloader
-	mux                       *event.TypeMux
+	mux                       *subscribe.TypeMux
 	installSyncSubscription   chan chan interface{}
 	uninstallSyncSubscription chan *uninstallSyncSubscriptionRequest
 }
 
-// NewPublicDownloaderAPI create a new PublicDownloaderAPI. The API has an internal event loop that
-// listens for events from the downloader through the global event mux. In case it receives one of
+// NewPublicDownloaderAPI create a new PublicDownloaderAPI. The API has an internal subscribe loop that
+// listens for events from the downloader through the global subscribe mux. In case it receives one of
 // these events it broadcasts it to all syncing subscriptions that are installed through the
 // installSyncSubscription channel.
-func NewPublicDownloaderAPI(d *Downloader, m *event.TypeMux) *PublicDownloaderAPI {
+func NewPublicDownloaderAPI(d *Downloader, m *subscribe.TypeMux) *PublicDownloaderAPI {
 	api := &PublicDownloaderAPI{
 		d:   d,
 		mux: m,
@@ -35,7 +35,7 @@ func NewPublicDownloaderAPI(d *Downloader, m *event.TypeMux) *PublicDownloaderAP
 	return api
 }
 
-// eventLoop runs an loop until the event mux closes. It will install and uninstall new
+// eventLoop runs an loop until the subscribe mux closes. It will install and uninstall new
 // sync subscriptions and broadcasts sync status updates to the installed sync subscriptions.
 func (api *PublicDownloaderAPI) eventLoop() {
 	var (
@@ -109,7 +109,7 @@ type SyncingResult struct {
 	Status  siot.SyncProgress `json:"status"`
 }
 
-// uninstallSyncSubscriptionRequest uninstalles a syncing subscription in the API event loop.
+// uninstallSyncSubscriptionRequest uninstalles a syncing subscription in the API subscribe loop.
 type uninstallSyncSubscriptionRequest struct {
 	c           chan interface{}
 	uninstalled chan interface{}
@@ -117,12 +117,12 @@ type uninstallSyncSubscriptionRequest struct {
 
 // SyncStatusSubscription represents a syncing subscription.
 type SyncStatusSubscription struct {
-	api       *PublicDownloaderAPI // register subscription in event loop of this api instance
+	api       *PublicDownloaderAPI // register subscription in subscribe loop of this api instance
 	c         chan interface{}     // channel where events are broadcasted to
 	unsubOnce sync.Once            // make sure unsubscribe logic is executed once
 }
 
-// Unsubscribe uninstalls the subscription from the DownloadAPI event loop.
+// Unsubscribe uninstalls the subscription from the DownloadAPI subscribe loop.
 // The status channel that was passed to subscribeSyncStatus isn't used anymore
 // after this method returns.
 func (s *SyncStatusSubscription) Unsubscribe() {

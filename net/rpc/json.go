@@ -308,7 +308,7 @@ func (c *jsonCodec) CreateErrorResponseWithInfo(id interface{}, err Error, info 
 		Error: jsonError{Code: err.ErrorCode(), Message: err.Error(), Data: info}}
 }
 
-// CreateNotification will create a JSON-RPC notification with the given subscription id and event as params.
+// CreateNotification will create a JSON-RPC notification with the given subscription id and subscribe as params.
 func (c *jsonCodec) CreateNotification(subid string, event interface{}) interface{} {
 	if isHexNum(reflect.TypeOf(event)) {
 		return &jsonNotification{Version: jsonrpcVersion, Method: notificationMethod,

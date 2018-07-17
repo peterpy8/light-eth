@@ -4,8 +4,8 @@ import (
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/net/p2p"
 	"github.com/ethereum/go-ethereum/net/rpc"
 )
@@ -16,18 +16,18 @@ import (
 type ServiceContext struct {
 	config         *Config
 	services       map[reflect.Type]Service // Index of the already constructed services
-	EventMux       *event.TypeMux           // Event multiplexer used for decoupled notifications
+	EventMux       *subscribe.TypeMux       // Event multiplexer used for decoupled notifications
 	AccountManager *wallet.Manager          // Account manager created by the node.
 }
 
 // OpenDatabase opens an existing database with the given name (or creates one
 // if no previous can be found) from within the node's data directory. If the
 // node is an ephemeral one, a memory database is returned.
-func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int) (siotdb.Database, error) {
+func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int) (database.Database, error) {
 	if ctx.config.DataDir == "" {
-		return siotdb.NewMemDatabase()
+		return database.NewMemDatabase()
 	}
-	return siotdb.NewLDBDatabase(ctx.config.resolvePath(name), cache, handles)
+	return database.NewLDBDatabase(ctx.config.resolvePath(name), cache, handles)
 }
 
 // Service retrieves a currently running service registered of a specific type.

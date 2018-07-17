@@ -11,8 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/siot/downloader"
 	"github.com/ethereum/go-ethereum/siot/gasprice"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/params"
 	rpc "github.com/ethereum/go-ethereum/net/rpc"
@@ -90,7 +90,7 @@ func (b *SiotApiBackend) GetTd(blockHash helper.Hash) *big.Int {
 	return b.siot.blockchain.GetTdByHash(blockHash)
 }
 
-func (b *SiotApiBackend) GetVMEnv(ctx context.Context, msg core.Message, state siotapi.State, header *types.Header) (vm.Environment, func() error, error) {
+func (b *SiotApiBackend) GetLocalEnv(ctx context.Context, msg core.Message, state siotapi.State, header *types.Header) (vm.Environment, func() error, error) {
 	statedb := state.(SiotApiState).state
 	from := statedb.GetOrNewStateObject(msg.From())
 	from.SetBalance(helper.MaxBig)
@@ -164,11 +164,11 @@ func (b *SiotApiBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	return b.gpo.SuggestPrice(), nil
 }
 
-func (b *SiotApiBackend) ChainDb() siotdb.Database {
+func (b *SiotApiBackend) ChainDb() database.Database {
 	return b.siot.ChainDb()
 }
 
-func (b *SiotApiBackend) EventMux() *event.TypeMux {
+func (b *SiotApiBackend) EventMux() *subscribe.TypeMux {
 	return b.siot.EventMux()
 }
 

@@ -10,8 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/siot/downloader"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
@@ -24,8 +24,8 @@ type Backend interface {
 	Downloader() *downloader.Downloader
 	ProtocolVersion() int
 	SuggestPrice(ctx context.Context) (*big.Int, error)
-	ChainDb() siotdb.Database
-	EventMux() *event.TypeMux
+	ChainDb() database.Database
+	EventMux() *subscribe.TypeMux
 	AccountManager() *wallet.Manager
 	// BlockChain API
 	SetHead(number uint64)
@@ -35,7 +35,7 @@ type Backend interface {
 	GetBlock(ctx context.Context, blockHash helper.Hash) (*types.Block, error)
 	GetReceipts(ctx context.Context, blockHash helper.Hash) (types.Receipts, error)
 	GetTd(blockHash helper.Hash) *big.Int
-	GetVMEnv(ctx context.Context, msg core.Message, state State, header *types.Header) (vm.Environment, func() error, error)
+	GetLocalEnv(ctx context.Context, msg core.Message, state State, header *types.Header) (vm.Environment, func() error, error)
 	// TxPool API
 	SendTx(ctx context.Context, signedTx *types.Transaction) error
 	RemoveTx(txHash helper.Hash)

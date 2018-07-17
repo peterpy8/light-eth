@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/siotdb"
+	"github.com/ethereum/go-ethereum/database"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/helper/rlp"
@@ -23,7 +23,7 @@ var useSequentialKeys = []byte("dbUpgrade_20160530sequentialKeys")
 // starts a background process to make upgrades if necessary.
 // Returns a stop function that blocks until the process has
 // been safely stopped.
-func upgradeSequentialKeys(db siotdb.Database) (stopFn func()) {
+func upgradeSequentialKeys(db database.Database) (stopFn func()) {
 	data, _ := db.Get(useSequentialKeys)
 	if len(data) > 0 && data[0] == 42 {
 		return nil // already converted
@@ -74,9 +74,9 @@ func upgradeSequentialKeys(db siotdb.Database) (stopFn func()) {
 
 // upgradeSequentialCanonicalNumbers reads all old format canonical numbers from
 // the database, writes them in new format and deletes the old ones if successful.
-func upgradeSequentialCanonicalNumbers(db siotdb.Database, stopFn func() bool) (error, bool) {
+func upgradeSequentialCanonicalNumbers(db database.Database, stopFn func() bool) (error, bool) {
 	prefix := []byte("block-num-")
-	it := db.(*siotdb.LDBDatabase).NewIterator()
+	it := db.(*database.LDBDatabase).NewIterator()
 	defer func() {
 		it.Release()
 	}()
@@ -88,7 +88,7 @@ func upgradeSequentialCanonicalNumbers(db siotdb.Database, stopFn func() bool) (
 			cnt++
 			if cnt%100000 == 0 {
 				it.Release()
-				it = db.(*siotdb.LDBDatabase).NewIterator()
+				it = db.(*database.LDBDatabase).NewIterator()
 				it.Seek(keyPtr)
 				glog.V(logger.Info).Infof("converting %d canonical numbers...", cnt)
 			}
@@ -117,9 +117,9 @@ func upgradeSequentialCanonicalNumbers(db siotdb.Database, stopFn func() bool) (
 // upgradeSequentialBlocks reads all old format block headers, bodies, TDs and block
 // receipts from the database, writes them in new format and deletes the old ones
 // if successful.
-func upgradeSequentialBlocks(db siotdb.Database, stopFn func() bool) (error, bool) {
+func upgradeSequentialBlocks(db database.Database, stopFn func() bool) (error, bool) {
 	prefix := []byte("block-")
-	it := db.(*siotdb.LDBDatabase).NewIterator()
+	it := db.(*database.LDBDatabase).NewIterator()
 	defer func() {
 		it.Release()
 	}()
@@ -131,7 +131,7 @@ func upgradeSequentialBlocks(db siotdb.Database, stopFn func() bool) (error, boo
 			cnt++
 			if cnt%10000 == 0 {
 				it.Release()
-				it = db.(*siotdb.LDBDatabase).NewIterator()
+				it = db.(*database.LDBDatabase).NewIterator()
 				it.Seek(keyPtr)
 				glog.V(logger.Info).Infof("converting %d blocks...", cnt)
 			}
@@ -168,9 +168,9 @@ func upgradeSequentialBlocks(db siotdb.Database, stopFn func() bool) (error, boo
 
 // upgradeSequentialOrphanedReceipts removes any old format block receipts from the
 // database that did not have a corresponding block
-func upgradeSequentialOrphanedReceipts(db siotdb.Database, stopFn func() bool) (error, bool) {
+func upgradeSequentialOrphanedReceipts(db database.Database, stopFn func() bool) (error, bool) {
 	prefix := []byte("receipts-block-")
-	it := db.(*siotdb.LDBDatabase).NewIterator()
+	it := db.(*database.LDBDatabase).NewIterator()
 	defer it.Release()
 	it.Seek(prefix)
 	cnt := 0
@@ -195,7 +195,7 @@ func upgradeSequentialOrphanedReceipts(db siotdb.Database, stopFn func() bool) (
 
 // upgradeSequentialBlockData upgrades the header, body, td and block receipts
 // database entries belonging to a single hash (doesn't delete old data).
-func upgradeSequentialBlockData(db siotdb.Database, hash []byte) error {
+func upgradeSequentialBlockData(db database.Database, hash []byte) error {
 	// get old chain data and block number
 	headerRLP, _ := db.Get(append(append([]byte("block-"), hash...), []byte("-header")...))
 	if len(headerRLP) == 0 {
@@ -239,7 +239,7 @@ func upgradeSequentialBlockData(db siotdb.Database, hash []byte) error {
 
 // upgradeChainDatabase ensures that the chain database stores block split into
 // separate header and body entries.
-func upgradeChainDatabase(db siotdb.Database) error {
+func upgradeChainDatabase(db database.Database) error {
 	// Short circuit if the head block is stored already as separate header and body
 	data, err := db.Get([]byte("LastBlock"))
 	if err != nil {
@@ -253,7 +253,7 @@ func upgradeChainDatabase(db siotdb.Database) error {
 	// At least some of the database is still the old format, upgrade (skip the head block!)
 	glog.V(logger.Info).Info("Old database detected, upgrading...")
 
-	if db, ok := db.(*siotdb.LDBDatabase); ok {
+	if db, ok := db.(*database.LDBDatabase); ok {
 		blockPrefix := []byte("block-hash-")
 		for it := db.NewIterator(); it.Next(); {
 			// Skip anything other than a combined block
@@ -296,7 +296,7 @@ func upgradeChainDatabase(db siotdb.Database) error {
 	return nil
 }
 
-func addMipmapBloomBins(db siotdb.Database) (err error) {
+func addMipmapBloomBins(db database.Database) (err error) {
 	const mipmapVersion uint = 2
 
 	// check if the version is set. We ignore data for now since there's

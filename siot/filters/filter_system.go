@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
@@ -78,22 +78,22 @@ type subscription struct {
 // EventSystem creates subscriptions, processes events and broadcasts them to the
 // subscription which match the subscription criteria.
 type EventSystem struct {
-	mux       *event.TypeMux
-	sub       event.Subscription
+	mux       *subscribe.TypeMux
+	sub       subscribe.Subscription
 	backend   Backend
 	lightMode bool
 	lastHead  *types.Header
-	install   chan *subscription // install filter for event notification
-	uninstall chan *subscription // remove filter for event notification
+	install   chan *subscription // install filter for subscribe notification
+	uninstall chan *subscription // remove filter for subscribe notification
 }
 
-// NewEventSystem creates a new manager that listens for event on the given mux,
+// NewEventSystem creates a new manager that listens for subscribe on the given mux,
 // parses and filters them. It uses the all map to retrieve filter changes. The
 // work loop holds its own index that is used to forward events to filters.
 //
 // The returned manager has a loop that needs to be stopped with the Stop function
 // or by stopping the given mux.
-func NewEventSystem(mux *event.TypeMux, backend Backend, lightMode bool) *EventSystem {
+func NewEventSystem(mux *subscribe.TypeMux, backend Backend, lightMode bool) *EventSystem {
 	m := &EventSystem{
 		mux:       mux,
 		backend:   backend,
@@ -107,7 +107,7 @@ func NewEventSystem(mux *event.TypeMux, backend Backend, lightMode bool) *EventS
 	return m
 }
 
-// Subscription is created when the client registers itself for a particular event.
+// Subscription is created when the client registers itself for a particular subscribe.
 type Subscription struct {
 	ID        rpc.ID
 	f         *subscription
@@ -120,14 +120,14 @@ func (sub *Subscription) Err() <-chan error {
 	return sub.f.err
 }
 
-// Unsubscribe uninstalls the subscription from the event broadcast loop.
+// Unsubscribe uninstalls the subscription from the subscribe broadcast loop.
 func (sub *Subscription) Unsubscribe() {
 	sub.unsubOnce.Do(func() {
 	uninstallLoop:
 		for {
 			// write uninstall request and consume logs/hashes. This prevents
 			// the eventLoop broadcast method to deadlock when writing to the
-			// filter event channel while the subscription loop is waiting for
+			// filter subscribe channel while the subscription loop is waiting for
 			// this method to return (and thus not reading these events).
 			select {
 			case sub.es.uninstall <- sub.f:
@@ -139,13 +139,13 @@ func (sub *Subscription) Unsubscribe() {
 		}
 
 		// wait for filter to be uninstalled in work loop before returning
-		// this ensures that the manager won't use the event channel which
+		// this ensures that the manager won't use the subscribe channel which
 		// will probably be closed by the client asap after this method returns.
 		<-sub.Err()
 	})
 }
 
-// subscribe installs the subscription in the event broadcast loop.
+// subscribe installs the subscription in the subscribe broadcast loop.
 func (es *EventSystem) subscribe(sub *subscription) *Subscription {
 	es.install <- sub
 	<-sub.installed
@@ -224,8 +224,8 @@ func (es *EventSystem) SubscribeNewHeads(headers chan *types.Header) *Subscripti
 
 type filterIndex map[Type]map[rpc.ID]*subscription
 
-// broadcast event to filters that match criteria.
-func (es *EventSystem) broadcast(filters filterIndex, ev *event.Event) {
+// broadcast subscribe to filters that match criteria.
+func (es *EventSystem) broadcast(filters filterIndex, ev *subscribe.Event) {
 	if ev == nil {
 		return
 	}

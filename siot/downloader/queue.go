@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/siotdb"
+	"github.com/ethereum/go-ethereum/database"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/trie"
@@ -85,10 +85,10 @@ type queue struct {
 	stateTaskQueue *prque.Prque             // [siot/63] Priority queue of the hashes to fetch the node data for
 	statePendPool  map[string]*fetchRequest // [siot/63] Currently pending node data retrieval operations
 
-	stateDatabase   siotdb.Database  // [siot/63] Trie database to populate during state reassembly
-	stateScheduler  *state.StateSync // [siot/63] State trie synchronisation scheduler and integrator
-	stateProcessors int32            // [siot/63] Number of currently running state processors
-	stateSchedLock  sync.RWMutex     // [siot/63] Lock serialising access to the state scheduler
+	stateDatabase   database.Database // [siot/63] Trie database to populate during state reassembly
+	stateScheduler  *state.StateSync  // [siot/63] State trie synchronisation scheduler and integrator
+	stateProcessors int32             // [siot/63] Number of currently running state processors
+	stateSchedLock  sync.RWMutex      // [siot/63] Lock serialising access to the state scheduler
 
 	resultCache  []*fetchResult // Downloaded but not yet delivered fetch results
 	resultOffset uint64         // Offset of the first cached fetch result in the block chain
@@ -99,7 +99,7 @@ type queue struct {
 }
 
 // newQueue creates a new download queue for scheduling block retrieval.
-func newQueue(stateDb siotdb.Database) *queue {
+func newQueue(stateDb database.Database) *queue {
 	lock := new(sync.Mutex)
 	return &queue{
 		headerPendPool:   make(map[string]*fetchRequest),

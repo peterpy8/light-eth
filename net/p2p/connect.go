@@ -267,7 +267,7 @@ func (t *dialTask) String() string {
 func (t *discoverTask) Do(srv *Server) {
 	// newTasks generates a lookup task whenever dynamic dials are
 	// necessary. Lookups need to take some time, otherwise the
-	// event loop spins too fast.
+	// subscribe loop spins too fast.
 	next := srv.lastLookup.Add(lookupInterval)
 	if now := time.Now(); now.Before(next) {
 		time.Sleep(next.Sub(now))

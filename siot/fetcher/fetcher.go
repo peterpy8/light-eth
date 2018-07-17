@@ -90,7 +90,7 @@ type inject struct {
 // Fetcher is responsible for accumulating block announcements from various peers
 // and scheduling them for retrieval.
 type Fetcher struct {
-	// Various event channels
+	// Various subscribe channels
 	notify chan *announce
 	inject chan *inject
 
@@ -296,7 +296,7 @@ func (f *Fetcher) loop() {
 			}
 			f.insert(op.origin, op.block)
 		}
-		// Wait for an outside event to occur
+		// Wait for an outside subscribe to occur
 		select {
 		case <-f.quit:
 			// Fetcher terminating, abort all operations

@@ -1,4 +1,4 @@
-package siotdb
+package database
 
 import (
 	"errors"

@@ -11,8 +11,8 @@ import (
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/wallet"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/net/p2p"
@@ -31,7 +31,7 @@ var (
 
 // Node is a container on which services can be registered.
 type Node struct {
-	eventmux *event.TypeMux // Event multiplexer used between the services of a stack
+	eventmux *subscribe.TypeMux // Event multiplexer used between the services of a stack
 	config   *Config
 	accman   *wallet.Manager
 
@@ -104,7 +104,7 @@ func New(conf *Config) (*Node, error) {
 		ipcEndpoint:       conf.IPCEndpoint(),
 		httpEndpoint:      conf.HTTPEndpoint(),
 		wsEndpoint:        conf.WSEndpoint(),
-		eventmux:          new(event.TypeMux),
+		eventmux:          new(subscribe.TypeMux),
 	}, nil
 }
 
@@ -612,20 +612,20 @@ func (n *Node) WSEndpoint() string {
 	return n.wsEndpoint
 }
 
-// EventMux retrieves the event multiplexer used by all the network services in
+// EventMux retrieves the subscribe multiplexer used by all the network services in
 // the current protocol stack.
-func (n *Node) EventMux() *event.TypeMux {
+func (n *Node) EventMux() *subscribe.TypeMux {
 	return n.eventmux
 }
 
 // OpenDatabase opens an existing database with the given name (or creates one if no
 // previous can be found) from within the node's instance directory. If the node is
 // ephemeral, a memory database is returned.
-func (n *Node) OpenDatabase(name string, cache, handles int) (siotdb.Database, error) {
+func (n *Node) OpenDatabase(name string, cache, handles int) (database.Database, error) {
 	if n.config.DataDir == "" {
-		return siotdb.NewMemDatabase()
+		return database.NewMemDatabase()
 	}
-	return siotdb.NewLDBDatabase(n.config.resolvePath(name), cache, handles)
+	return database.NewLDBDatabase(n.config.resolvePath(name), cache, handles)
 }
 
 // ResolvePath returns the absolute path of a resource in the instance directory.

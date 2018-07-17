@@ -1,4 +1,4 @@
-package siotdb
+package database
 
 type Database interface {
 	Put(key []byte, value []byte) error

@@ -13,7 +13,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/siotdb"
+	"github.com/ethereum/go-ethereum/database"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/params"
@@ -35,7 +35,7 @@ const (
 type HeaderChain struct {
 	config *params.ChainConfig
 
-	chainDb       siotdb.Database
+	chainDb       database.Database
 	genesisHeader *types.Header
 
 	currentHeader     *types.Header // Current head of the header chain (may be above the block chain!)
@@ -58,7 +58,7 @@ type getHeaderValidatorFn func() HeaderValidator
 //  getValidator should return the parent's validator
 //  procInterrupt points to the parent's interrupt semaphore
 //  wg points to the parent's shutdown wait group
-func NewHeaderChain(chainDb siotdb.Database, config *params.ChainConfig, getValidator getHeaderValidatorFn, procInterrupt func() bool) (*HeaderChain, error) {
+func NewHeaderChain(chainDb database.Database, config *params.ChainConfig, getValidator getHeaderValidatorFn, procInterrupt func() bool) (*HeaderChain, error) {
 	headerCache, _ := lru.New(headerCacheLimit)
 	tdCache, _ := lru.New(tdCacheLimit)
 	numberCache, _ := lru.New(numberCacheLimit)

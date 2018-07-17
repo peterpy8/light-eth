@@ -15,8 +15,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siot/downloader"
 	"github.com/ethereum/go-ethereum/siot/fetcher"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/net/p2p"
@@ -51,7 +51,7 @@ type ProtocolManager struct {
 
 	txpool      txPool
 	blockchain  *core.BlockChain
-	chaindb     siotdb.Database
+	chaindb     database.Database
 	chainconfig *params.ChainConfig
 	maxPeers    int
 
@@ -61,9 +61,9 @@ type ProtocolManager struct {
 
 	SubProtocols []p2p.Protocol
 
-	eventMux      *event.TypeMux
-	txSub         event.Subscription
-	minedBlockSub event.Subscription
+	eventMux      *subscribe.TypeMux
+	txSub         subscribe.Subscription
+	minedBlockSub subscribe.Subscription
 
 	// channels for fetcher, syncer, txsyncLoop
 	newPeerCh   chan *peer
@@ -80,7 +80,7 @@ type ProtocolManager struct {
 
 // NewProtocolManager returns a new Siotchain sub protocol manager. The Siotchain sub protocol manages peers capable
 // with the Siotchain network.
-func NewProtocolManager(config *params.ChainConfig, fastSync bool, networkId int, maxPeers int, mux *event.TypeMux, txpool txPool, pow pow.PoW, blockchain *core.BlockChain, chaindb siotdb.Database) (*ProtocolManager, error) {
+func NewProtocolManager(config *params.ChainConfig, fastSync bool, networkId int, maxPeers int, mux *subscribe.TypeMux, txpool txPool, pow pow.PoW, blockchain *core.BlockChain, chaindb database.Database) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
 		networkId:   networkId,

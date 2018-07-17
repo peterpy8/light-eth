@@ -10,7 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/siotdb"
+	"github.com/ethereum/go-ethereum/database"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/params"
@@ -57,7 +57,7 @@ func encodeBlockNumber(number uint64) []byte {
 }
 
 // GetCanonicalHash retrieves a hash assigned to a canonical block number.
-func GetCanonicalHash(db siotdb.Database, number uint64) helper.Hash {
+func GetCanonicalHash(db database.Database, number uint64) helper.Hash {
 	data, _ := db.Get(append(append(headerPrefix, encodeBlockNumber(number)...), numSuffix...))
 	if len(data) == 0 {
 		data, _ = db.Get(append(oldBlockNumPrefix, big.NewInt(int64(number)).Bytes()...))
@@ -74,7 +74,7 @@ const missingNumber = uint64(0xffffffffffffffff)
 
 // GetBlockNumber returns the block number assigned to a block hash
 // if the corresponding header is present in the database
-func GetBlockNumber(db siotdb.Database, hash helper.Hash) uint64 {
+func GetBlockNumber(db database.Database, hash helper.Hash) uint64 {
 	data, _ := db.Get(append(blockHashPrefix, hash.Bytes()...))
 	if len(data) != 8 {
 		data, _ := db.Get(append(append(oldBlockPrefix, hash.Bytes()...), oldHeaderSuffix...))
@@ -95,7 +95,7 @@ func GetBlockNumber(db siotdb.Database, hash helper.Hash) uint64 {
 // last block hash is only updated upon a full block import, the last header
 // hash is updated already at header import, allowing head tracking for the
 // light synchronization mechanism.
-func GetHeadHeaderHash(db siotdb.Database) helper.Hash {
+func GetHeadHeaderHash(db database.Database) helper.Hash {
 	data, _ := db.Get(headHeaderKey)
 	if len(data) == 0 {
 		return helper.Hash{}
@@ -104,7 +104,7 @@ func GetHeadHeaderHash(db siotdb.Database) helper.Hash {
 }
 
 // GetHeadBlockHash retrieves the hash of the current canonical head block.
-func GetHeadBlockHash(db siotdb.Database) helper.Hash {
+func GetHeadBlockHash(db database.Database) helper.Hash {
 	data, _ := db.Get(headBlockKey)
 	if len(data) == 0 {
 		return helper.Hash{}
@@ -116,7 +116,7 @@ func GetHeadBlockHash(db siotdb.Database) helper.Hash {
 // fast synchronization. The difference between this and GetHeadBlockHash is that
 // whereas the last block hash is only updated upon a full block import, the last
 // fast hash is updated when importing pre-processed blocks.
-func GetHeadFastBlockHash(db siotdb.Database) helper.Hash {
+func GetHeadFastBlockHash(db database.Database) helper.Hash {
 	data, _ := db.Get(headFastKey)
 	if len(data) == 0 {
 		return helper.Hash{}
@@ -126,7 +126,7 @@ func GetHeadFastBlockHash(db siotdb.Database) helper.Hash {
 
 // GetHeaderRLP retrieves a block header in its raw RLP database encoding, or nil
 // if the header's not found.
-func GetHeaderRLP(db siotdb.Database, hash helper.Hash, number uint64) rlp.RawValue {
+func GetHeaderRLP(db database.Database, hash helper.Hash, number uint64) rlp.RawValue {
 	data, _ := db.Get(append(append(headerPrefix, encodeBlockNumber(number)...), hash.Bytes()...))
 	if len(data) == 0 {
 		data, _ = db.Get(append(append(oldBlockPrefix, hash.Bytes()...), oldHeaderSuffix...))
@@ -136,7 +136,7 @@ func GetHeaderRLP(db siotdb.Database, hash helper.Hash, number uint64) rlp.RawVa
 
 // GetHeader retrieves the block header corresponding to the hash, nil if none
 // found.
-func GetHeader(db siotdb.Database, hash helper.Hash, number uint64) *types.Header {
+func GetHeader(db database.Database, hash helper.Hash, number uint64) *types.Header {
 	data := GetHeaderRLP(db, hash, number)
 	if len(data) == 0 {
 		return nil
@@ -150,7 +150,7 @@ func GetHeader(db siotdb.Database, hash helper.Hash, number uint64) *types.Heade
 }
 
 // GetBodyRLP retrieves the block body (transactions and uncles) in RLP encoding.
-func GetBodyRLP(db siotdb.Database, hash helper.Hash, number uint64) rlp.RawValue {
+func GetBodyRLP(db database.Database, hash helper.Hash, number uint64) rlp.RawValue {
 	data, _ := db.Get(append(append(bodyPrefix, encodeBlockNumber(number)...), hash.Bytes()...))
 	if len(data) == 0 {
 		data, _ = db.Get(append(append(oldBlockPrefix, hash.Bytes()...), oldBodySuffix...))
@@ -160,7 +160,7 @@ func GetBodyRLP(db siotdb.Database, hash helper.Hash, number uint64) rlp.RawValu
 
 // GetBody retrieves the block body (transactons, uncles) corresponding to the
 // hash, nil if none found.
-func GetBody(db siotdb.Database, hash helper.Hash, number uint64) *types.Body {
+func GetBody(db database.Database, hash helper.Hash, number uint64) *types.Body {
 	data := GetBodyRLP(db, hash, number)
 	if len(data) == 0 {
 		return nil
@@ -175,7 +175,7 @@ func GetBody(db siotdb.Database, hash helper.Hash, number uint64) *types.Body {
 
 // GetTd retrieves a block's total difficulty corresponding to the hash, nil if
 // none found.
-func GetTd(db siotdb.Database, hash helper.Hash, number uint64) *big.Int {
+func GetTd(db database.Database, hash helper.Hash, number uint64) *big.Int {
 	data, _ := db.Get(append(append(append(headerPrefix, encodeBlockNumber(number)...), hash[:]...), tdSuffix...))
 	if len(data) == 0 {
 		data, _ = db.Get(append(append(oldBlockPrefix, hash.Bytes()...), oldTdSuffix...))
@@ -197,7 +197,7 @@ func GetTd(db siotdb.Database, hash helper.Hash, number uint64) *big.Int {
 //
 // Note, due to concurrent download of header and block body the header and thus
 // canonical hash can be stored in the database but the body data not (yet).
-func GetBlock(db siotdb.Database, hash helper.Hash, number uint64) *types.Block {
+func GetBlock(db database.Database, hash helper.Hash, number uint64) *types.Block {
 	// Retrieve the block header and body contents
 	header := GetHeader(db, hash, number)
 	if header == nil {
@@ -213,7 +213,7 @@ func GetBlock(db siotdb.Database, hash helper.Hash, number uint64) *types.Block 
 
 // GetBlockReceipts retrieves the receipts generated by the transactions included
 // in a block given by its hash.
-func GetBlockReceipts(db siotdb.Database, hash helper.Hash, number uint64) types.Receipts {
+func GetBlockReceipts(db database.Database, hash helper.Hash, number uint64) types.Receipts {
 	data, _ := db.Get(append(append(blockReceiptsPrefix, encodeBlockNumber(number)...), hash[:]...))
 	if len(data) == 0 {
 		data, _ = db.Get(append(oldBlockReceiptsPrefix, hash.Bytes()...))
@@ -235,7 +235,7 @@ func GetBlockReceipts(db siotdb.Database, hash helper.Hash, number uint64) types
 
 // GetTransaction retrieves a specific transaction from the database, along with
 // its added positional metadata.
-func GetTransaction(db siotdb.Database, hash helper.Hash) (*types.Transaction, helper.Hash, uint64, uint64) {
+func GetTransaction(db database.Database, hash helper.Hash) (*types.Transaction, helper.Hash, uint64, uint64) {
 	// Retrieve the transaction itself from the database
 	data, _ := db.Get(hash.Bytes())
 	if len(data) == 0 {
@@ -262,7 +262,7 @@ func GetTransaction(db siotdb.Database, hash helper.Hash) (*types.Transaction, h
 }
 
 // GetReceipt returns a receipt by hash
-func GetReceipt(db siotdb.Database, txHash helper.Hash) *types.Receipt {
+func GetReceipt(db database.Database, txHash helper.Hash) *types.Receipt {
 	data, _ := db.Get(append(receiptsPrefix, txHash[:]...))
 	if len(data) == 0 {
 		return nil
@@ -276,7 +276,7 @@ func GetReceipt(db siotdb.Database, txHash helper.Hash) *types.Receipt {
 }
 
 // WriteCanonicalHash stores the canonical hash for the given block number.
-func WriteCanonicalHash(db siotdb.Database, hash helper.Hash, number uint64) error {
+func WriteCanonicalHash(db database.Database, hash helper.Hash, number uint64) error {
 	key := append(append(headerPrefix, encodeBlockNumber(number)...), numSuffix...)
 	if err := db.Put(key, hash.Bytes()); err != nil {
 		glog.Fatalf("failed to store number to hash mapping into database: %v", err)
@@ -285,7 +285,7 @@ func WriteCanonicalHash(db siotdb.Database, hash helper.Hash, number uint64) err
 }
 
 // WriteHeadHeaderHash stores the head header's hash.
-func WriteHeadHeaderHash(db siotdb.Database, hash helper.Hash) error {
+func WriteHeadHeaderHash(db database.Database, hash helper.Hash) error {
 	if err := db.Put(headHeaderKey, hash.Bytes()); err != nil {
 		glog.Fatalf("failed to store last header's hash into database: %v", err)
 	}
@@ -293,7 +293,7 @@ func WriteHeadHeaderHash(db siotdb.Database, hash helper.Hash) error {
 }
 
 // WriteHeadBlockHash stores the head block's hash.
-func WriteHeadBlockHash(db siotdb.Database, hash helper.Hash) error {
+func WriteHeadBlockHash(db database.Database, hash helper.Hash) error {
 	if err := db.Put(headBlockKey, hash.Bytes()); err != nil {
 		glog.Fatalf("failed to store last block's hash into database: %v", err)
 	}
@@ -301,7 +301,7 @@ func WriteHeadBlockHash(db siotdb.Database, hash helper.Hash) error {
 }
 
 // WriteHeadFastBlockHash stores the fast head block's hash.
-func WriteHeadFastBlockHash(db siotdb.Database, hash helper.Hash) error {
+func WriteHeadFastBlockHash(db database.Database, hash helper.Hash) error {
 	if err := db.Put(headFastKey, hash.Bytes()); err != nil {
 		glog.Fatalf("failed to store last fast block's hash into database: %v", err)
 	}
@@ -309,7 +309,7 @@ func WriteHeadFastBlockHash(db siotdb.Database, hash helper.Hash) error {
 }
 
 // WriteHeader serializes a block header into the database.
-func WriteHeader(db siotdb.Database, header *types.Header) error {
+func WriteHeader(db database.Database, header *types.Header) error {
 	data, err := rlp.EncodeToBytes(header)
 	if err != nil {
 		return err
@@ -330,7 +330,7 @@ func WriteHeader(db siotdb.Database, header *types.Header) error {
 }
 
 // WriteBody serializes the body of a block into the database.
-func WriteBody(db siotdb.Database, hash helper.Hash, number uint64, body *types.Body) error {
+func WriteBody(db database.Database, hash helper.Hash, number uint64, body *types.Body) error {
 	data, err := rlp.EncodeToBytes(body)
 	if err != nil {
 		return err
@@ -339,7 +339,7 @@ func WriteBody(db siotdb.Database, hash helper.Hash, number uint64, body *types.
 }
 
 // WriteBodyRLP writes a serialized body of a block into the database.
-func WriteBodyRLP(db siotdb.Database, hash helper.Hash, number uint64, rlp rlp.RawValue) error {
+func WriteBodyRLP(db database.Database, hash helper.Hash, number uint64, rlp rlp.RawValue) error {
 	key := append(append(bodyPrefix, encodeBlockNumber(number)...), hash.Bytes()...)
 	if err := db.Put(key, rlp); err != nil {
 		glog.Fatalf("failed to store block body into database: %v", err)
@@ -349,7 +349,7 @@ func WriteBodyRLP(db siotdb.Database, hash helper.Hash, number uint64, rlp rlp.R
 }
 
 // WriteTd serializes the total difficulty of a block into the database.
-func WriteTd(db siotdb.Database, hash helper.Hash, number uint64, td *big.Int) error {
+func WriteTd(db database.Database, hash helper.Hash, number uint64, td *big.Int) error {
 	data, err := rlp.EncodeToBytes(td)
 	if err != nil {
 		return err
@@ -363,7 +363,7 @@ func WriteTd(db siotdb.Database, hash helper.Hash, number uint64, td *big.Int) e
 }
 
 // WriteBlock serializes a block into the database, header and body separately.
-func WriteBlock(db siotdb.Database, block *types.Block) error {
+func WriteBlock(db database.Database, block *types.Block) error {
 	// Store the body first to retain database consistency
 	if err := WriteBody(db, block.Hash(), block.NumberU64(), block.Body()); err != nil {
 		return err
@@ -378,7 +378,7 @@ func WriteBlock(db siotdb.Database, block *types.Block) error {
 // WriteBlockReceipts stores all the transaction receipts belonging to a block
 // as a single receipt slice. This is used during chain reorganisations for
 // rescheduling dropped transactions.
-func WriteBlockReceipts(db siotdb.Database, hash helper.Hash, number uint64, receipts types.Receipts) error {
+func WriteBlockReceipts(db database.Database, hash helper.Hash, number uint64, receipts types.Receipts) error {
 	// Convert the receipts into their storage form and serialize them
 	storageReceipts := make([]*types.ReceiptForStorage, len(receipts))
 	for i, receipt := range receipts {
@@ -401,7 +401,7 @@ func WriteBlockReceipts(db siotdb.Database, hash helper.Hash, number uint64, rec
 // into the given database. Beside writing the transaction, the function also
 // stores a metadata entry along with the transaction, detailing the position
 // of this within the blockchain.
-func WriteTransactions(db siotdb.Database, block *types.Block) error {
+func WriteTransactions(db database.Database, block *types.Block) error {
 	batch := db.NewBatch()
 
 	// Iterate over each transaction and encode it with its metadata
@@ -440,7 +440,7 @@ func WriteTransactions(db siotdb.Database, block *types.Block) error {
 }
 
 // WriteReceipt stores a single transaction receipt into the database.
-func WriteReceipt(db siotdb.Database, receipt *types.Receipt) error {
+func WriteReceipt(db database.Database, receipt *types.Receipt) error {
 	storageReceipt := (*types.ReceiptForStorage)(receipt)
 	data, err := rlp.EncodeToBytes(storageReceipt)
 	if err != nil {
@@ -450,7 +450,7 @@ func WriteReceipt(db siotdb.Database, receipt *types.Receipt) error {
 }
 
 // WriteReceipts stores a batch of transaction receipts into the database.
-func WriteReceipts(db siotdb.Database, receipts types.Receipts) error {
+func WriteReceipts(db database.Database, receipts types.Receipts) error {
 	batch := db.NewBatch()
 
 	// Iterate over all the receipts and queue them for database injection
@@ -472,28 +472,28 @@ func WriteReceipts(db siotdb.Database, receipts types.Receipts) error {
 }
 
 // DeleteCanonicalHash removes the number to hash canonical mapping.
-func DeleteCanonicalHash(db siotdb.Database, number uint64) {
+func DeleteCanonicalHash(db database.Database, number uint64) {
 	db.Delete(append(append(headerPrefix, encodeBlockNumber(number)...), numSuffix...))
 }
 
 // DeleteHeader removes all block header data associated with a hash.
-func DeleteHeader(db siotdb.Database, hash helper.Hash, number uint64) {
+func DeleteHeader(db database.Database, hash helper.Hash, number uint64) {
 	db.Delete(append(blockHashPrefix, hash.Bytes()...))
 	db.Delete(append(append(headerPrefix, encodeBlockNumber(number)...), hash.Bytes()...))
 }
 
 // DeleteBody removes all block body data associated with a hash.
-func DeleteBody(db siotdb.Database, hash helper.Hash, number uint64) {
+func DeleteBody(db database.Database, hash helper.Hash, number uint64) {
 	db.Delete(append(append(bodyPrefix, encodeBlockNumber(number)...), hash.Bytes()...))
 }
 
 // DeleteTd removes all block total difficulty data associated with a hash.
-func DeleteTd(db siotdb.Database, hash helper.Hash, number uint64) {
+func DeleteTd(db database.Database, hash helper.Hash, number uint64) {
 	db.Delete(append(append(append(headerPrefix, encodeBlockNumber(number)...), hash.Bytes()...), tdSuffix...))
 }
 
 // DeleteBlock removes all block data associated with a hash.
-func DeleteBlock(db siotdb.Database, hash helper.Hash, number uint64) {
+func DeleteBlock(db database.Database, hash helper.Hash, number uint64) {
 	DeleteBlockReceipts(db, hash, number)
 	DeleteHeader(db, hash, number)
 	DeleteBody(db, hash, number)
@@ -501,18 +501,18 @@ func DeleteBlock(db siotdb.Database, hash helper.Hash, number uint64) {
 }
 
 // DeleteBlockReceipts removes all receipt data associated with a block hash.
-func DeleteBlockReceipts(db siotdb.Database, hash helper.Hash, number uint64) {
+func DeleteBlockReceipts(db database.Database, hash helper.Hash, number uint64) {
 	db.Delete(append(append(blockReceiptsPrefix, encodeBlockNumber(number)...), hash.Bytes()...))
 }
 
 // DeleteTransaction removes all transaction data associated with a hash.
-func DeleteTransaction(db siotdb.Database, hash helper.Hash) {
+func DeleteTransaction(db database.Database, hash helper.Hash) {
 	db.Delete(hash.Bytes())
 	db.Delete(append(hash.Bytes(), txMetaSuffix...))
 }
 
 // DeleteReceipt removes all receipt data associated with a transaction hash.
-func DeleteReceipt(db siotdb.Database, hash helper.Hash) {
+func DeleteReceipt(db database.Database, hash helper.Hash) {
 	db.Delete(append(receiptsPrefix, hash.Bytes()...))
 }
 
@@ -521,7 +521,7 @@ func DeleteReceipt(db siotdb.Database, hash helper.Hash) {
 // or nil if not found. This method is only used by the upgrade mechanism to
 // access the old combined block representation. It will be dropped after the
 // network transitions to siot/63.
-func GetBlockByHashOld(db siotdb.Database, hash helper.Hash) *types.Block {
+func GetBlockByHashOld(db database.Database, hash helper.Hash) *types.Block {
 	data, _ := db.Get(append(oldBlockHashPrefix, hash[:]...))
 	if len(data) == 0 {
 		return nil
@@ -547,7 +547,7 @@ func mipmapKey(num, level uint64) []byte {
 
 // WriteMapmapBloom writes each address included in the receipts' logs to the
 // MIP bloom bin.
-func WriteMipmapBloom(db siotdb.Database, number uint64, receipts types.Receipts) error {
+func WriteMipmapBloom(db database.Database, number uint64, receipts types.Receipts) error {
 	batch := db.NewBatch()
 	for _, level := range MIPMapLevels {
 		key := mipmapKey(number, level)
@@ -568,13 +568,13 @@ func WriteMipmapBloom(db siotdb.Database, number uint64, receipts types.Receipts
 
 // GetMipmapBloom returns a bloom filter using the number and level as input
 // parameters. For available levels see MIPMapLevels.
-func GetMipmapBloom(db siotdb.Database, number, level uint64) types.Bloom {
+func GetMipmapBloom(db database.Database, number, level uint64) types.Bloom {
 	bloomDat, _ := db.Get(mipmapKey(number, level))
 	return types.BytesToBloom(bloomDat)
 }
 
 // GetBlockChainVersion reads the version number from db.
-func GetBlockChainVersion(db siotdb.Database) int {
+func GetBlockChainVersion(db database.Database) int {
 	var vsn uint
 	enc, _ := db.Get([]byte("BlockchainVersion"))
 	rlp.DecodeBytes(enc, &vsn)
@@ -582,13 +582,13 @@ func GetBlockChainVersion(db siotdb.Database) int {
 }
 
 // WriteBlockChainVersion writes vsn as the version number to db.
-func WriteBlockChainVersion(db siotdb.Database, vsn int) {
+func WriteBlockChainVersion(db database.Database, vsn int) {
 	enc, _ := rlp.EncodeToBytes(uint(vsn))
 	db.Put([]byte("BlockchainVersion"), enc)
 }
 
 // WriteChainConfig writes the chain config settings to the database.
-func WriteChainConfig(db siotdb.Database, hash helper.Hash, cfg *params.ChainConfig) error {
+func WriteChainConfig(db database.Database, hash helper.Hash, cfg *params.ChainConfig) error {
 	// short circuit and ignore if nil config. GetChainConfig
 	// will return a default.
 	if cfg == nil {
@@ -604,7 +604,7 @@ func WriteChainConfig(db siotdb.Database, hash helper.Hash, cfg *params.ChainCon
 }
 
 // GetChainConfig will fetch the network settings based on the given hash.
-func GetChainConfig(db siotdb.Database, hash helper.Hash) (*params.ChainConfig, error) {
+func GetChainConfig(db database.Database, hash helper.Hash) (*params.ChainConfig, error) {
 	jsonChainConfig, _ := db.Get(append(configPrefix, hash[:]...))
 	if len(jsonChainConfig) == 0 {
 		return nil, ChainConfigNotFoundErr
@@ -619,7 +619,7 @@ func GetChainConfig(db siotdb.Database, hash helper.Hash) (*params.ChainConfig, 
 }
 
 // FindCommonAncestor returns the last helper ancestor of two block headers
-func FindCommonAncestor(db siotdb.Database, a, b *types.Header) *types.Header {
+func FindCommonAncestor(db database.Database, a, b *types.Header) *types.Header {
 	for bn := b.Number.Uint64(); a.Number.Uint64() > bn; {
 		a = GetHeader(db, a.ParentHash, a.Number.Uint64()-1)
 		if a == nil {

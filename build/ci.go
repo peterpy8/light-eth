@@ -40,7 +40,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/internal/build"
+	"github.com/ethereum/go-ethereum/internal/buildtool"
 )
 
 var (
@@ -121,7 +121,7 @@ func doInstall(cmdline []string) {
 		arch = flag.String("arch", "", "Architecture to cross build for")
 	)
 	flag.CommandLine.Parse(cmdline)
-	env := build.Env()
+	env := buildtool.Env()
 
 	// Compile packages given as arguments, or everything if there are no arguments.
 	packages := []string{"./..."}
@@ -132,13 +132,13 @@ func doInstall(cmdline []string) {
 		goinstall := goTool("install", buildFlags(env)...)
 		goinstall.Args = append(goinstall.Args, "-v")
 		goinstall.Args = append(goinstall.Args, packages...)
-		build.MustRun(goinstall)
+		buildtool.MustRun(goinstall)
 		return
 	}
 	// If we are cross compiling to ARMv5 ARMv6 or ARMv7, clean any prvious builds
 	if *arch == "arm" {
 		os.RemoveAll(filepath.Join(runtime.GOROOT(), "pkg", runtime.GOOS+"_arm"))
-		for _, path := range filepath.SplitList(build.GOPATH()) {
+		for _, path := range filepath.SplitList(buildtool.GOPATH()) {
 			os.RemoveAll(filepath.Join(path, "pkg", runtime.GOOS+"_arm"))
 		}
 	}
@@ -147,7 +147,7 @@ func doInstall(cmdline []string) {
 	goinstall.Args = append(goinstall.Args, "-v")
 	goinstall.Args = append(goinstall.Args, []string{"-buildmode", "archive"}...)
 	goinstall.Args = append(goinstall.Args, packages...)
-	build.MustRun(goinstall)
+	buildtool.MustRun(goinstall)
 
 	if cmds, err := ioutil.ReadDir("client"); err == nil {
 		for _, cmd := range cmds {
@@ -161,7 +161,7 @@ func doInstall(cmdline []string) {
 					gobuild.Args = append(gobuild.Args, "-v")
 					gobuild.Args = append(gobuild.Args, []string{"-o", executablePath(cmd.Name())}...)
 					gobuild.Args = append(gobuild.Args, "."+string(filepath.Separator)+filepath.Join("client", cmd.Name()))
-					build.MustRun(gobuild)
+					buildtool.MustRun(gobuild)
 					break
 				}
 			}
@@ -169,7 +169,7 @@ func doInstall(cmdline []string) {
 	}
 }
 
-func buildFlags(env build.Environment) (flags []string) {
+func buildFlags(env buildtool.Environment) (flags []string) {
 	if os.Getenv("GO_OPENCL") != "" {
 		flags = append(flags, "-tags", "opencl")
 	}
@@ -198,7 +198,7 @@ func goToolArch(arch string, subcmd string, args ...string) *exec.Cmd {
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Env = []string{
 		"GO15VENDOREXPERIMENT=1",
-		"GOPATH=" + build.GOPATH(),
+		"GOPATH=" + buildtool.GOPATH(),
 	}
 	if arch == "" || arch == runtime.GOARCH {
 		cmd.Env = append(cmd.Env, "GOBIN="+GOBIN)
@@ -245,7 +245,7 @@ func doTest(cmdline []string) {
 	}
 	// Run analysis tools before the tests.
 	if *vet {
-		build.MustRun(goTool("vet", packages...))
+		buildtool.MustRun(goTool("vet", packages...))
 	}
 
 	// Run the actual tests.
@@ -257,7 +257,7 @@ func doTest(cmdline []string) {
 		gotest.Args = append(gotest.Args, "-covermode=atomic", "-cover")
 	}
 	gotest.Args = append(gotest.Args, packages...)
-	build.MustRun(gotest)
+	buildtool.MustRun(gotest)
 }
 
 // Release Packaging
@@ -281,16 +281,16 @@ func doArchive(cmdline []string) {
 	}
 
 	var (
-		env      = build.Env()
+		env      = buildtool.Env()
 		base     = archiveBasename(*arch, env)
 		siotchain     = "siotchain-" + base + ext
 		alltools = "siotchain-alltools-" + base + ext
 	)
 	maybeSkipArchive(env)
-	if err := build.WriteArchive(siotchain, siotchainArchiveFiles); err != nil {
+	if err := buildtool.WriteArchive(siotchain, siotchainArchiveFiles); err != nil {
 		log.Fatal(err)
 	}
-	if err := build.WriteArchive(alltools, allToolsArchiveFiles); err != nil {
+	if err := buildtool.WriteArchive(alltools, allToolsArchiveFiles); err != nil {
 		log.Fatal(err)
 	}
 	for _, archive := range []string{siotchain, alltools} {
@@ -300,7 +300,7 @@ func doArchive(cmdline []string) {
 	}
 }
 
-func archiveBasename(arch string, env build.Environment) string {
+func archiveBasename(arch string, env buildtool.Environment) string {
 	platform := runtime.GOOS + "-" + arch
 	if arch == "arm" {
 		platform += os.Getenv("GOARM")
@@ -314,8 +314,8 @@ func archiveBasename(arch string, env build.Environment) string {
 	return platform + "-" + archiveVersion(env)
 }
 
-func archiveVersion(env build.Environment) string {
-	version := build.VERSION()
+func archiveVersion(env buildtool.Environment) string {
+	version := buildtool.VERSION()
 	if isUnstableBuild(env) {
 		version += "-unstable"
 	}
@@ -332,22 +332,22 @@ func archiveUpload(archive string, blobstore string, signer string) error {
 		if err != nil {
 			return fmt.Errorf("invalid base64 %s", signer)
 		}
-		if err := build.PGPSignFile(archive, archive+".asc", string(pgpkey)); err != nil {
+		if err := buildtool.PGPSignFile(archive, archive+".asc", string(pgpkey)); err != nil {
 			return err
 		}
 	}
 	// If uploading to Azure was requested, push the archive possibly with its signature
 	if blobstore != "" {
-		auth := build.AzureBlobstoreConfig{
+		auth := buildtool.AzureBlobstoreConfig{
 			Account:   strings.Split(blobstore, "/")[0],
 			Token:     os.Getenv("AZURE_BLOBSTORE_TOKEN"),
 			Container: strings.SplitN(blobstore, "/", 2)[1],
 		}
-		if err := build.AzureBlobstoreUpload(archive, filepath.Base(archive), auth); err != nil {
+		if err := buildtool.AzureBlobstoreUpload(archive, filepath.Base(archive), auth); err != nil {
 			return err
 		}
 		if signer != "" {
-			if err := build.AzureBlobstoreUpload(archive+".asc", filepath.Base(archive+".asc"), auth); err != nil {
+			if err := buildtool.AzureBlobstoreUpload(archive+".asc", filepath.Base(archive+".asc"), auth); err != nil {
 				return err
 			}
 		}
@@ -356,7 +356,7 @@ func archiveUpload(archive string, blobstore string, signer string) error {
 }
 
 // skips archiving for some build configurations.
-func maybeSkipArchive(env build.Environment) {
+func maybeSkipArchive(env buildtool.Environment) {
 	if env.IsPullRequest {
 		log.Printf("skipping because this is a PR build")
 		os.Exit(0)
@@ -378,7 +378,7 @@ func doDebianSource(cmdline []string) {
 	)
 	flag.CommandLine.Parse(cmdline)
 	*workdir = makeWorkdir(*workdir)
-	env := build.Env()
+	env := buildtool.Env()
 	maybeSkipArchive(env)
 
 	// Import the signing key.
@@ -389,7 +389,7 @@ func doDebianSource(cmdline []string) {
 		}
 		gpg := exec.Command("gpg", "--import")
 		gpg.Stdin = bytes.NewReader(key)
-		build.MustRun(gpg)
+		buildtool.MustRun(gpg)
 	}
 
 	// Create the packages.
@@ -398,15 +398,15 @@ func doDebianSource(cmdline []string) {
 		pkgdir := stageDebianSource(*workdir, meta)
 		debuild := exec.Command("debuild", "-S", "-sa", "-us", "-uc")
 		debuild.Dir = pkgdir
-		build.MustRun(debuild)
+		buildtool.MustRun(debuild)
 
 		changes := fmt.Sprintf("%s_%s_source.changes", meta.Name(), meta.VersionString())
 		changes = filepath.Join(*workdir, changes)
 		if *signer != "" {
-			build.MustRunCommand("debsign", changes)
+			buildtool.MustRunCommand("debsign", changes)
 		}
 		if *upload != "" {
-			build.MustRunCommand("dput", *upload, changes)
+			buildtool.MustRunCommand("dput", *upload, changes)
 		}
 	}
 }
@@ -424,7 +424,7 @@ func makeWorkdir(wdflag string) string {
 	return wdflag
 }
 
-func isUnstableBuild(env build.Environment) bool {
+func isUnstableBuild(env buildtool.Environment) bool {
 	if env.Branch != "master" && env.Tag != "" {
 		return false
 	}
@@ -432,7 +432,7 @@ func isUnstableBuild(env build.Environment) bool {
 }
 
 type debMetadata struct {
-	Env build.Environment
+	Env buildtool.Environment
 
 	// siotchain version being built. Note that this
 	// is not the debian package version. The package version
@@ -448,7 +448,7 @@ type debExecutable struct {
 	Name, Description string
 }
 
-func newDebMetadata(distro, author string, env build.Environment, t time.Time) debMetadata {
+func newDebMetadata(distro, author string, env buildtool.Environment, t time.Time) debMetadata {
 	if author == "" {
 		// No signing key, use default author.
 		author = "siotchain team"
@@ -457,7 +457,7 @@ func newDebMetadata(distro, author string, env build.Environment, t time.Time) d
 		Env:         env,
 		Author:      author,
 		Distro:      distro,
-		Version:     build.VERSION(),
+		Version:     buildtool.VERSION(),
 		Time:        t.Format(time.RFC1123Z),
 		Executables: debExecutables,
 	}
@@ -526,21 +526,21 @@ func stageDebianSource(tmpdir string, meta debMetadata) (pkgdir string) {
 	}
 
 	// Copy the source code.
-	build.MustRunCommand("git", "checkout-index", "-a", "--prefix", pkgdir+string(filepath.Separator))
+	buildtool.MustRunCommand("git", "checkout-index", "-a", "--prefix", pkgdir+string(filepath.Separator))
 
 	// Put the debian build files in place.
 	debian := filepath.Join(pkgdir, "debian")
-	build.Render("build/deb.rules", filepath.Join(debian, "rules"), 0755, meta)
-	build.Render("build/deb.changelog", filepath.Join(debian, "changelog"), 0644, meta)
-	build.Render("build/deb.control", filepath.Join(debian, "control"), 0644, meta)
-	build.Render("build/deb.copyright", filepath.Join(debian, "copyright"), 0644, meta)
-	build.RenderString("8\n", filepath.Join(debian, "compat"), 0644, meta)
-	build.RenderString("3.0 (native)\n", filepath.Join(debian, "source/format"), 0644, meta)
+	buildtool.Render("build/deb.rules", filepath.Join(debian, "rules"), 0755, meta)
+	buildtool.Render("build/deb.changelog", filepath.Join(debian, "changelog"), 0644, meta)
+	buildtool.Render("build/deb.control", filepath.Join(debian, "control"), 0644, meta)
+	buildtool.Render("build/deb.copyright", filepath.Join(debian, "copyright"), 0644, meta)
+	buildtool.RenderString("8\n", filepath.Join(debian, "compat"), 0644, meta)
+	buildtool.RenderString("3.0 (native)\n", filepath.Join(debian, "source/format"), 0644, meta)
 	for _, exe := range meta.Executables {
 		install := filepath.Join(debian, meta.ExeName(exe)+".install")
 		docs := filepath.Join(debian, meta.ExeName(exe)+".docs")
-		build.Render("build/deb.install", install, 0644, exe)
-		build.Render("build/deb.docs", docs, 0644, exe)
+		buildtool.Render("build/deb.install", install, 0644, exe)
+		buildtool.Render("build/deb.docs", docs, 0644, exe)
 	}
 
 	return pkgdir
@@ -558,7 +558,7 @@ func doWindowsInstaller(cmdline []string) {
 	)
 	flag.CommandLine.Parse(cmdline)
 	*workdir = makeWorkdir(*workdir)
-	env := build.Env()
+	env := buildtool.Env()
 	maybeSkipArchive(env)
 
 	// Aggregate binaries that are included in the installer
@@ -586,22 +586,22 @@ func doWindowsInstaller(cmdline []string) {
 		"Siotchain": siotchainTool,
 		"DevTools": devTools,
 	}
-	build.Render("build/nsis.siotchain.nsi", filepath.Join(*workdir, "siotchain.nsi"), 0644, nil)
-	build.Render("build/nsis.install.nsh", filepath.Join(*workdir, "install.nsh"), 0644, templateData)
-	build.Render("build/nsis.uninstall.nsh", filepath.Join(*workdir, "uninstall.nsh"), 0644, allTools)
-	build.Render("build/nsis.envvarupdate.nsh", filepath.Join(*workdir, "EnvVarUpdate.nsh"), 0644, nil)
-	build.CopyFile(filepath.Join(*workdir, "SimpleFC.dll"), "build/nsis.simplefc.dll", 0755)
-	build.CopyFile(filepath.Join(*workdir, "COPYING"), "COPYING", 0755)
+	buildtool.Render("build/nsis.siotchain.nsi", filepath.Join(*workdir, "siotchain.nsi"), 0644, nil)
+	buildtool.Render("build/nsis.install.nsh", filepath.Join(*workdir, "install.nsh"), 0644, templateData)
+	buildtool.Render("build/nsis.uninstall.nsh", filepath.Join(*workdir, "uninstall.nsh"), 0644, allTools)
+	buildtool.Render("build/nsis.envvarupdate.nsh", filepath.Join(*workdir, "EnvVarUpdate.nsh"), 0644, nil)
+	buildtool.CopyFile(filepath.Join(*workdir, "SimpleFC.dll"), "build/nsis.simplefc.dll", 0755)
+	buildtool.CopyFile(filepath.Join(*workdir, "COPYING"), "COPYING", 0755)
 
 	// Build the installer. This assumes that all the needed files have been previously
 	// built (don't mix building and packaging to keep cross compilation complexity to a
 	// minimum).
-	version := strings.Split(build.VERSION(), ".")
+	version := strings.Split(buildtool.VERSION(), ".")
 	if env.Commit != "" {
 		version[2] += "-" + env.Commit[:8]
 	}
 	installer, _ := filepath.Abs("siotchain-" + archiveBasename(*arch, env) + ".exe")
-	build.MustRunCommand("makensis.exe",
+	buildtool.MustRunCommand("makensis.exe",
 		"/DOUTPUTFILE="+installer,
 		"/DMAJORVERSION="+version[0],
 		"/DMINORVERSION="+version[1],
@@ -625,15 +625,15 @@ func doAndroidArchive(cmdline []string) {
 		upload = flag.String("upload", "", `Destination to upload the archive (usually "siotchainstore/builds")`)
 	)
 	flag.CommandLine.Parse(cmdline)
-	env := build.Env()
+	env := buildtool.Env()
 
 	// Build the Android archive and Maven resources
-	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
-	build.MustRun(gomobileTool("init"))
-	build.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.siotchain", "-v", "github.com/ethereum/go-ethereum/mobile"))
+	buildtool.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
+	buildtool.MustRun(gomobileTool("init"))
+	buildtool.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.siotchain", "-v", "github.com/ethereum/go-ethereum/mobile"))
 
 	meta := newMavenMetadata(env)
-	build.Render("build/mvn.pom", meta.Package+".pom", 0755, meta)
+	buildtool.Render("build/mvn.pom", meta.Package+".pom", 0755, meta)
 
 	// Skip Maven deploy and Azure upload for PR builds
 	maybeSkipArchive(env)
@@ -656,14 +656,14 @@ func doAndroidArchive(cmdline []string) {
 			}
 			gpg := exec.Command("gpg", "--import")
 			gpg.Stdin = bytes.NewReader(key)
-			build.MustRun(gpg)
+			buildtool.MustRun(gpg)
 		}
 		// Upload the artifacts to Sonatype and/or Maven Central
 		repo := *deploy + "/service/local/staging/deploy/maven2"
 		if meta.Develop {
 			repo = *deploy + "/content/repositories/snapshots"
 		}
-		build.MustRunCommand("mvn", "gpg:sign-and-deploy-file",
+		buildtool.MustRunCommand("mvn", "gpg:sign-and-deploy-file",
 			"-settings=build/mvn.settings", "-Durl="+repo, "-DrepositoryId=ossrh",
 			"-DpomFile="+meta.Package+".pom", "-Dfile="+meta.Package+".aar")
 	}
@@ -673,7 +673,7 @@ func gomobileTool(subcmd string, args ...string) *exec.Cmd {
 	cmd := exec.Command(filepath.Join(GOBIN, "gomobile"), subcmd)
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Env = []string{
-		"GOPATH=" + build.GOPATH(),
+		"GOPATH=" + buildtool.GOPATH(),
 	}
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, "GOPATH=") {
@@ -696,7 +696,7 @@ type mavenContributor struct {
 	Email string
 }
 
-func newMavenMetadata(env build.Environment) mavenMetadata {
+func newMavenMetadata(env buildtool.Environment) mavenMetadata {
 	// Collect the list of authors from the repo root
 	contribs := []mavenContributor{}
 	if authors, err := os.Open("AUTHORS"); err == nil {
@@ -718,7 +718,7 @@ func newMavenMetadata(env build.Environment) mavenMetadata {
 		}
 	}
 	// Render the version and package strings
-	version := build.VERSION()
+	version := buildtool.VERSION()
 	if isUnstableBuild(env) {
 		version += "-SNAPSHOT"
 	}
@@ -739,11 +739,11 @@ func doXCodeFramework(cmdline []string) {
 		upload = flag.String("upload", "", `Destination to upload the archives (usually "siotchainstore/builds")`)
 	)
 	flag.CommandLine.Parse(cmdline)
-	env := build.Env()
+	env := buildtool.Env()
 
 	// Build the iOS XCode framework
-	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
-	build.MustRun(gomobileTool("init"))
+	buildtool.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
+	buildtool.MustRun(gomobileTool("init"))
 
 	archive := "siotchain-" + archiveBasename("ios", env)
 	if err := os.Mkdir(archive, os.ModePerm); err != nil {
@@ -751,8 +751,8 @@ func doXCodeFramework(cmdline []string) {
 	}
 	bind := gomobileTool("bind", "--target", "ios", "--tags", "ios", "--prefix", "GE", "-v", "github.com/ethereum/go-ethereum/mobile")
 	bind.Dir, _ = filepath.Abs(archive)
-	build.MustRun(bind)
-	build.MustRunCommand("tar", "-zcvf", archive+".tar.gz", archive)
+	buildtool.MustRun(bind)
+	buildtool.MustRunCommand("tar", "-zcvf", archive+".tar.gz", archive)
 
 	// Skip CocoaPods deploy and Azure upload for PR builds
 	maybeSkipArchive(env)
@@ -764,8 +764,8 @@ func doXCodeFramework(cmdline []string) {
 	// Prepare and upload a PodSpec to CocoaPods
 	if *deploy != "" {
 		meta := newPodMetadata(env)
-		build.Render("build/pod.podspec", meta.Name+".podspec", 0755, meta)
-		build.MustRunCommand("pod", *deploy, "push", meta.Name+".podspec", "--allow-warnings")
+		buildtool.Render("build/pod.podspec", meta.Name+".podspec", 0755, meta)
+		buildtool.MustRunCommand("pod", *deploy, "push", meta.Name+".podspec", "--allow-warnings")
 	}
 }
 
@@ -781,7 +781,7 @@ type podContributor struct {
 	Email string
 }
 
-func newPodMetadata(env build.Environment) podMetadata {
+func newPodMetadata(env buildtool.Environment) podMetadata {
 	// Collect the list of authors from the repo root
 	contribs := []podContributor{}
 	if authors, err := os.Open("AUTHORS"); err == nil {
@@ -818,21 +818,21 @@ func newPodMetadata(env build.Environment) podMetadata {
 
 func doXgo(cmdline []string) {
 	flag.CommandLine.Parse(cmdline)
-	env := build.Env()
+	env := buildtool.Env()
 
 	// Make sure xgo is available for cross compilation
 	gogetxgo := goTool("get", "github.com/karalabe/xgo")
-	build.MustRun(gogetxgo)
+	buildtool.MustRun(gogetxgo)
 
 	// Execute the actual cross compilation
 	xgo := xgoTool(append(buildFlags(env), flag.Args()...))
-	build.MustRun(xgo)
+	buildtool.MustRun(xgo)
 }
 
 func xgoTool(args []string) *exec.Cmd {
 	cmd := exec.Command(filepath.Join(GOBIN, "xgo"), args...)
 	cmd.Env = []string{
-		"GOPATH=" + build.GOPATH(),
+		"GOPATH=" + buildtool.GOPATH(),
 		"GOBIN=" + GOBIN,
 	}
 	for _, e := range os.Environ() {

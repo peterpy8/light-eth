@@ -14,8 +14,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/params"
@@ -81,18 +81,18 @@ type worker struct {
 	mu sync.Mutex
 
 	// update loop
-	mux    *event.TypeMux
-	events event.Subscription
+	mux    *subscribe.TypeMux
+	events subscribe.Subscription
 	wg     sync.WaitGroup
 
 	agents map[Agent]struct{}
 	recv   chan *Result
 	pow    pow.PoW
 
-	siot     Backend
+	siot    Backend
 	chain   *core.BlockChain
 	proc    core.Validator
-	chainDb siotdb.Database
+	chainDb database.Database
 
 	coinbase helper.Address
 	gasPrice *big.Int
@@ -114,7 +114,7 @@ type worker struct {
 	fullValidation bool
 }
 
-func newWorker(config *params.ChainConfig, coinbase helper.Address, siot Backend, mux *event.TypeMux) *worker {
+func newWorker(config *params.ChainConfig, coinbase helper.Address, siot Backend, mux *subscribe.TypeMux) *worker {
 	worker := &worker{
 		config:         config,
 		siot:            siot,
@@ -208,7 +208,7 @@ func (self *worker) unregister(agent Agent) {
 
 func (self *worker) update() {
 	for event := range self.events.Chan() {
-		// A real event arrived, process interesting content
+		// A real subscribe arrived, process interesting content
 		switch ev := event.Data.(type) {
 		case core.ChainHeadEvent:
 			self.commitNewWork()
@@ -544,7 +544,7 @@ func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
 	return nil
 }
 
-func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, gasPrice *big.Int, bc *core.BlockChain) {
+func (env *Work) commitTransactions(mux *subscribe.TypeMux, txs *types.TransactionsByPriceAndNonce, gasPrice *big.Int, bc *core.BlockChain) {
 	gp := new(core.GasPool).AddGas(env.header.GasLimit)
 
 	var coalescedLogs vm.Logs

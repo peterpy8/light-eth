@@ -7,15 +7,15 @@ import (
 	"github.com/ethereum/go-ethereum/helper"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/net/rpc"
 	"golang.org/x/net/context"
 )
 
 type Backend interface {
-	ChainDb() siotdb.Database
-	EventMux() *event.TypeMux
+	ChainDb() database.Database
+	EventMux() *subscribe.TypeMux
 	HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error)
 	GetReceipts(ctx context.Context, blockHash helper.Hash) (types.Receipts, error)
 }
@@ -27,7 +27,7 @@ type Filter struct {
 
 	created time.Time
 
-	db         siotdb.Database
+	db         database.Database
 	begin, end int64
 	addresses  []helper.Address
 	topics     [][]helper.Hash

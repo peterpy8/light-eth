@@ -1,7 +1,7 @@
 package siot
 
 import (
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/helper/metrics"
 	"github.com/ethereum/go-ethereum/net/p2p"
 )
 

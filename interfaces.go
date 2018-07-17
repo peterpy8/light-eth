@@ -10,9 +10,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO: move subscription to package event
+// TODO: move subscription to package subscribe
 
-// Subscription represents an event subscription where events are
+// Subscription represents an subscribe subscription where events are
 // delivered on a data channel.
 type Subscription interface {
 	// Unsubscribe cancels the sending of events to the data channel
@@ -96,7 +96,7 @@ type FilterQuery struct {
 	ToBlock   *big.Int         // end of the range, nil means latest block
 	Addresses []helper.Address // restricts matches to events created by specific externalLogics
 
-	// The Topic list restricts matches to particular event topics. Each event has a list
+	// The Topic list restricts matches to particular subscribe topics. Each subscribe has a list
 	// of topics. Topics matches a prefix of that list. An empty element slice matches any
 	// topic. Non-empty elements represent an alternative that matches any of the
 	// contained topics.
@@ -111,7 +111,7 @@ type FilterQuery struct {
 }
 
 // LogFilterer provides access to externalLogic log events using a one-off query or continuous
-// event subscription.
+// subscribe subscription.
 type LogFilterer interface {
 	FilterLogs(ctx context.Context, q FilterQuery) ([]vm.Log, error)
 	SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- vm.Log) (Subscription, error)

@@ -12,8 +12,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siot/downloader"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/params"
@@ -25,12 +25,12 @@ type Backend interface {
 	AccountManager() *wallet.Manager
 	BlockChain() *core.BlockChain
 	TxPool() *core.TxPool
-	ChainDb() siotdb.Database
+	ChainDb() database.Database
 }
 
 // Miner creates blocks and searches for proof-of-work values.
 type Miner struct {
-	mux *event.TypeMux
+	mux *subscribe.TypeMux
 
 	worker *worker
 
@@ -46,7 +46,7 @@ type Miner struct {
 	shouldStart int32 // should start indicates whether we should start after sync
 }
 
-func New(siot Backend, config *params.ChainConfig, mux *event.TypeMux, pow pow.PoW) *Miner {
+func New(siot Backend, config *params.ChainConfig, mux *subscribe.TypeMux, pow pow.PoW) *Miner {
 	miner := &Miner{
 		siot:      siot,
 		mux:      mux,
@@ -83,7 +83,7 @@ out:
 			if shouldStart {
 				self.Start(self.coinbase, self.threads)
 			}
-			// unsubscribe. we're only interested in this event once
+			// unsubscribe. we're only interested in this subscribe once
 			events.Unsubscribe()
 			// stop immediately and ignore all further pending events
 			break out

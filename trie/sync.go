@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/siotdb"
+	"github.com/ethereum/go-ethereum/database"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 
@@ -42,13 +42,13 @@ type TrieSyncLeafCallback func(leaf []byte, parent helper.Hash) error
 // unknown trie hashes to retrieve, accepts node data associated with said hashes
 // and reconstructs the trie step by step until all is done.
 type TrieSync struct {
-	database siotdb.Database          // State database for storing all the assembled node data
+	database database.Database        // State database for storing all the assembled node data
 	requests map[helper.Hash]*request // Pending requests pertaining to a key hash
 	queue    *prque.Prque             // Priority queue with the pending requests
 }
 
 // NewTrieSync creates a new trie data download scheduler.
-func NewTrieSync(root helper.Hash, database siotdb.Database, callback TrieSyncLeafCallback) *TrieSync {
+func NewTrieSync(root helper.Hash, database database.Database, callback TrieSyncLeafCallback) *TrieSync {
 	ts := &TrieSync{
 		database: database,
 		requests: make(map[helper.Hash]*request),
@@ -250,7 +250,7 @@ func (s *TrieSync) children(req *request, object node) ([]*request, error) {
 // commit finalizes a retrieval request and stores it into the database. If any
 // of the referencing parent requests complete due to this commit, they are also
 // committed themselves.
-func (s *TrieSync) commit(req *request, batch siotdb.Batch) (err error) {
+func (s *TrieSync) commit(req *request, batch database.Batch) (err error) {
 	// Create a new batch if none was specified
 	if batch == nil {
 		batch = s.database.NewBatch()

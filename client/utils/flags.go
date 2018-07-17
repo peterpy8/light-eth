@@ -21,11 +21,11 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/siot"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/helper/metrics"
 	"github.com/ethereum/go-ethereum/context"
 	"github.com/ethereum/go-ethereum/net/p2p/discover"
 	"github.com/ethereum/go-ethereum/net/p2p/nat"
@@ -716,7 +716,7 @@ func MakeChainConfig(ctx *cli.Context, stack *context.Node) *params.ChainConfig 
 }
 
 // MakeChainConfigFromDb reads the chain configuration from the given database.
-func MakeChainConfigFromDb(ctx *cli.Context, db siotdb.Database) *params.ChainConfig {
+func MakeChainConfigFromDb(ctx *cli.Context, db database.Database) *params.ChainConfig {
 	// If the chain is already initialized, use any existing chain configs
 	config := new(params.ChainConfig)
 
@@ -813,7 +813,7 @@ func ChainDbName(ctx *cli.Context) string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *context.Node) siotdb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *context.Node) database.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name)
 		handles = MakeDatabaseHandles()
@@ -828,7 +828,7 @@ func MakeChainDatabase(ctx *cli.Context, stack *context.Node) siotdb.Database {
 }
 
 // MakeChain creates a chain manager from set cmd line flags.
-func MakeChain(ctx *cli.Context, stack *context.Node) (chain *core.BlockChain, chainDb siotdb.Database) {
+func MakeChain(ctx *cli.Context, stack *context.Node) (chain *core.BlockChain, chainDb database.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
@@ -844,7 +844,7 @@ func MakeChain(ctx *cli.Context, stack *context.Node) (chain *core.BlockChain, c
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		pow = ethash.New()
 	}
-	chain, err = core.NewBlockChain(chainDb, chainConfig, pow, new(event.TypeMux))
+	chain, err = core.NewBlockChain(chainDb, chainConfig, pow, new(subscribe.TypeMux))
 	if err != nil {
 		Fatalf("Could not start chainmanager: %v", err)
 	}

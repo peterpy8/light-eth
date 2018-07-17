@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/helper"
-	"github.com/ethereum/go-ethereum/siotdb"
+	"github.com/ethereum/go-ethereum/database"
 	"github.com/ethereum/go-ethereum/helper/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 )
@@ -16,7 +16,7 @@ import (
 type StateSync trie.TrieSync
 
 // NewStateSync create a new state trie download scheduler.
-func NewStateSync(root helper.Hash, database siotdb.Database) *StateSync {
+func NewStateSync(root helper.Hash, database database.Database) *StateSync {
 	var syncer *trie.TrieSync
 
 	callback := func(leaf []byte, parent helper.Hash) error {

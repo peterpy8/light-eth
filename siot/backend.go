@@ -20,10 +20,9 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/siot/downloader"
-	"github.com/ethereum/go-ethereum/siot/filters"
 	"github.com/ethereum/go-ethereum/siot/gasprice"
-	"github.com/ethereum/go-ethereum/siotdb"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/database"
+	"github.com/ethereum/go-ethereum/subscribe"
 	"github.com/ethereum/go-ethereum/internal/siotapi"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
@@ -83,8 +82,8 @@ type Config struct {
 	EnableJit bool
 	ForceJit  bool
 
-	TestGenesisBlock *types.Block    // Genesis block to seed the chain database with (testing only!)
-	TestGenesisState siotdb.Database // Genesis state to seed the database with (testing only!)
+	TestGenesisBlock *types.Block      // Genesis block to seed the chain database with (testing only!)
+	TestGenesisState database.Database // Genesis state to seed the database with (testing only!)
 }
 
 type LesServer interface {
@@ -106,9 +105,9 @@ type Siotchain struct {
 	protocolManager *ProtocolManager
 	lesServer       LesServer
 	// DB interfaces
-	chainDb siotdb.Database // Block chain database
+	chainDb database.Database // Block chain database
 
-	eventMux       *event.TypeMux
+	eventMux       *subscribe.TypeMux
 	pow            *ethash.Ethash
 	httpclient     *httpclient.HTTPClient
 	accountManager *wallet.Manager
@@ -242,16 +241,16 @@ func New(ctx *context.ServiceContext, config *Config) (*Siotchain, error) {
 }
 
 // CreateDB creates the chain database.
-func CreateDB(ctx *context.ServiceContext, config *Config, name string) (siotdb.Database, error) {
+func CreateDB(ctx *context.ServiceContext, config *Config, name string) (database.Database, error) {
 	db, err := ctx.OpenDatabase(name, config.DatabaseCache, config.DatabaseHandles)
-	if db, ok := db.(*siotdb.LDBDatabase); ok {
+	if db, ok := db.(*database.LDBDatabase); ok {
 		db.Meter("siot/db/chaindata/")
 	}
 	return db, err
 }
 
 // SetupGenesisBlock initializes the genesis block for an Siotchain service
-func SetupGenesisBlock(chainDb *siotdb.Database, config *Config) error {
+func SetupGenesisBlock(chainDb *database.Database, config *Config) error {
 	// Load up any custom genesis block if requested
 	if len(config.Genesis) > 0 {
 		block, err := core.WriteGenesisBlock(*chainDb, strings.NewReader(config.Genesis))
@@ -313,11 +312,6 @@ func (s *Siotchain) APIs() []rpc.API {
 			Service:   NewPrivateMinerAPI(s),
 			Public:    false,
 		}, {
-			Namespace: "siot",
-			Version:   "1.0",
-			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
-			Public:    true,
-		}, {
 			Namespace: "manage",
 			Version:   "1.0",
 			Service:   NewPrivateAdminAPI(s),
@@ -365,9 +359,9 @@ func (s *Siotchain) Miner() *miner.Miner { return s.miner }
 func (s *Siotchain) AccountManager() *wallet.Manager    { return s.accountManager }
 func (s *Siotchain) BlockChain() *core.BlockChain       { return s.blockchain }
 func (s *Siotchain) TxPool() *core.TxPool               { return s.txPool }
-func (s *Siotchain) EventMux() *event.TypeMux           { return s.eventMux }
+func (s *Siotchain) EventMux() *subscribe.TypeMux       { return s.eventMux }
 func (s *Siotchain) Pow() *ethash.Ethash                { return s.pow }
-func (s *Siotchain) ChainDb() siotdb.Database           { return s.chainDb }
+func (s *Siotchain) ChainDb() database.Database         { return s.chainDb }
 func (s *Siotchain) IsListening() bool                  { return true } // Always listening
 func (s *Siotchain) SiotVersion() int                   { return int(s.protocolManager.SubProtocols[0].Version) }
 func (s *Siotchain) NetVersion() int                    { return s.netVersionId }

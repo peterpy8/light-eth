@@ -1,5 +1,5 @@
-// Package event implements an event multiplexer.
-package event
+// Package subscribe implements an subscribe multiplexer.
+package subscribe
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ type Event struct {
 	Data interface{}
 }
 
-// Subscription is implemented by event subscriptions.
+// Subscription is implemented by subscribe subscriptions.
 type Subscription interface {
 	// Chan returns a channel that carries events.
 	// Implementations should return the same channel
@@ -23,7 +23,7 @@ type Subscription interface {
 	Chan() <-chan *Event
 
 	// Unsubscribe stops delivery of events to a subscription.
-	// The event channel is closed.
+	// The subscribe channel is closed.
 	// Unsubscribe can be called more than once.
 	Unsubscribe()
 }
@@ -40,7 +40,7 @@ type TypeMux struct {
 }
 
 // ErrMuxClosed is returned when Posting on a closed TypeMux.
-var ErrMuxClosed = errors.New("event: mux closed")
+var ErrMuxClosed = errors.New("subscribe: mux closed")
 
 // Subscribe creates a subscription for events of the given types. The
 // subscription's channel is closed when it is unsubscribed
@@ -62,7 +62,7 @@ func (mux *TypeMux) Subscribe(types ...interface{}) Subscription {
 			rtyp := reflect.TypeOf(t)
 			oldsubs := mux.subm[rtyp]
 			if find(oldsubs, sub) != -1 {
-				panic(fmt.Sprintf("event: duplicate type %s in Subscribe", rtyp))
+				panic(fmt.Sprintf("subscribe: duplicate type %s in Subscribe", rtyp))
 			}
 			subs := make([]*muxsub, len(oldsubs)+1)
 			copy(subs, oldsubs)
@@ -73,7 +73,7 @@ func (mux *TypeMux) Subscribe(types ...interface{}) Subscription {
 	return sub
 }
 
-// Post sends an event to all receivers registered for the given type.
+// Post sends an subscribe to all receivers registered for the given type.
 // It returns ErrMuxClosed if the mux has been stopped.
 func (mux *TypeMux) Post(ev interface{}) error {
 	event := &Event{
@@ -190,11 +190,11 @@ func (s *muxsub) closewait() {
 }
 
 func (s *muxsub) deliver(event *Event) {
-	// Short circuit delivery if stale event
+	// Short circuit delivery if stale subscribe
 	if s.created.After(event.Time) {
 		return
 	}
-	// Otherwise deliver the event
+	// Otherwise deliver the subscribe
 	s.postMu.RLock()
 	defer s.postMu.RUnlock()
 

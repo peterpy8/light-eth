@@ -63,7 +63,7 @@ func (w *watcher) loop() {
 	w.ac.mu.Unlock()
 
 	// Wait for file system events and reload.
-	// When an event occurs, the reload call is delayed a bit so that
+	// When an subscribe occurs, the reload call is delayed a bit so that
 	// multiple events arriving quickly only cause a single reload.
 	var (
 		debounce          = time.NewTimer(0)

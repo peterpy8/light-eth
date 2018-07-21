@@ -23,7 +23,7 @@ import (
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/helper/metrics"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 	"github.com/siotchain/siot/helper/rlp"
 	"github.com/siotchain/siot/trie"
 	"github.com/hashicorp/golang-lru"
@@ -90,7 +90,7 @@ type BlockChain struct {
 	procInterrupt int32          // interrupt signaler for block processing
 	wg            sync.WaitGroup // chain processing wait group for shutting down
 
-	pow       pow.PoW
+	pow       validation.PoW
 	processor Processor // block processor interface
 	validator Validator // block and state validator interface
 }
@@ -98,7 +98,7 @@ type BlockChain struct {
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialiser the default Siotchain Validator and
 // Processor.
-func NewBlockChain(chainDb database.Database, config *configure.ChainConfig, pow pow.PoW, mux *subscribe.TypeMux) (*BlockChain, error) {
+func NewBlockChain(chainDb database.Database, config *configure.ChainConfig, pow validation.PoW, mux *subscribe.TypeMux) (*BlockChain, error) {
 	bodyCache, _ := lru.New(bodyCacheLimit)
 	bodyRLPCache, _ := lru.New(bodyCacheLimit)
 	blockCache, _ := lru.New(blockCacheLimit)
@@ -338,7 +338,7 @@ func (self *BlockChain) Processor() Processor {
 }
 
 // AuxValidator returns the auxiliary validator (Proof of work atm)
-func (self *BlockChain) AuxValidator() pow.PoW { return self.pow }
+func (self *BlockChain) AuxValidator() validation.PoW { return self.pow }
 
 // State returns a new mutable state based on the current HEAD block.
 func (self *BlockChain) State() (*state.StateDB, error) {

@@ -22,7 +22,7 @@ import (
 	"github.com/siotchain/siot/net/p2p"
 	"github.com/siotchain/siot/net/p2p/discover"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 	"github.com/siotchain/siot/helper/rlp"
 )
 
@@ -80,7 +80,7 @@ type ProtocolManager struct {
 
 // NewProtocolManager returns a new Siotchain sub protocol manager. The Siotchain sub protocol manages peers capable
 // with the Siotchain network.
-func NewProtocolManager(config *configure.ChainConfig, fastSync bool, networkId int, maxPeers int, mux *subscribe.TypeMux, txpool txPool, pow pow.PoW, blockchain *core.BlockChain, chaindb database.Database) (*ProtocolManager, error) {
+func NewProtocolManager(config *configure.ChainConfig, fastSync bool, networkId int, maxPeers int, mux *subscribe.TypeMux, txpool txPool, pow validation.PoW, blockchain *core.BlockChain, chaindb database.Database) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
 		networkId:   networkId,

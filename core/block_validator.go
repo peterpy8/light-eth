@@ -10,7 +10,7 @@ import (
 	"github.com/siotchain/siot/core/types"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 	"gopkg.in/fatih/set.v0"
 )
 
@@ -27,11 +27,11 @@ var (
 type BlockValidator struct {
 	config *configure.ChainConfig // Chain configuration options
 	bc     *BlockChain            // Canonical block chain
-	Pow    pow.PoW                // Proof of work used for validating
+	Pow    validation.PoW         // Proof of work used for validating
 }
 
 // NewBlockValidator returns a new block validator which is safe for re-use
-func NewBlockValidator(config *configure.ChainConfig, blockchain *BlockChain, pow pow.PoW) *BlockValidator {
+func NewBlockValidator(config *configure.ChainConfig, blockchain *BlockChain, pow validation.PoW) *BlockValidator {
 	validator := &BlockValidator{
 		config: config,
 		Pow:    pow,
@@ -169,7 +169,7 @@ func (v *BlockValidator) VerifyUncles(block, parent *types.Block) error {
 	return nil
 }
 
-// ValidateHeader validates the given header and, depending on the pow arg,
+// ValidateHeader validates the given header and, depending on the validation arg,
 // checks the proof of work of the given header. Returns an error if the
 // validation failed.
 func (v *BlockValidator) ValidateHeader(header, parent *types.Header, checkPow bool) error {
@@ -187,7 +187,7 @@ func (v *BlockValidator) ValidateHeader(header, parent *types.Header, checkPow b
 // Validates a header. Returns an error if the header is invalid.
 //
 // See YP section 4.3.4. "Block Header Validity"
-func ValidateHeader(config *configure.ChainConfig, pow pow.PoW, header *types.Header, parent *types.Header, checkPow, uncle bool) error {
+func ValidateHeader(config *configure.ChainConfig, pow validation.PoW, header *types.Header, parent *types.Header, checkPow, uncle bool) error {
 	if big.NewInt(int64(len(header.Extra))).Cmp(configure.MaximumExtraDataSize) == 1 {
 		return fmt.Errorf("Header extra data too long (%d)", len(header.Extra))
 	}

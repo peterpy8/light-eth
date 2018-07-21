@@ -30,7 +30,7 @@ import (
 	"github.com/siotchain/siot/net/p2p/discover"
 	"github.com/siotchain/siot/net/p2p/nat"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 	"github.com/siotchain/siot/net/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
@@ -840,7 +840,7 @@ func MakeChain(ctx *cli.Context, stack *context.Node) (chain *core.BlockChain, c
 	}
 	chainConfig := MakeChainConfigFromDb(ctx, chainDb)
 
-	pow := pow.PoW(core.FakePow{})
+	pow := validation.PoW(core.FakePow{})
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		pow = ethash.New()
 	}

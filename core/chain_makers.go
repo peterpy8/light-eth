@@ -10,7 +10,7 @@ import (
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 )
 
 /*
@@ -30,12 +30,12 @@ func MakeChainConfig() *configure.ChainConfig {
 // It returns true from Verify for any block.
 type FakePow struct{}
 
-func (f FakePow) Search(block pow.Block, stop <-chan struct{}, index int) (uint64, []byte) {
+func (f FakePow) Search(block validation.Block, stop <-chan struct{}, index int) (uint64, []byte) {
 	return 0, nil
 }
-func (f FakePow) Verify(block pow.Block) bool { return true }
-func (f FakePow) GetHashrate() int64          { return 0 }
-func (f FakePow) Turbo(bool)                  {}
+func (f FakePow) Verify(block validation.Block) bool { return true }
+func (f FakePow) GetHashrate() int64                 { return 0 }
+func (f FakePow) Turbo(bool)                         {}
 
 // So we can deterministically seed different blockchains
 var (

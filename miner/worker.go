@@ -19,7 +19,7 @@ import (
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 	"gopkg.in/fatih/set.v0"
 )
 
@@ -87,7 +87,7 @@ type worker struct {
 
 	agents map[Agent]struct{}
 	recv   chan *Result
-	pow    pow.PoW
+	pow    validation.PoW
 
 	siot    Backend
 	chain   *core.BlockChain

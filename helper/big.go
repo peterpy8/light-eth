@@ -19,7 +19,7 @@ var (
 	MaxBig   = String2Big("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 )
 
-// Big pow
+// Big validation
 //
 // Returns the power of two big integers
 func BigPow(a, b int) *big.Int {

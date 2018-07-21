@@ -1,4 +1,4 @@
-package pow
+package validation
 
 import (
 	"math/big"

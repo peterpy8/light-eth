@@ -17,7 +17,7 @@ import (
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 )
 
 // Backend wraps all methods required for mining.
@@ -40,13 +40,13 @@ type Miner struct {
 	coinbase helper.Address
 	mining   int32
 	siot     Backend
-	pow      pow.PoW
+	pow      validation.PoW
 
 	canStart    int32 // can start indicates whether we can start the mining operation
 	shouldStart int32 // should start indicates whether we should start after sync
 }
 
-func New(siot Backend, config *configure.ChainConfig, mux *subscribe.TypeMux, pow pow.PoW) *Miner {
+func New(siot Backend, config *configure.ChainConfig, mux *subscribe.TypeMux, pow validation.PoW) *Miner {
 	miner := &Miner{
 		siot:      siot,
 		mux:      mux,

@@ -17,7 +17,7 @@ import (
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/configure"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 	"github.com/hashicorp/golang-lru"
 )
 
@@ -476,12 +476,12 @@ func (hc *HeaderChain) SetGenesis(head *types.Header) {
 // headerValidator implements HeaderValidator.
 type headerValidator struct {
 	config *configure.ChainConfig
-	hc     *HeaderChain // Canonical header chain
-	Pow    pow.PoW      // Proof of work used for validating
+	hc     *HeaderChain   // Canonical header chain
+	Pow    validation.PoW // Proof of work used for validating
 }
 
 // NewBlockValidator returns a new block validator which is safe for re-use
-func NewHeaderValidator(config *configure.ChainConfig, chain *HeaderChain, pow pow.PoW) HeaderValidator {
+func NewHeaderValidator(config *configure.ChainConfig, chain *HeaderChain, pow validation.PoW) HeaderValidator {
 	return &headerValidator{
 		config: config,
 		Pow:    pow,
@@ -489,7 +489,7 @@ func NewHeaderValidator(config *configure.ChainConfig, chain *HeaderChain, pow p
 	}
 }
 
-// ValidateHeader validates the given header and, depending on the pow arg,
+// ValidateHeader validates the given header and, depending on the validation arg,
 // checks the proof of work of the given header. Returns an error if the
 // validation failed.
 func (v *headerValidator) ValidateHeader(header, parent *types.Header, checkPow bool) error {

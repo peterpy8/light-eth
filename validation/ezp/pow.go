@@ -9,7 +9,7 @@ import (
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/crypto/sha3"
 	"github.com/siotchain/siot/logger"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 )
 
 var powlogger = logger.NewLogger("POW")
@@ -32,7 +32,7 @@ func (pow *EasyPow) Turbo(on bool) {
 	pow.turbo = on
 }
 
-func (pow *EasyPow) Search(block pow.Block, stop <-chan struct{}, index int) (uint64, []byte) {
+func (pow *EasyPow) Search(block validation.Block, stop <-chan struct{}, index int) (uint64, []byte) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	hash := block.HashNoNonce()
 	diff := block.Difficulty()
@@ -77,7 +77,7 @@ empty:
 	}
 }
 
-func (pow *EasyPow) Verify(block pow.Block) bool {
+func (pow *EasyPow) Verify(block validation.Block) bool {
 	return Verify(block)
 }
 
@@ -92,6 +92,6 @@ func verify(hash helper.Hash, diff *big.Int, nonce uint64) bool {
 	return res.Cmp(verification) <= 0
 }
 
-func Verify(block pow.Block) bool {
+func Verify(block validation.Block) bool {
 	return verify(block.HashNoNonce(), block.Difficulty(), block.Nonce())
 }

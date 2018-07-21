@@ -8,7 +8,7 @@ import (
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 )
 
 type CpuAgent struct {
@@ -20,12 +20,12 @@ type CpuAgent struct {
 	returnCh      chan<- *Result
 
 	index int
-	pow   pow.PoW
+	pow   validation.PoW
 
 	isMining int32 // isMining indicates whether the agent is currently mining
 }
 
-func NewCpuAgent(index int, pow pow.PoW) *CpuAgent {
+func NewCpuAgent(index int, pow validation.PoW) *CpuAgent {
 	miner := &CpuAgent{
 		pow:    pow,
 		index:  index,
@@ -37,7 +37,7 @@ func NewCpuAgent(index int, pow pow.PoW) *CpuAgent {
 }
 
 func (self *CpuAgent) Work() chan<- *Work            { return self.workCh }
-func (self *CpuAgent) Pow() pow.PoW                  { return self.pow }
+func (self *CpuAgent) Pow() validation.PoW           { return self.pow }
 func (self *CpuAgent) SetReturnCh(ch chan<- *Result) { self.returnCh = ch }
 
 func (self *CpuAgent) Stop() {

@@ -44,7 +44,7 @@ import (
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/validation"
 )
 
 var (
@@ -127,7 +127,7 @@ type Light struct {
 }
 
 // Verify checks whether the block's nonce is valid.
-func (l *Light) Verify(block pow.Block) bool {
+func (l *Light) Verify(block validation.Block) bool {
 	// TODO: do ethash_quick_verify before getCache in order
 	// to prevent DOS attacks.
 	blockNum := block.NumberU64()
@@ -334,7 +334,7 @@ func (pow *Full) getDAG(blockNum uint64) (d *dag) {
 	return d
 }
 
-func (pow *Full) Search(block pow.Block, stop <-chan struct{}, index int) (nonce uint64, mixDigest []byte) {
+func (pow *Full) Search(block validation.Block, stop <-chan struct{}, index int) (nonce uint64, mixDigest []byte) {
 	dag := pow.getDAG(block.NumberU64())
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))

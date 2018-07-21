@@ -17,8 +17,8 @@ import (
 	"github.com/ethereum/ethash"
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/siot"
 	"github.com/siotchain/siot/database"
@@ -670,10 +670,10 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			ethConf.NetworkId = 1
 		}
-		ethConf.Genesis = core.OlympicGenesisBlock()
+		ethConf.Genesis = blockchainCore.OlympicGenesisBlock()
 
 	case ctx.GlobalBool(DevModeFlag.Name):
-		ethConf.Genesis = core.OlympicGenesisBlock()
+		ethConf.Genesis = blockchainCore.OlympicGenesisBlock()
 		if !ctx.GlobalIsSet(GasPriceFlag.Name) {
 			ethConf.GasPrice = new(big.Int)
 		}
@@ -701,8 +701,8 @@ func SetupNetwork(ctx *cli.Context) {
 		configure.MinGasLimit = big.NewInt(125000)
 		configure.MaximumExtraDataSize = big.NewInt(1024)
 		NetworkIdFlag.Value = 0
-		core.BlockReward = big.NewInt(1.5e+18)
-		core.ExpDiffPeriod = big.NewInt(math.MaxInt64)
+		blockchainCore.BlockReward = big.NewInt(1.5e+18)
+		blockchainCore.ExpDiffPeriod = big.NewInt(math.MaxInt64)
 	}
 	configure.TargetGasLimit = helper.String2Big(ctx.GlobalString(TargetGasLimitFlag.Name))
 }
@@ -720,13 +720,13 @@ func MakeChainConfigFromDb(ctx *cli.Context, db database.Database) *configure.Ch
 	// If the chain is already initialized, use any existing chain configs
 	config := new(configure.ChainConfig)
 
-	genesis := core.GetBlock(db, core.GetCanonicalHash(db, 0), 0)
+	genesis := blockchainCore.GetBlock(db, blockchainCore.GetCanonicalHash(db, 0), 0)
 	if genesis != nil {
-		storedConfig, err := core.GetChainConfig(db, genesis.Hash())
+		storedConfig, err := blockchainCore.GetChainConfig(db, genesis.Hash())
 		switch err {
 		case nil:
 			config = storedConfig
-		case core.ChainConfigNotFoundErr:
+		case blockchainCore.ChainConfigNotFoundErr:
 			// No configs found, use empty, will populate below
 		default:
 			Fatalf("Could not make chain configuration: %v", err)
@@ -828,23 +828,23 @@ func MakeChainDatabase(ctx *cli.Context, stack *context.Node) database.Database 
 }
 
 // MakeChain creates a chain manager from set cmd line flags.
-func MakeChain(ctx *cli.Context, stack *context.Node) (chain *core.BlockChain, chainDb database.Database) {
+func MakeChain(ctx *cli.Context, stack *context.Node) (chain *blockchainCore.BlockChain, chainDb database.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
 	if ctx.GlobalBool(OlympicFlag.Name) {
-		_, err := core.WriteTestNetGenesisBlock(chainDb)
+		_, err := blockchainCore.WriteTestNetGenesisBlock(chainDb)
 		if err != nil {
 			glog.Fatalln(err)
 		}
 	}
 	chainConfig := MakeChainConfigFromDb(ctx, chainDb)
 
-	pow := validation.PoW(core.FakePow{})
+	pow := validation.PoW(blockchainCore.FakePow{})
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		pow = ethash.New()
 	}
-	chain, err = core.NewBlockChain(chainDb, chainConfig, pow, new(subscribe.TypeMux))
+	chain, err = blockchainCore.NewBlockChain(chainDb, chainConfig, pow, new(subscribe.TypeMux))
 	if err != nil {
 		Fatalf("Could not start chainmanager: %v", err)
 	}

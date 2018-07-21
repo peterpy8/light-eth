@@ -1,4 +1,4 @@
-package core
+package blockchainCore
 
 import (
 	"container/heap"
@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/types"
 )
 
 // nonceHeap is a heap.Interface implementation over 64bit unsigned integers for

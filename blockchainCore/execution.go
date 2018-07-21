@@ -1,10 +1,10 @@
-package core
+package blockchainCore
 
 import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/configure"
 )

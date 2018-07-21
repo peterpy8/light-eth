@@ -5,7 +5,7 @@ import (
 
 	"github.com/siotchain/siot"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/internal/siotapi"
 	"github.com/siotchain/siot/helper/rlp"
 	"github.com/siotchain/siot/net/rpc"

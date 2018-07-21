@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
@@ -247,7 +247,7 @@ func upgradeChainDatabase(db database.Database) error {
 	}
 	head := helper.BytesToHash(data)
 
-	if block := core.GetBlockByHashOld(db, head); block == nil {
+	if block := blockchainCore.GetBlockByHashOld(db, head); block == nil {
 		return nil
 	}
 	// At least some of the database is still the old format, upgrade (skip the head block!)
@@ -265,15 +265,15 @@ func upgradeChainDatabase(db database.Database) error {
 				continue
 			}
 			// Load the block, split and serialize (order!)
-			block := core.GetBlockByHashOld(db, helper.BytesToHash(bytes.TrimPrefix(it.Key(), blockPrefix)))
+			block := blockchainCore.GetBlockByHashOld(db, helper.BytesToHash(bytes.TrimPrefix(it.Key(), blockPrefix)))
 
-			if err := core.WriteTd(db, block.Hash(), block.NumberU64(), block.DeprecatedTd()); err != nil {
+			if err := blockchainCore.WriteTd(db, block.Hash(), block.NumberU64(), block.DeprecatedTd()); err != nil {
 				return err
 			}
-			if err := core.WriteBody(db, block.Hash(), block.NumberU64(), block.Body()); err != nil {
+			if err := blockchainCore.WriteBody(db, block.Hash(), block.NumberU64(), block.Body()); err != nil {
 				return err
 			}
-			if err := core.WriteHeader(db, block.Header()); err != nil {
+			if err := blockchainCore.WriteHeader(db, block.Header()); err != nil {
 				return err
 			}
 			if err := db.Delete(it.Key()); err != nil {
@@ -281,15 +281,15 @@ func upgradeChainDatabase(db database.Database) error {
 			}
 		}
 		// Lastly, upgrade the head block, disabling the upgrade mechanism
-		current := core.GetBlockByHashOld(db, head)
+		current := blockchainCore.GetBlockByHashOld(db, head)
 
-		if err := core.WriteTd(db, current.Hash(), current.NumberU64(), current.DeprecatedTd()); err != nil {
+		if err := blockchainCore.WriteTd(db, current.Hash(), current.NumberU64(), current.DeprecatedTd()); err != nil {
 			return err
 		}
-		if err := core.WriteBody(db, current.Hash(), current.NumberU64(), current.Body()); err != nil {
+		if err := blockchainCore.WriteBody(db, current.Hash(), current.NumberU64(), current.Body()); err != nil {
 			return err
 		}
-		if err := core.WriteHeader(db, current.Header()); err != nil {
+		if err := blockchainCore.WriteHeader(db, current.Header()); err != nil {
 			return err
 		}
 	}
@@ -320,8 +320,8 @@ func addMipmapBloomBins(db database.Database) (err error) {
 			return
 		}
 	}()
-	latestHash := core.GetHeadBlockHash(db)
-	latestBlock := core.GetBlock(db, latestHash, core.GetBlockNumber(db, latestHash))
+	latestHash := blockchainCore.GetHeadBlockHash(db)
+	latestBlock := blockchainCore.GetBlock(db, latestHash, blockchainCore.GetBlockNumber(db, latestHash))
 	if latestBlock == nil { // clean database
 		return
 	}
@@ -329,11 +329,11 @@ func addMipmapBloomBins(db database.Database) (err error) {
 	tstart := time.Now()
 	glog.V(logger.Info).Infoln("upgrading db log bloom bins")
 	for i := uint64(0); i <= latestBlock.NumberU64(); i++ {
-		hash := core.GetCanonicalHash(db, i)
+		hash := blockchainCore.GetCanonicalHash(db, i)
 		if (hash == helper.Hash{}) {
 			return fmt.Errorf("chain db corrupted. Could not find block %d.", i)
 		}
-		core.WriteMipmapBloom(db, i, core.GetBlockReceipts(db, hash, i))
+		blockchainCore.WriteMipmapBloom(db, i, blockchainCore.GetBlockReceipts(db, hash, i))
 	}
 	glog.V(logger.Info).Infoln("upgrade completed in", time.Since(tstart))
 	return nil

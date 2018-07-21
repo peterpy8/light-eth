@@ -1,11 +1,11 @@
-package core
+package blockchainCore
 
 import (
 	"fmt"
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 )
 
 func Disassemble(script []byte) (asm []string) {

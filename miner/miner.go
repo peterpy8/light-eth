@@ -8,9 +8,9 @@ import (
 
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
@@ -23,8 +23,8 @@ import (
 // Backend wraps all methods required for mining.
 type Backend interface {
 	AccountManager() *wallet.Manager
-	BlockChain() *core.BlockChain
-	TxPool() *core.TxPool
+	BlockChain() *blockchainCore.BlockChain
+	TxPool() *blockchainCore.TxPool
 	ChainDb() database.Database
 }
 

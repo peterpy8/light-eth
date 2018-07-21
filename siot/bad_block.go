@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/helper/rlp"

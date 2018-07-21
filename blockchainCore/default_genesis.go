@@ -1,4 +1,4 @@
-package core
+package blockchainCore
 
 // defaultGenesisBlock is a gzip compressed dump of the official default Siotchain
 // genesis block.

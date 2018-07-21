@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/ethash"
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/logger"
@@ -475,7 +475,7 @@ type callmsg struct {
 	data          []byte
 }
 
-// accessor boilerplate to implement core.Message
+// accessor boilerplate to implement blockchainCore.Message
 func (m callmsg) From() (helper.Address, error)         { return m.addr, nil }
 func (m callmsg) FromFrontier() (helper.Address, error) { return m.addr, nil }
 func (m callmsg) Nonce() uint64                         { return 0 }
@@ -532,8 +532,8 @@ func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr
 	if err != nil {
 		return "0x", helper.Big0, err
 	}
-	gp := new(core.GasPool).AddGas(helper.MaxBig)
-	res, gas, err := core.ApplyMessage(vmenv, msg, gp)
+	gp := new(blockchainCore.GasPool).AddGas(helper.MaxBig)
+	res, gas, err := blockchainCore.ApplyMessage(vmenv, msg, gp)
 	if err := vmError(); err != nil {
 		return "0x", helper.Big0, err
 	}
@@ -918,7 +918,7 @@ func (s *PublicTransactionPoolAPI) GetRawTransactionByHash(ctx context.Context, 
 
 // GetTransactionReceipt returns the transaction receipt for the given transaction hash.
 func (s *PublicTransactionPoolAPI) GetTransactionReceipt(txHash helper.Hash) (map[string]interface{}, error) {
-	receipt := core.GetReceipt(s.b.ChainDb(), txHash)
+	receipt := blockchainCore.GetReceipt(s.b.ChainDb(), txHash)
 	if receipt == nil {
 		glog.V(logger.Debug).Infof("receipt not found for transaction %s", txHash.Hex())
 		return nil, nil

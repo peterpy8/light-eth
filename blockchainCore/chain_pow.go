@@ -1,9 +1,9 @@
-package core
+package blockchainCore
 
 import (
 	"runtime"
 
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/validation"
 )
 

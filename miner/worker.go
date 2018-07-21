@@ -10,10 +10,10 @@ import (
 
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/logger"
@@ -90,8 +90,8 @@ type worker struct {
 	pow    validation.PoW
 
 	siot    Backend
-	chain   *core.BlockChain
-	proc    core.Validator
+	chain   *blockchainCore.BlockChain
+	proc    blockchainCore.Validator
 	chainDb database.Database
 
 	coinbase helper.Address
@@ -130,7 +130,7 @@ func newWorker(config *configure.ChainConfig, coinbase helper.Address, siot Back
 		agents:         make(map[Agent]struct{}),
 		fullValidation: false,
 	}
-	worker.events = worker.mux.Subscribe(core.ChainHeadEvent{}, core.ChainSideEvent{}, core.TxPreEvent{})
+	worker.events = worker.mux.Subscribe(blockchainCore.ChainHeadEvent{}, blockchainCore.ChainSideEvent{}, blockchainCore.TxPreEvent{})
 	go worker.update()
 
 	go worker.wait()
@@ -210,13 +210,13 @@ func (self *worker) update() {
 	for event := range self.events.Chan() {
 		// A real subscribe arrived, process interesting content
 		switch ev := event.Data.(type) {
-		case core.ChainHeadEvent:
+		case blockchainCore.ChainHeadEvent:
 			self.commitNewWork()
-		case core.ChainSideEvent:
+		case blockchainCore.ChainSideEvent:
 			self.uncleMu.Lock()
 			self.possibleUncles[ev.Block.Hash()] = ev.Block
 			self.uncleMu.Unlock()
-		case core.TxPreEvent:
+		case blockchainCore.TxPreEvent:
 			// Apply transaction to the pending state if we're not mining
 			if atomic.LoadInt32(&self.mining) == 0 {
 				self.currentMu.Lock()
@@ -260,7 +260,7 @@ func (self *worker) wait() {
 					glog.V(logger.Error).Infoln("mining err", err)
 					continue
 				}
-				go self.mux.Post(core.NewMinedBlockEvent{Block: block})
+				go self.mux.Post(blockchainCore.NewMinedBlockEvent{Block: block})
 			} else {
 				work.state.Commit(self.config.IsEIP158(block.Number()))
 				parent := self.chain.GetBlock(block.ParentHash(), block.NumberU64()-1)
@@ -270,7 +270,7 @@ func (self *worker) wait() {
 				}
 
 				auxValidator := self.siot.BlockChain().AuxValidator()
-				if err := core.ValidateHeader(self.config, auxValidator, block.Header(), parent.Header(), true, false); err != nil && err != core.BlockFutureErr {
+				if err := blockchainCore.ValidateHeader(self.config, auxValidator, block.Header(), parent.Header(), true, false); err != nil && err != blockchainCore.BlockFutureErr {
 					glog.V(logger.Error).Infoln("Invalid header on mined block:", err)
 					continue
 				}
@@ -292,25 +292,25 @@ func (self *worker) wait() {
 				}
 
 				// check if canon block and write transactions
-				if stat == core.CanonStatTy {
+				if stat == blockchainCore.CanonStatTy {
 					// This puts transactions in a extra db for rpc
-					core.WriteTransactions(self.chainDb, block)
+					blockchainCore.WriteTransactions(self.chainDb, block)
 					// store the receipts
-					core.WriteReceipts(self.chainDb, work.receipts)
+					blockchainCore.WriteReceipts(self.chainDb, work.receipts)
 					// Write map map bloom filters
-					core.WriteMipmapBloom(self.chainDb, block.NumberU64(), work.receipts)
+					blockchainCore.WriteMipmapBloom(self.chainDb, block.NumberU64(), work.receipts)
 				}
 
 				// broadcast before waiting for validation
 				go func(block *types.Block, logs localEnv.Logs, receipts []*types.Receipt) {
-					self.mux.Post(core.NewMinedBlockEvent{Block: block})
-					self.mux.Post(core.ChainEvent{Block: block, Hash: block.Hash(), Logs: logs})
+					self.mux.Post(blockchainCore.NewMinedBlockEvent{Block: block})
+					self.mux.Post(blockchainCore.ChainEvent{Block: block, Hash: block.Hash(), Logs: logs})
 
-					if stat == core.CanonStatTy {
-						self.mux.Post(core.ChainHeadEvent{Block: block})
+					if stat == blockchainCore.CanonStatTy {
+						self.mux.Post(blockchainCore.ChainHeadEvent{Block: block})
 						self.mux.Post(logs)
 					}
-					if err := core.WriteBlockReceipts(self.chainDb, block.Hash(), block.NumberU64(), receipts); err != nil {
+					if err := blockchainCore.WriteBlockReceipts(self.chainDb, block.Hash(), block.NumberU64(), receipts); err != nil {
 						glog.V(logger.Warn).Infoln("error writing block receipts:", err)
 					}
 				}(block, work.state.Logs(), work.receipts)
@@ -390,7 +390,7 @@ func (w *worker) setGasPrice(p *big.Int) {
 	const pct = int64(90)
 	w.gasPrice = gasprice(p, pct)
 
-	w.mux.Post(core.GasPriceChanged{Price: w.gasPrice})
+	w.mux.Post(blockchainCore.GasPriceChanged{Price: w.gasPrice})
 }
 
 func (self *worker) isBlockLocallyMined(current *Work, deepBlockNum uint64) bool {
@@ -450,8 +450,8 @@ func (self *worker) commitNewWork() {
 	header := &types.Header{
 		ParentHash: parent.Hash(),
 		Number:     num.Add(num, helper.Big1),
-		Difficulty: core.CalcDifficulty(self.config, uint64(tstamp), parent.Time().Uint64(), parent.Number(), parent.Difficulty()),
-		GasLimit:   core.CalcGasLimit(parent),
+		Difficulty: blockchainCore.CalcDifficulty(self.config, uint64(tstamp), parent.Time().Uint64(), parent.Number(), parent.Difficulty()),
+		GasLimit:   blockchainCore.CalcGasLimit(parent),
 		GasUsed:    new(big.Int),
 		Coinbase:   self.coinbase,
 		Extra:      self.extra,
@@ -480,7 +480,7 @@ func (self *worker) commitNewWork() {
 	// Create the current work task and check any fork transitions needed
 	work := self.current
 	if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
-		core.ApplyDAOHardFork(work.state)
+		blockchainCore.ApplyDAOHardFork(work.state)
 	}
 	txs := types.NewTransactionsByPriceAndNonce(self.siot.TxPool().Pending())
 	work.commitTransactions(self.mux, txs, self.gasPrice, self.chain)
@@ -514,7 +514,7 @@ func (self *worker) commitNewWork() {
 
 	if atomic.LoadInt32(&self.mining) == 1 {
 		// commit state root after all state transitions.
-		core.AccumulateRewards(work.state, header, uncles)
+		blockchainCore.AccumulateRewards(work.state, header, uncles)
 		header.Root = work.state.IntermediateRoot(self.config.IsEIP158(header.Number))
 	}
 
@@ -532,20 +532,20 @@ func (self *worker) commitNewWork() {
 func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
 	hash := uncle.Hash()
 	if work.uncles.Has(hash) {
-		return core.UncleError("Uncle not unique")
+		return blockchainCore.UncleError("Uncle not unique")
 	}
 	if !work.ancestors.Has(uncle.ParentHash) {
-		return core.UncleError(fmt.Sprintf("Uncle's parent unknown (%x)", uncle.ParentHash[0:4]))
+		return blockchainCore.UncleError(fmt.Sprintf("Uncle's parent unknown (%x)", uncle.ParentHash[0:4]))
 	}
 	if work.family.Has(hash) {
-		return core.UncleError(fmt.Sprintf("Uncle already in family (%x)", hash))
+		return blockchainCore.UncleError(fmt.Sprintf("Uncle already in family (%x)", hash))
 	}
 	work.uncles.Add(uncle.Hash())
 	return nil
 }
 
-func (env *Work) commitTransactions(mux *subscribe.TypeMux, txs *types.TransactionsByPriceAndNonce, gasPrice *big.Int, bc *core.BlockChain) {
-	gp := new(core.GasPool).AddGas(env.header.GasLimit)
+func (env *Work) commitTransactions(mux *subscribe.TypeMux, txs *types.TransactionsByPriceAndNonce, gasPrice *big.Int, bc *blockchainCore.BlockChain) {
+	gp := new(blockchainCore.GasPool).AddGas(env.header.GasLimit)
 
 	var coalescedLogs localEnv.Logs
 
@@ -584,7 +584,7 @@ func (env *Work) commitTransactions(mux *subscribe.TypeMux, txs *types.Transacti
 
 		err, logs := env.commitTransaction(tx, bc, gp)
 		switch {
-		case core.IsGasLimitErr(err):
+		case blockchainCore.IsGasLimitErr(err):
 			// Pop the current out-of-gas transaction without shifting in the next from the account
 			glog.V(logger.Detail).Infof("Gas limit reached for (%x) in this block. Continue to try smaller txs\n", from[:4])
 			txs.Pop()
@@ -605,19 +605,19 @@ func (env *Work) commitTransactions(mux *subscribe.TypeMux, txs *types.Transacti
 	if len(coalescedLogs) > 0 || env.tcount > 0 {
 		go func(logs localEnv.Logs, tcount int) {
 			if len(logs) > 0 {
-				mux.Post(core.PendingLogsEvent{Logs: logs})
+				mux.Post(blockchainCore.PendingLogsEvent{Logs: logs})
 			}
 			if tcount > 0 {
-				mux.Post(core.PendingStateEvent{})
+				mux.Post(blockchainCore.PendingStateEvent{})
 			}
 		}(coalescedLogs, env.tcount)
 	}
 }
 
-func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, gp *core.GasPool) (error, localEnv.Logs) {
+func (env *Work) commitTransaction(tx *types.Transaction, bc *blockchainCore.BlockChain, gp *blockchainCore.GasPool) (error, localEnv.Logs) {
 	snap := env.state.Snapshot()
 
-	receipt, logs, _, err := core.ApplyTransaction(env.config, bc, gp, env.state, env.header, tx, env.header.GasUsed)
+	receipt, logs, _, err := blockchainCore.ApplyTransaction(env.config, bc, gp, env.state, env.header, tx, env.header.GasUsed)
 	if err != nil {
 		env.state.RevertToSnapshot(snap)
 		return err, nil

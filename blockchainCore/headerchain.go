@@ -1,4 +1,4 @@
-package core
+package blockchainCore
 
 import (
 	crand "crypto/rand"
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
@@ -28,7 +28,7 @@ const (
 )
 
 // HeaderChain implements the basic block header chain logic that is shared by
-// core.BlockChain and light.LightChain. It is not usable in itself, only as
+// blockchainCore.BlockChain and light.LightChain. It is not usable in itself, only as
 // a part of either structure.
 // It is not thread safe either, the encapsulating chain structures should do
 // the necessary mutex locking/unlocking.

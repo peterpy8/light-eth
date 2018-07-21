@@ -6,9 +6,9 @@ import (
 
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
@@ -35,7 +35,7 @@ type Backend interface {
 	GetBlock(ctx context.Context, blockHash helper.Hash) (*types.Block, error)
 	GetReceipts(ctx context.Context, blockHash helper.Hash) (types.Receipts, error)
 	GetTd(blockHash helper.Hash) *big.Int
-	GetLocalEnv(ctx context.Context, msg core.Message, state State, header *types.Header) (localEnv.Environment, func() error, error)
+	GetLocalEnv(ctx context.Context, msg blockchainCore.Message, state State, header *types.Header) (localEnv.Environment, func() error, error)
 	// TxPool API
 	SendTx(ctx context.Context, signedTx *types.Transaction) error
 	RemoveTx(txHash helper.Hash)

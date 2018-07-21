@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/logger"
@@ -37,7 +37,7 @@ type GpoParams struct {
 // GasPriceOracle recommends gas prices based on the content of recent
 // blocks.
 type GasPriceOracle struct {
-	chain         *core.BlockChain
+	chain         *blockchainCore.BlockChain
 	db            database.Database
 	evmux         *subscribe.TypeMux
 	params        *GpoParams
@@ -53,7 +53,7 @@ type GasPriceOracle struct {
 }
 
 // NewGasPriceOracle returns a new oracle.
-func NewGasPriceOracle(chain *core.BlockChain, db database.Database, evmux *subscribe.TypeMux, params *GpoParams) *GasPriceOracle {
+func NewGasPriceOracle(chain *blockchainCore.BlockChain, db database.Database, evmux *subscribe.TypeMux, params *GpoParams) *GasPriceOracle {
 	minprice := params.GpoMinGasPrice
 	if minprice == nil {
 		minprice = big.NewInt(gpoDefaultMinGasPrice)
@@ -102,14 +102,14 @@ func (self *GasPriceOracle) processPastBlocks() {
 }
 
 func (self *GasPriceOracle) listenLoop() {
-	events := self.evmux.Subscribe(core.ChainEvent{}, core.ChainSplitEvent{})
+	events := self.evmux.Subscribe(blockchainCore.ChainEvent{}, blockchainCore.ChainSplitEvent{})
 	defer events.Unsubscribe()
 
 	for event := range events.Chan() {
 		switch event := event.Data.(type) {
-		case core.ChainEvent:
+		case blockchainCore.ChainEvent:
 			self.processBlock(event.Block)
-		case core.ChainSplitEvent:
+		case blockchainCore.ChainSplitEvent:
 			self.processBlock(event.Block)
 		}
 	}
@@ -167,7 +167,7 @@ func (self *GasPriceOracle) processBlock(block *types.Block) {
 func (self *GasPriceOracle) lowestPrice(block *types.Block) *big.Int {
 	gasUsed := big.NewInt(0)
 
-	receipts := core.GetBlockReceipts(self.db, block.Hash(), block.NumberU64())
+	receipts := blockchainCore.GetBlockReceipts(self.db, block.Hash(), block.NumberU64())
 	if len(receipts) > 0 {
 		if cgu := receipts[len(receipts)-1].CumulativeGasUsed; cgu != nil {
 			gasUsed = receipts[len(receipts)-1].CumulativeGasUsed

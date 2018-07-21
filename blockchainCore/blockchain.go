@@ -1,5 +1,5 @@
-// Package core implements the Siotchain consensus protocol.
-package core
+// Package blockchainCore implements the Siotchain consensus protocol.
+package blockchainCore
 
 import (
 	"errors"
@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
@@ -820,7 +820,7 @@ func (self *BlockChain) WriteBlock(block *types.Block) (status WriteStatus, err 
 }
 
 // InsertChain will attempt to insert the given chain in to the canonical chain or, otherwise, create a fork. It an error is returned
-// it will return the index number of the failing block as well an error describing what went wrong (for possible errors see core/errors.go).
+// it will return the index number of the failing block as well an error describing what went wrong (for possible errors see blockchainCore/errors.go).
 func (self *BlockChain) InsertChain(chain types.Blocks) (int, error) {
 	self.wg.Add(1)
 	defer self.wg.Done()

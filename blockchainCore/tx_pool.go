@@ -1,4 +1,4 @@
-package core
+package blockchainCore
 
 import (
 	"errors"
@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"

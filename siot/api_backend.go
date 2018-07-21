@@ -5,10 +5,10 @@ import (
 
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/siot/gasprice"
 	"github.com/siotchain/siot/database"
@@ -83,19 +83,19 @@ func (b *SiotApiBackend) GetBlock(ctx context.Context, blockHash helper.Hash) (*
 }
 
 func (b *SiotApiBackend) GetReceipts(ctx context.Context, blockHash helper.Hash) (types.Receipts, error) {
-	return core.GetBlockReceipts(b.siot.chainDb, blockHash, core.GetBlockNumber(b.siot.chainDb, blockHash)), nil
+	return blockchainCore.GetBlockReceipts(b.siot.chainDb, blockHash, blockchainCore.GetBlockNumber(b.siot.chainDb, blockHash)), nil
 }
 
 func (b *SiotApiBackend) GetTd(blockHash helper.Hash) *big.Int {
 	return b.siot.blockchain.GetTdByHash(blockHash)
 }
 
-func (b *SiotApiBackend) GetLocalEnv(ctx context.Context, msg core.Message, state siotapi.State, header *types.Header) (localEnv.Environment, func() error, error) {
+func (b *SiotApiBackend) GetLocalEnv(ctx context.Context, msg blockchainCore.Message, state siotapi.State, header *types.Header) (localEnv.Environment, func() error, error) {
 	statedb := state.(SiotApiState).state
 	from := statedb.GetOrNewStateObject(msg.From())
 	from.SetBalance(helper.MaxBig)
 	vmError := func() error { return nil }
-	return core.NewEnv(statedb, b.siot.chainConfig, b.siot.blockchain, msg, header), vmError, nil
+	return blockchainCore.NewEnv(statedb, b.siot.chainConfig, b.siot.blockchain, msg, header), vmError, nil
 }
 
 func (b *SiotApiBackend) SendTx(ctx context.Context, signedTx *types.Transaction) error {

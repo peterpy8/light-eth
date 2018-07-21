@@ -1,4 +1,4 @@
-package core
+package blockchainCore
 
 import "github.com/siotchain/siot/helper"
 

@@ -298,7 +298,7 @@ func (tx *Transaction) SignatureValues() (v byte, r *big.Int, s *big.Int, err er
 
 */
 
-// AsMessage returns the transaction as a core.Message.
+// AsMessage returns the transaction as a blockchainCore.Message.
 //
 // AsMessage requires a signer to derive the sender.
 //
@@ -511,7 +511,7 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 	heap.Pop(&t.heads)
 }
 
-// Message is a fully derived transaction and implements core.Message
+// Message is a fully derived transaction and implements blockchainCore.Message
 //
 // NOTE: In a future PR this will be removed.
 type Message struct {

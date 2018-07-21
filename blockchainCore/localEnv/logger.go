@@ -33,7 +33,6 @@ type LogConfig struct {
 // prior to the execution of the statement.
 type StructLog struct {
 	Pc      uint64
-	Op      OpCode
 	Gas     *big.Int
 	GasCost *big.Int
 	Memory  []byte
@@ -49,7 +48,7 @@ type StructLog struct {
 // Note that reference types are actual VM data structures; make copies
 // if you need to retain them beyond the current call.
 type Tracer interface {
-	CaptureState(env Environment, pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *Stack, externalLogic *ExternalLogic, depth int, err error) error
+	CaptureState(env Environment, pc uint64, gas, cost *big.Int, memory *Memory, stack *Stack, externalLogic *ExternalLogic, depth int, err error) error
 }
 
 // StructLogger is an EVM state logger and implements Tracer.
@@ -78,7 +77,7 @@ func NewStructLogger(cfg *LogConfig) *StructLogger {
 // captureState logs a new structured log message and pushes it out to the environment
 //
 // captureState also tracks SSTORE ops to track dirty values.
-func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *Stack, externalLogic *ExternalLogic, depth int, err error) error {
+func (l *StructLogger) CaptureState(env Environment, pc uint64, gas, cost *big.Int, memory *Memory, stack *Stack, externalLogic *ExternalLogic, depth int, err error) error {
 	// check if already accumulated the specified number of logs
 	if l.cfg.Limit != 0 && l.cfg.Limit <= len(l.logs) {
 		return TraceLimitReachedError
@@ -88,19 +87,6 @@ func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, 
 	// if not present.
 	if l.changedValues[externalLogic.Address()] == nil {
 		l.changedValues[externalLogic.Address()] = make(Storage)
-	}
-
-	// capture SSTORE opcodes and determine the changed value and store
-	// it in the local storage container. NOTE: we do not need to do any
-	// range checks here because that's already handler prior to calling
-	// this function.
-	switch op {
-	case SSTORE:
-		var (
-			value   = helper.BigToHash(stack.data[stack.len()-2])
-			address = helper.BigToHash(stack.data[stack.len()-1])
-		)
-		l.changedValues[externalLogic.Address()][address] = value
 	}
 
 	// copy a snapstot of the current memory state to a new buffer
@@ -139,7 +125,7 @@ func (l *StructLogger) CaptureState(env Environment, pc uint64, op OpCode, gas, 
 		}
 	}
 	// create a new snaptshot of the EVM.
-	log := StructLog{pc, op, new(big.Int).Set(gas), cost, mem, stck, storage, env.Depth(), err}
+	log := StructLog{pc, new(big.Int).Set(gas), cost, mem, stck, storage, env.Depth(), err}
 
 	l.logs = append(l.logs, log)
 	return nil
@@ -154,7 +140,7 @@ func (l *StructLogger) StructLogs() []StructLog {
 func StdErrFormat(logs []StructLog) {
 	fmt.Fprintf(os.Stderr, "VM STAT %d OPs\n", len(logs))
 	for _, log := range logs {
-		fmt.Fprintf(os.Stderr, "PC %08d: %s GAS: %v COST: %v", log.Pc, log.Op, log.Gas, log.GasCost)
+		fmt.Fprintf(os.Stderr, "PC %08d: GAS: %v COST: %v", log.Pc, log.Gas, log.GasCost)
 		if log.Err != nil {
 			fmt.Fprintf(os.Stderr, " ERROR: %v", log.Err)
 		}

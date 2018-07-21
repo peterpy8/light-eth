@@ -585,7 +585,6 @@ func FormatLogs(structLogs []localEnv.StructLog) []StructLogRes {
 	for index, trace := range structLogs {
 		formattedStructLogs[index] = StructLogRes{
 			Pc:      trace.Pc,
-			Op:      trace.Op.String(),
 			Gas:     trace.Gas,
 			GasCost: trace.GasCost,
 			Depth:   trace.Depth,

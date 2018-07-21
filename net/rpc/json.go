@@ -25,7 +25,7 @@ type jsonRequest struct {
 	Method  string          `json:"method"`
 	Version string          `json:"jsonrpc"`
 	Id      json.RawMessage `json:"id,omitempty"`
-	Payload json.RawMessage `json:"params,omitempty"`
+	Payload json.RawMessage `json:"configure,omitempty"`
 }
 
 type jsonSuccessResponse struct {
@@ -54,7 +54,7 @@ type jsonSubscription struct {
 type jsonNotification struct {
 	Version string           `json:"jsonrpc"`
 	Method  string           `json:"method"`
-	Params  jsonSubscription `json:"params"`
+	Params  jsonSubscription `json:"configure"`
 }
 
 // jsonCodec reads and writes JSON-RPC messages to the underlying connection. It

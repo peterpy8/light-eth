@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
@@ -241,7 +241,7 @@ func (es *EventSystem) broadcast(filters filterIndex, ev *subscribe.Event) {
 				}
 			}
 		}
-	case core.RemovedLogsEvent:
+	case blockchainCore.RemovedLogsEvent:
 		for _, f := range filters[LogsSubscription] {
 			if ev.Time.After(f.created) {
 				if matchedLogs := filterLogs(convertLogs(e.Logs, true), f.logsCrit.Addresses, f.logsCrit.Topics); len(matchedLogs) > 0 {
@@ -249,7 +249,7 @@ func (es *EventSystem) broadcast(filters filterIndex, ev *subscribe.Event) {
 				}
 			}
 		}
-	case core.PendingLogsEvent:
+	case blockchainCore.PendingLogsEvent:
 		for _, f := range filters[PendingLogsSubscription] {
 			if ev.Time.After(f.created) {
 				if matchedLogs := filterLogs(convertLogs(e.Logs, false), f.logsCrit.Addresses, f.logsCrit.Topics); len(matchedLogs) > 0 {
@@ -257,13 +257,13 @@ func (es *EventSystem) broadcast(filters filterIndex, ev *subscribe.Event) {
 				}
 			}
 		}
-	case core.TxPreEvent:
+	case blockchainCore.TxPreEvent:
 		for _, f := range filters[PendingTransactionsSubscription] {
 			if ev.Time.After(f.created) {
 				f.hashes <- e.Tx.Hash()
 			}
 		}
-	case core.ChainEvent:
+	case blockchainCore.ChainEvent:
 		for _, f := range filters[BlocksSubscription] {
 			if ev.Time.After(f.created) {
 				f.headers <- e.Block.Header()
@@ -295,11 +295,11 @@ func (es *EventSystem) lightFilterNewHead(newHeader *types.Header, callBack func
 	for oldh.Hash() != newh.Hash() {
 		if oldh.Number.Uint64() >= newh.Number.Uint64() {
 			oldHeaders = append(oldHeaders, oldh)
-			oldh = core.GetHeader(es.backend.ChainDb(), oldh.ParentHash, oldh.Number.Uint64()-1)
+			oldh = blockchainCore.GetHeader(es.backend.ChainDb(), oldh.ParentHash, oldh.Number.Uint64()-1)
 		}
 		if oldh.Number.Uint64() < newh.Number.Uint64() {
 			newHeaders = append(newHeaders, newh)
-			newh = core.GetHeader(es.backend.ChainDb(), newh.ParentHash, newh.Number.Uint64()-1)
+			newh = blockchainCore.GetHeader(es.backend.ChainDb(), newh.ParentHash, newh.Number.Uint64()-1)
 			if newh == nil {
 				// happens when CHT syncing, nothing to do
 				newh = oldh
@@ -346,7 +346,7 @@ func (es *EventSystem) lightFilterLogs(header *types.Header, addresses []helper.
 func (es *EventSystem) eventLoop() {
 	var (
 		index = make(filterIndex)
-		sub   = es.mux.Subscribe(core.PendingLogsEvent{}, core.RemovedLogsEvent{}, localEnv.Logs{}, core.TxPreEvent{}, core.ChainEvent{})
+		sub   = es.mux.Subscribe(blockchainCore.PendingLogsEvent{}, blockchainCore.RemovedLogsEvent{}, localEnv.Logs{}, blockchainCore.TxPreEvent{}, blockchainCore.ChainEvent{})
 	)
 	for {
 		select {

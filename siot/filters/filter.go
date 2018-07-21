@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/net/rpc"
@@ -93,12 +93,12 @@ func (f *Filter) Find(ctx context.Context) ([]Log, error) {
 }
 
 func (f *Filter) mipFind(start, end uint64, depth int) (logs []Log) {
-	level := core.MIPMapLevels[depth]
+	level := blockchainCore.MIPMapLevels[depth]
 	// normalise numerator so we can work in level specific batches and
 	// work with the proper range checks
 	for num := start / level * level; num <= end; num += level {
 		// find addresses in bloom filters
-		bloom := core.GetMipmapBloom(f.db, num, level)
+		bloom := blockchainCore.GetMipmapBloom(f.db, num, level)
 		for _, addr := range f.addresses {
 			if bloom.TestBytes(addr[:]) {
 				// range check normalised values and make sure that
@@ -106,7 +106,7 @@ func (f *Filter) mipFind(start, end uint64, depth int) (logs []Log) {
 				// normalised values.
 				start := uint64(math.Max(float64(num), float64(start)))
 				end := uint64(math.Min(float64(num+level-1), float64(end)))
-				if depth+1 == len(core.MIPMapLevels) {
+				if depth+1 == len(blockchainCore.MIPMapLevels) {
 					l, _ := f.getLogs(context.Background(), start, end)
 					logs = append(logs, l...)
 				} else {

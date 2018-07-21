@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
@@ -655,7 +655,7 @@ func (f *Fetcher) insert(peer string, block *types.Block) {
 			propBroadcastOutTimer.UpdateSince(block.ReceivedAt)
 			go f.broadcastBlock(block, true)
 
-		case core.BlockFutureErr:
+		case blockchainCore.BlockFutureErr:
 			// Weird future block, don't fail, but neither propagate
 
 		default:

@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/logger"

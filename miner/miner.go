@@ -8,23 +8,23 @@ import (
 
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/configure"
+	"github.com/siotchain/siot/validation"
 )
 
 // Backend wraps all methods required for mining.
 type Backend interface {
 	AccountManager() *wallet.Manager
-	BlockChain() *core.BlockChain
-	TxPool() *core.TxPool
+	BlockChain() *blockchainCore.BlockChain
+	TxPool() *blockchainCore.TxPool
 	ChainDb() database.Database
 }
 
@@ -40,13 +40,13 @@ type Miner struct {
 	coinbase helper.Address
 	mining   int32
 	siot     Backend
-	pow      pow.PoW
+	pow      validation.PoW
 
 	canStart    int32 // can start indicates whether we can start the mining operation
 	shouldStart int32 // should start indicates whether we should start after sync
 }
 
-func New(siot Backend, config *params.ChainConfig, mux *subscribe.TypeMux, pow pow.PoW) *Miner {
+func New(siot Backend, config *configure.ChainConfig, mux *subscribe.TypeMux, pow validation.PoW) *Miner {
 	miner := &Miner{
 		siot:      siot,
 		mux:      mux,
@@ -157,8 +157,8 @@ func (self *Miner) HashRate() (tot int64) {
 }
 
 func (self *Miner) SetExtra(extra []byte) error {
-	if uint64(len(extra)) > params.MaximumExtraDataSize.Uint64() {
-		return fmt.Errorf("Extra exceeds max length. %d > %v", len(extra), params.MaximumExtraDataSize)
+	if uint64(len(extra)) > configure.MaximumExtraDataSize.Uint64() {
+		return fmt.Errorf("Extra exceeds max length. %d > %v", len(extra), configure.MaximumExtraDataSize)
 	}
 
 	self.worker.extra = extra

@@ -12,8 +12,8 @@ import (
 	"runtime"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/internal/debug"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
@@ -90,7 +90,7 @@ func FormatTransactionData(data string) []byte {
 	return d
 }
 
-func ImportChain(chain *core.BlockChain, fn string) error {
+func ImportChain(chain *blockchainCore.BlockChain, fn string) error {
 	// Watch for Ctrl-C while the import is running.
 	// If a signal is received, the import will stop at the next batch.
 	interrupt := make(chan os.Signal, 1)
@@ -165,7 +165,7 @@ func ImportChain(chain *core.BlockChain, fn string) error {
 	return nil
 }
 
-func hasAllBlocks(chain *core.BlockChain, bs []*types.Block) bool {
+func hasAllBlocks(chain *blockchainCore.BlockChain, bs []*types.Block) bool {
 	for _, b := range bs {
 		if !chain.HasBlock(b.Hash()) {
 			return false
@@ -174,7 +174,7 @@ func hasAllBlocks(chain *core.BlockChain, bs []*types.Block) bool {
 	return true
 }
 
-func ExportChain(blockchain *core.BlockChain, fn string) error {
+func ExportChain(blockchain *blockchainCore.BlockChain, fn string) error {
 	glog.Infoln("Exporting blockchain to ", fn)
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	if err != nil {
@@ -188,7 +188,7 @@ func ExportChain(blockchain *core.BlockChain, fn string) error {
 	return nil
 }
 
-func ExportAppendChain(blockchain *core.BlockChain, fn string, first uint64, last uint64) error {
+func ExportAppendChain(blockchain *blockchainCore.BlockChain, fn string, first uint64, last uint64) error {
 	glog.Infoln("Exporting blockchain to ", fn)
 	// TODO verify mode perms
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)

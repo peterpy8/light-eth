@@ -12,15 +12,15 @@ import (
 
 	"github.com/ethereum/ethash"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
-	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/localEnv"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
+	"github.com/siotchain/siot/blockchainCore/types"
+	"github.com/siotchain/siot/blockchainCore/localEnv"
 	"github.com/siotchain/siot/internal/siotapi"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/miner"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/helper/rlp"
 	"github.com/siotchain/siot/net/rpc"
 )
@@ -206,7 +206,7 @@ func (api *PrivateAdminAPI) ExportChain(file string) (bool, error) {
 	return true, nil
 }
 
-func hasAllBlocks(chain *core.BlockChain, bs []*types.Block) bool {
+func hasAllBlocks(chain *blockchainCore.BlockChain, bs []*types.Block) bool {
 	for _, b := range bs {
 		if !chain.HasBlock(b.Hash()) {
 			return false
@@ -286,13 +286,13 @@ func (api *PublicDebugAPI) DumpBlock(number uint64) (state.Dump, error) {
 // PrivateDebugAPI is the collection of Siotchain full node APIs exposed over
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
-	config *params.ChainConfig
+	config *configure.ChainConfig
 	siot   *Siotchain
 }
 
 // NewPrivateDebugAPI creates a new API definition for the full node-related
 // private debug methods of the Siotchain service.
-func NewPrivateDebugAPI(config *params.ChainConfig, siot *Siotchain) *PrivateDebugAPI {
+func NewPrivateDebugAPI(config *configure.ChainConfig, siot *Siotchain) *PrivateDebugAPI {
 	return &PrivateDebugAPI{config: config, siot: siot}
 }
 
@@ -381,7 +381,7 @@ func (api *PrivateDebugAPI) traceBlock(block *types.Block, logConfig *localEnv.L
 
 	structLogger := localEnv.NewStructLogger(logConfig)
 
-	if err := core.ValidateHeader(api.config, blockchain.AuxValidator(), block.Header(), blockchain.GetHeader(block.ParentHash(), block.NumberU64()-1), true, false); err != nil {
+	if err := blockchainCore.ValidateHeader(api.config, blockchain.AuxValidator(), block.Header(), blockchain.GetHeader(block.ParentHash(), block.NumberU64()-1), true, false); err != nil {
 		return false, structLogger.StructLogs(), err
 	}
 	statedb, err := blockchain.StateAt(blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1).Root())
@@ -408,7 +408,7 @@ type callmsg struct {
 	data          []byte
 }
 
-// accessor boilerplate to implement core.Message
+// accessor boilerplate to implement blockchainCore.Message
 func (m callmsg) From() (helper.Address, error)         { return m.addr, nil }
 func (m callmsg) FromFrontier() (helper.Address, error) { return m.addr, nil }
 func (m callmsg) Nonce() uint64                         { return 0 }
@@ -466,7 +466,7 @@ func (t *timeoutError) Error() string {
 //	}
 //
 //	// Retrieve the tx from the chain and the containing block
-//	tx, blockHash, _, txIndex := core.GetTransaction(api.siot.ChainDb(), txHash)
+//	tx, blockHash, _, txIndex := blockchainCore.GetTransaction(api.siot.ChainDb(), txHash)
 //	if tx == nil {
 //		return nil, fmt.Errorf("transaction %x not found", txHash)
 //	}
@@ -494,8 +494,8 @@ func (t *timeoutError) Error() string {
 //		}
 //		// Mutate the state if we haven't reached the tracing transaction yet
 //		if uint64(idx) < txIndex {
-//			vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
-//			_, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
+//			vmenv := blockchainCore.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
+//			_, _, err := blockchainCore.ApplyMessage(vmenv, msg, new(blockchainCore.GasPool).AddGas(tx.Gas()))
 //			if err != nil {
 //				return nil, fmt.Errorf("mutation failed: %v", err)
 //			}
@@ -503,8 +503,8 @@ func (t *timeoutError) Error() string {
 //			continue
 //		}
 //		// Otherwise trace the transaction and return
-//		vmenv := core.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
-//		ret, gas, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas()))
+//		vmenv := blockchainCore.NewEnv(stateDb, api.config, api.siot.BlockChain(), msg, block.Header())
+//		ret, gas, err := blockchainCore.ApplyMessage(vmenv, msg, new(blockchainCore.GasPool).AddGas(tx.Gas()))
 //		if err != nil {
 //			return nil, fmt.Errorf("tracing failed: %v", err)
 //		}

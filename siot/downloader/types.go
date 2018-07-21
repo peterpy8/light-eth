@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore/types"
 )
 
 // headerCheckFn is a callback type for verifying a header's presence in the local chain.

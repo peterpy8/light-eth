@@ -30,13 +30,13 @@ type Errors struct {
 /*
 Error implements the standard go error interface.
 
-  errors.New(code, format, params ...interface{})
+  errors.New(code, format, configure ...interface{})
 
 Prints as:
 
  [package] description: details
 
-where details is fmt.Sprintf(self.format, self.params...)
+where details is fmt.Sprintf(self.format, self.configure...)
 */
 type Error struct {
 	Code    int

@@ -17,8 +17,8 @@ import (
 	"github.com/ethereum/ethash"
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/siot"
 	"github.com/siotchain/siot/database"
@@ -29,8 +29,8 @@ import (
 	"github.com/siotchain/siot/context"
 	"github.com/siotchain/siot/net/p2p/discover"
 	"github.com/siotchain/siot/net/p2p/nat"
-	"github.com/siotchain/siot/params"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/configure"
+	"github.com/siotchain/siot/validation"
 	"github.com/siotchain/siot/net/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
@@ -161,7 +161,7 @@ var (
 	TargetGasLimitFlag = cli.StringFlag{
 		Name:  "targetgaslimit",
 		Usage: "Target gas limit sets the artificial target gas floor for the blocks to mine",
-		Value: params.GenesisGasLimit.String(),
+		Value: configure.GenesisGasLimit.String(),
 	}
 	AutoDAGFlag = cli.BoolFlag{
 		Name:  "autodag",
@@ -436,9 +436,9 @@ func MakeBootstrapNodes(ctx *cli.Context) []*discover.Node {
 	// Return pre-configured nodes if none were manually requested
 	if !ctx.GlobalIsSet(BootnodesFlag.Name) {
 		if ctx.GlobalBool(TestNetFlag.Name) {
-			return params.TestnetBootnodes
+			return configure.TestnetBootnodes
 		}
-		return params.MainnetBootnodes
+		return configure.MainnetBootnodes
 	}
 	// Otherwise parse and use the CLI bootstrap nodes
 	bootnodes := []*discover.Node{}
@@ -670,10 +670,10 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			ethConf.NetworkId = 1
 		}
-		ethConf.Genesis = core.OlympicGenesisBlock()
+		ethConf.Genesis = blockchainCore.OlympicGenesisBlock()
 
 	case ctx.GlobalBool(DevModeFlag.Name):
-		ethConf.Genesis = core.OlympicGenesisBlock()
+		ethConf.Genesis = blockchainCore.OlympicGenesisBlock()
 		if !ctx.GlobalIsSet(GasPriceFlag.Name) {
 			ethConf.GasPrice = new(big.Int)
 		}
@@ -696,19 +696,19 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 func SetupNetwork(ctx *cli.Context) {
 	switch {
 	case ctx.GlobalBool(OlympicFlag.Name):
-		params.DurationLimit = big.NewInt(8)
-		params.GenesisGasLimit = big.NewInt(3141592)
-		params.MinGasLimit = big.NewInt(125000)
-		params.MaximumExtraDataSize = big.NewInt(1024)
+		configure.DurationLimit = big.NewInt(8)
+		configure.GenesisGasLimit = big.NewInt(3141592)
+		configure.MinGasLimit = big.NewInt(125000)
+		configure.MaximumExtraDataSize = big.NewInt(1024)
 		NetworkIdFlag.Value = 0
-		core.BlockReward = big.NewInt(1.5e+18)
-		core.ExpDiffPeriod = big.NewInt(math.MaxInt64)
+		blockchainCore.BlockReward = big.NewInt(1.5e+18)
+		blockchainCore.ExpDiffPeriod = big.NewInt(math.MaxInt64)
 	}
-	params.TargetGasLimit = helper.String2Big(ctx.GlobalString(TargetGasLimitFlag.Name))
+	configure.TargetGasLimit = helper.String2Big(ctx.GlobalString(TargetGasLimitFlag.Name))
 }
 
 // MakeChainConfig reads the chain configuration from the database in ctx.Datadir.
-func MakeChainConfig(ctx *cli.Context, stack *context.Node) *params.ChainConfig {
+func MakeChainConfig(ctx *cli.Context, stack *context.Node) *configure.ChainConfig {
 	db := MakeChainDatabase(ctx, stack)
 	defer db.Close()
 
@@ -716,17 +716,17 @@ func MakeChainConfig(ctx *cli.Context, stack *context.Node) *params.ChainConfig 
 }
 
 // MakeChainConfigFromDb reads the chain configuration from the given database.
-func MakeChainConfigFromDb(ctx *cli.Context, db database.Database) *params.ChainConfig {
+func MakeChainConfigFromDb(ctx *cli.Context, db database.Database) *configure.ChainConfig {
 	// If the chain is already initialized, use any existing chain configs
-	config := new(params.ChainConfig)
+	config := new(configure.ChainConfig)
 
-	genesis := core.GetBlock(db, core.GetCanonicalHash(db, 0), 0)
+	genesis := blockchainCore.GetBlock(db, blockchainCore.GetCanonicalHash(db, 0), 0)
 	if genesis != nil {
-		storedConfig, err := core.GetChainConfig(db, genesis.Hash())
+		storedConfig, err := blockchainCore.GetChainConfig(db, genesis.Hash())
 		switch err {
 		case nil:
 			config = storedConfig
-		case core.ChainConfigNotFoundErr:
+		case blockchainCore.ChainConfigNotFoundErr:
 			// No configs found, use empty, will populate below
 		default:
 			Fatalf("Could not make chain configuration: %v", err)
@@ -736,63 +736,63 @@ func MakeChainConfigFromDb(ctx *cli.Context, db database.Database) *params.Chain
 	if config.ChainId == nil {
 		config.ChainId = new(big.Int)
 	}
-	// Check whether we are allowed to set default config params or not:
+	// Check whether we are allowed to set default config configure or not:
 	//  - If no genesis is set, we're running either mainnet or testnet (private nets use `siotchain init`)
 	//  - If a genesis is already set, ensure we have a configuration for it (mainnet or testnet)
 	defaults := genesis == nil ||
-		(genesis.Hash() == params.MainNetGenesisHash && !ctx.GlobalBool(TestNetFlag.Name)) ||
-		(genesis.Hash() == params.TestNetGenesisHash && ctx.GlobalBool(TestNetFlag.Name))
+		(genesis.Hash() == configure.MainNetGenesisHash && !ctx.GlobalBool(TestNetFlag.Name)) ||
+		(genesis.Hash() == configure.TestNetGenesisHash && ctx.GlobalBool(TestNetFlag.Name))
 
 	// Set any missing chainConfig fields due to them being unset or system upgrade
 	if defaults {
 		if config.HomesteadBlock == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.HomesteadBlock = params.TestNetHomesteadBlock
+				config.HomesteadBlock = configure.TestNetHomesteadBlock
 			} else {
-				config.HomesteadBlock = params.MainNetHomesteadBlock
+				config.HomesteadBlock = configure.MainNetHomesteadBlock
 			}
 		}
 		if config.DAOForkBlock == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.DAOForkBlock = params.TestNetDAOForkBlock
+				config.DAOForkBlock = configure.TestNetDAOForkBlock
 			} else {
-				config.DAOForkBlock = params.MainNetDAOForkBlock
+				config.DAOForkBlock = configure.MainNetDAOForkBlock
 			}
 			config.DAOForkSupport = true
 		}
 		if config.EIP150Block == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP150Block = params.TestNetHomesteadGasRepriceBlock
+				config.EIP150Block = configure.TestNetHomesteadGasRepriceBlock
 			} else {
-				config.EIP150Block = params.MainNetHomesteadGasRepriceBlock
+				config.EIP150Block = configure.MainNetHomesteadGasRepriceBlock
 			}
 		}
 		if config.EIP150Hash == (helper.Hash{}) {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP150Hash = params.TestNetHomesteadGasRepriceHash
+				config.EIP150Hash = configure.TestNetHomesteadGasRepriceHash
 			} else {
-				config.EIP150Hash = params.MainNetHomesteadGasRepriceHash
+				config.EIP150Hash = configure.MainNetHomesteadGasRepriceHash
 			}
 		}
 		if config.EIP155Block == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP150Block = params.TestNetSpuriousDragon
+				config.EIP150Block = configure.TestNetSpuriousDragon
 			} else {
-				config.EIP155Block = params.MainNetSpuriousDragon
+				config.EIP155Block = configure.MainNetSpuriousDragon
 			}
 		}
 		if config.EIP158Block == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP158Block = params.TestNetSpuriousDragon
+				config.EIP158Block = configure.TestNetSpuriousDragon
 			} else {
-				config.EIP158Block = params.MainNetSpuriousDragon
+				config.EIP158Block = configure.MainNetSpuriousDragon
 			}
 		}
 		if config.ChainId.BitLen() == 0 {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.ChainId = params.TestNetChainID
+				config.ChainId = configure.TestNetChainID
 			} else {
-				config.ChainId = params.MainNetChainID
+				config.ChainId = configure.MainNetChainID
 			}
 		}
 		config.DAOForkSupport = true
@@ -828,23 +828,23 @@ func MakeChainDatabase(ctx *cli.Context, stack *context.Node) database.Database 
 }
 
 // MakeChain creates a chain manager from set cmd line flags.
-func MakeChain(ctx *cli.Context, stack *context.Node) (chain *core.BlockChain, chainDb database.Database) {
+func MakeChain(ctx *cli.Context, stack *context.Node) (chain *blockchainCore.BlockChain, chainDb database.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
 	if ctx.GlobalBool(OlympicFlag.Name) {
-		_, err := core.WriteTestNetGenesisBlock(chainDb)
+		_, err := blockchainCore.WriteTestNetGenesisBlock(chainDb)
 		if err != nil {
 			glog.Fatalln(err)
 		}
 	}
 	chainConfig := MakeChainConfigFromDb(ctx, chainDb)
 
-	pow := pow.PoW(core.FakePow{})
+	pow := validation.PoW(blockchainCore.FakePow{})
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		pow = ethash.New()
 	}
-	chain, err = core.NewBlockChain(chainDb, chainConfig, pow, new(subscribe.TypeMux))
+	chain, err = blockchainCore.NewBlockChain(chainDb, chainConfig, pow, new(subscribe.TypeMux))
 	if err != nil {
 		Fatalf("Could not start chainmanager: %v", err)
 	}

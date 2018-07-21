@@ -16,8 +16,8 @@ import (
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/helper/httpclient"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/siot/gasprice"
 	"github.com/siotchain/siot/database"
@@ -28,7 +28,7 @@ import (
 	"github.com/siotchain/siot/miner"
 	"github.com/siotchain/siot/context"
 	"github.com/siotchain/siot/net/p2p"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/net/rpc"
 )
 
@@ -46,7 +46,7 @@ var (
 )
 
 type Config struct {
-	ChainConfig *params.ChainConfig // chain configuration
+	ChainConfig *configure.ChainConfig // chain configuration
 
 	NetworkId  int    // Network ID to use for selecting peers to connect to
 	Genesis    string // Genesis JSON to seed the chain database with
@@ -93,14 +93,14 @@ type LesServer interface {
 
 // Siotchain implements the Siotchain full node service.
 type Siotchain struct {
-	chainConfig *params.ChainConfig
+	chainConfig *configure.ChainConfig
 	// Channel for shutting down the service
 	shutdownChan  chan bool // Channel for shutting down the Siotchain
 	stopDbUpgrade func()    // stop chain db sequential key upgrade
 	// Handlers
-	txPool          *core.TxPool
+	txPool          *blockchainCore.TxPool
 	txMu            sync.Mutex
-	blockchain      *core.BlockChain
+	blockchain      *blockchainCore.BlockChain
 	protocolManager *ProtocolManager
 	lesServer       LesServer
 	// DB interfaces
@@ -172,18 +172,18 @@ func New(ctx *context.ServiceContext, config *Config) (*Siotchain, error) {
 	glog.V(logger.Info).Infof("Protocol Versions: %v, Network Id: %v", ProtocolVersions, config.NetworkId)
 
 	if !config.SkipBcVersionCheck {
-		bcVersion := core.GetBlockChainVersion(chainDb)
-		if bcVersion != core.BlockChainVersion && bcVersion != 0 {
-			return nil, fmt.Errorf("Blockchain DB version mismatch (%d / %d). Run siotchain upgradedb.\n", bcVersion, core.BlockChainVersion)
+		bcVersion := blockchainCore.GetBlockChainVersion(chainDb)
+		if bcVersion != blockchainCore.BlockChainVersion && bcVersion != 0 {
+			return nil, fmt.Errorf("Blockchain DB version mismatch (%d / %d). Run siotchain upgradedb.\n", bcVersion, blockchainCore.BlockChainVersion)
 		}
-		core.WriteBlockChainVersion(chainDb, core.BlockChainVersion)
+		blockchainCore.WriteBlockChainVersion(chainDb, blockchainCore.BlockChainVersion)
 	}
 
 	// load the genesis block or write a new one if no genesis
 	// block is prenent in the database.
-	genesis := core.GetBlock(chainDb, core.GetCanonicalHash(chainDb, 0), 0)
+	genesis := blockchainCore.GetBlock(chainDb, blockchainCore.GetCanonicalHash(chainDb, 0), 0)
 	if genesis == nil {
-		genesis, err = core.WriteDefaultGenesisBlock(chainDb)
+		genesis, err = blockchainCore.WriteDefaultGenesisBlock(chainDb)
 		if err != nil {
 			return nil, err
 		}
@@ -193,18 +193,18 @@ func New(ctx *context.ServiceContext, config *Config) (*Siotchain, error) {
 	if config.ChainConfig == nil {
 		return nil, errors.New("missing chain config")
 	}
-	core.WriteChainConfig(chainDb, genesis.Hash(), config.ChainConfig)
+	blockchainCore.WriteChainConfig(chainDb, genesis.Hash(), config.ChainConfig)
 
 	siot.chainConfig = config.ChainConfig
 
-	siot.blockchain, err = core.NewBlockChain(chainDb, siot.chainConfig, siot.pow, siot.EventMux())
+	siot.blockchain, err = blockchainCore.NewBlockChain(chainDb, siot.chainConfig, siot.pow, siot.EventMux())
 	if err != nil {
-		if err == core.ErrNoGenesis {
+		if err == blockchainCore.ErrNoGenesis {
 			return nil, fmt.Errorf(`No chain found. Please initialise a new chain using the "init" subcommand.`)
 		}
 		return nil, err
 	}
-	newPool := core.NewTxPool(siot.chainConfig, siot.EventMux(), siot.blockchain.State, siot.blockchain.GasLimit)
+	newPool := blockchainCore.NewTxPool(siot.chainConfig, siot.EventMux(), siot.blockchain.State, siot.blockchain.GasLimit)
 	siot.txPool = newPool
 
 	maxPeers := config.MaxPeers
@@ -252,7 +252,7 @@ func CreateDB(ctx *context.ServiceContext, config *Config, name string) (databas
 func SetupGenesisBlock(chainDb *database.Database, config *Config) error {
 	// Load up any custom genesis block if requested
 	if len(config.Genesis) > 0 {
-		block, err := core.WriteGenesisBlock(*chainDb, strings.NewReader(config.Genesis))
+		block, err := blockchainCore.WriteGenesisBlock(*chainDb, strings.NewReader(config.Genesis))
 		if err != nil {
 			return err
 		}
@@ -263,10 +263,10 @@ func SetupGenesisBlock(chainDb *database.Database, config *Config) error {
 		*chainDb = config.TestGenesisState
 	}
 	if config.TestGenesisBlock != nil {
-		core.WriteTd(*chainDb, config.TestGenesisBlock.Hash(), config.TestGenesisBlock.NumberU64(), config.TestGenesisBlock.Difficulty())
-		core.WriteBlock(*chainDb, config.TestGenesisBlock)
-		core.WriteCanonicalHash(*chainDb, config.TestGenesisBlock.Hash(), config.TestGenesisBlock.NumberU64())
-		core.WriteHeadBlockHash(*chainDb, config.TestGenesisBlock.Hash())
+		blockchainCore.WriteTd(*chainDb, config.TestGenesisBlock.Hash(), config.TestGenesisBlock.NumberU64(), config.TestGenesisBlock.Difficulty())
+		blockchainCore.WriteBlock(*chainDb, config.TestGenesisBlock)
+		blockchainCore.WriteCanonicalHash(*chainDb, config.TestGenesisBlock.Hash(), config.TestGenesisBlock.NumberU64())
+		blockchainCore.WriteHeadBlockHash(*chainDb, config.TestGenesisBlock.Hash())
 	}
 	return nil
 }
@@ -355,15 +355,15 @@ func (s *Siotchain) StopMining()         { s.miner.Stop() }
 func (s *Siotchain) IsMining() bool      { return s.miner.Mining() }
 func (s *Siotchain) Miner() *miner.Miner { return s.miner }
 
-func (s *Siotchain) AccountManager() *wallet.Manager    { return s.accountManager }
-func (s *Siotchain) BlockChain() *core.BlockChain       { return s.blockchain }
-func (s *Siotchain) TxPool() *core.TxPool               { return s.txPool }
-func (s *Siotchain) EventMux() *subscribe.TypeMux       { return s.eventMux }
-func (s *Siotchain) Pow() *ethash.Ethash                { return s.pow }
-func (s *Siotchain) ChainDb() database.Database         { return s.chainDb }
-func (s *Siotchain) IsListening() bool                  { return true } // Always listening
-func (s *Siotchain) SiotVersion() int                   { return int(s.protocolManager.SubProtocols[0].Version) }
-func (s *Siotchain) NetVersion() int                    { return s.netVersionId }
+func (s *Siotchain) AccountManager() *wallet.Manager        { return s.accountManager }
+func (s *Siotchain) BlockChain() *blockchainCore.BlockChain { return s.blockchain }
+func (s *Siotchain) TxPool() *blockchainCore.TxPool         { return s.txPool }
+func (s *Siotchain) EventMux() *subscribe.TypeMux           { return s.eventMux }
+func (s *Siotchain) Pow() *ethash.Ethash                    { return s.pow }
+func (s *Siotchain) ChainDb() database.Database             { return s.chainDb }
+func (s *Siotchain) IsListening() bool                      { return true } // Always listening
+func (s *Siotchain) SiotVersion() int                       { return int(s.protocolManager.SubProtocols[0].Version) }
+func (s *Siotchain) NetVersion() int                        { return s.netVersionId }
 func (s *Siotchain) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 
 // Protocols implements node.Service, returning all the currently configured

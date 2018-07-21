@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/types"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/types"
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/siot/fetcher"
 	"github.com/siotchain/siot/database"
@@ -21,8 +21,8 @@ import (
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/net/p2p"
 	"github.com/siotchain/siot/net/p2p/discover"
-	"github.com/siotchain/siot/params"
-	"github.com/siotchain/siot/pow"
+	"github.com/siotchain/siot/configure"
+	"github.com/siotchain/siot/validation"
 	"github.com/siotchain/siot/helper/rlp"
 )
 
@@ -50,9 +50,9 @@ type ProtocolManager struct {
 	synced   uint32 // Flag whether we're considered synchronised (enables transaction processing)
 
 	txpool      txPool
-	blockchain  *core.BlockChain
+	blockchain  *blockchainCore.BlockChain
 	chaindb     database.Database
-	chainconfig *params.ChainConfig
+	chainconfig *configure.ChainConfig
 	maxPeers    int
 
 	downloader *downloader.Downloader
@@ -80,7 +80,7 @@ type ProtocolManager struct {
 
 // NewProtocolManager returns a new Siotchain sub protocol manager. The Siotchain sub protocol manages peers capable
 // with the Siotchain network.
-func NewProtocolManager(config *params.ChainConfig, fastSync bool, networkId int, maxPeers int, mux *subscribe.TypeMux, txpool txPool, pow pow.PoW, blockchain *core.BlockChain, chaindb database.Database) (*ProtocolManager, error) {
+func NewProtocolManager(config *configure.ChainConfig, fastSync bool, networkId int, maxPeers int, mux *subscribe.TypeMux, txpool txPool, pow validation.PoW, blockchain *blockchainCore.BlockChain, chaindb database.Database) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
 		networkId:   networkId,
@@ -149,7 +149,7 @@ func NewProtocolManager(config *params.ChainConfig, fastSync bool, networkId int
 		manager.removePeer)
 
 	validator := func(block *types.Block, parent *types.Block) error {
-		return core.ValidateHeader(config, pow, block.Header(), parent.Header(), true, false)
+		return blockchainCore.ValidateHeader(config, pow, block.Header(), parent.Header(), true, false)
 	}
 	heighter := func() uint64 {
 		return blockchain.CurrentBlock().NumberU64()
@@ -170,7 +170,7 @@ func NewProtocolManager(config *params.ChainConfig, fastSync bool, networkId int
 
 func (pm *ProtocolManager) insertChain(blocks types.Blocks) (i int, err error) {
 	i, err = pm.blockchain.InsertChain(blocks)
-	if pm.badBlockReportingEnabled && core.IsValidationErr(err) && i < len(blocks) {
+	if pm.badBlockReportingEnabled && blockchainCore.IsValidationErr(err) && i < len(blocks) {
 		go sendBadBlockReport(blocks[i], err)
 	}
 	return i, err
@@ -197,10 +197,10 @@ func (pm *ProtocolManager) removePeer(id string) {
 
 func (pm *ProtocolManager) Start() {
 	// broadcast transactions
-	pm.txSub = pm.eventMux.Subscribe(core.TxPreEvent{})
+	pm.txSub = pm.eventMux.Subscribe(blockchainCore.TxPreEvent{})
 	go pm.txBroadcastLoop()
 	// broadcast mined blocks
-	pm.minedBlockSub = pm.eventMux.Subscribe(core.NewMinedBlockEvent{})
+	pm.minedBlockSub = pm.eventMux.Subscribe(blockchainCore.NewMinedBlockEvent{})
 	go pm.minedBroadcastLoop()
 
 	// start sync handlers
@@ -433,7 +433,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				p.forkDrop = nil
 
 				// Validate the header and either drop the peer or continue
-				if err := core.ValidateDAOHeaderExtraData(pm.chainconfig, headers[0]); err != nil {
+				if err := blockchainCore.ValidateDAOHeaderExtraData(pm.chainconfig, headers[0]); err != nil {
 					glog.V(logger.Debug).Infof("%v: verified to be on the other side of the DAO fork, dropping", p)
 					return err
 				}
@@ -561,7 +561,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				return errResp(ErrDecode, "msg %v: %v", msg, err)
 			}
 			// Retrieve the requested block's receipts, skipping if unknown to us
-			results := core.GetBlockReceipts(pm.chaindb, hash, core.GetBlockNumber(pm.chaindb, hash))
+			results := blockchainCore.GetBlockReceipts(pm.chaindb, hash, blockchainCore.GetBlockNumber(pm.chaindb, hash))
 			if results == nil {
 				if header := pm.blockchain.GetHeaderByHash(hash); header == nil || header.ReceiptHash != types.EmptyRootHash {
 					continue
@@ -736,7 +736,7 @@ func (self *ProtocolManager) minedBroadcastLoop() {
 	// automatically stops if unsubscribe
 	for obj := range self.minedBlockSub.Chan() {
 		switch ev := obj.Data.(type) {
-		case core.NewMinedBlockEvent:
+		case blockchainCore.NewMinedBlockEvent:
 			self.BroadcastBlock(ev.Block, true)  // First propagate block to peers
 			self.BroadcastBlock(ev.Block, false) // Only then announce to the rest
 		}
@@ -746,7 +746,7 @@ func (self *ProtocolManager) minedBroadcastLoop() {
 func (self *ProtocolManager) txBroadcastLoop() {
 	// automatically stops if unsubscribe
 	for obj := range self.txSub.Chan() {
-		event := obj.Data.(core.TxPreEvent)
+		event := obj.Data.(blockchainCore.TxPreEvent)
 		self.BroadcastTx(event.Tx.Hash(), event.Tx)
 	}
 }

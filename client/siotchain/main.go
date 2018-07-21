@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/siotchain/siot/client/utils"
-	"github.com/siotchain/siot/core"
-	"github.com/siotchain/siot/core/state"
+	"github.com/siotchain/siot/blockchainCore"
+	"github.com/siotchain/siot/blockchainCore/state"
 	"github.com/siotchain/siot/siot"
 	"github.com/siotchain/siot/internal/debug"
 	"github.com/siotchain/siot/logger"
@@ -176,7 +176,7 @@ func initGenesis(ctx *cli.Context) error {
 		utils.Fatalf("failed to read genesis file: %v", err)
 	}
 
-	block, err := core.WriteGenesisBlock(chaindb, genesisFile)
+	block, err := blockchainCore.WriteGenesisBlock(chaindb, genesisFile)
 	if err != nil {
 		utils.Fatalf("failed to write genesis block: %v", err)
 	}

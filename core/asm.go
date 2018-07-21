@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 )
 
 func Disassemble(script []byte) (asm []string) {
@@ -18,18 +18,18 @@ func Disassemble(script []byte) (asm []string) {
 		// Get the memory location of pc
 		val := script[pc.Int64()]
 		// Get the opcode (it must be an opcode!)
-		op := vm.OpCode(val)
+		op := localEnv.OpCode(val)
 
 		asm = append(asm, fmt.Sprintf("%04v: %v", pc, op))
 
 		switch op {
-		case vm.PUSH1, vm.PUSH2, vm.PUSH3, vm.PUSH4, vm.PUSH5, vm.PUSH6, vm.PUSH7, vm.PUSH8,
-			vm.PUSH9, vm.PUSH10, vm.PUSH11, vm.PUSH12, vm.PUSH13, vm.PUSH14, vm.PUSH15,
-			vm.PUSH16, vm.PUSH17, vm.PUSH18, vm.PUSH19, vm.PUSH20, vm.PUSH21, vm.PUSH22,
-			vm.PUSH23, vm.PUSH24, vm.PUSH25, vm.PUSH26, vm.PUSH27, vm.PUSH28, vm.PUSH29,
-			vm.PUSH30, vm.PUSH31, vm.PUSH32:
+		case localEnv.PUSH1, localEnv.PUSH2, localEnv.PUSH3, localEnv.PUSH4, localEnv.PUSH5, localEnv.PUSH6, localEnv.PUSH7, localEnv.PUSH8,
+			localEnv.PUSH9, localEnv.PUSH10, localEnv.PUSH11, localEnv.PUSH12, localEnv.PUSH13, localEnv.PUSH14, localEnv.PUSH15,
+			localEnv.PUSH16, localEnv.PUSH17, localEnv.PUSH18, localEnv.PUSH19, localEnv.PUSH20, localEnv.PUSH21, localEnv.PUSH22,
+			localEnv.PUSH23, localEnv.PUSH24, localEnv.PUSH25, localEnv.PUSH26, localEnv.PUSH27, localEnv.PUSH28, localEnv.PUSH29,
+			localEnv.PUSH30, localEnv.PUSH31, localEnv.PUSH32:
 			pc.Add(pc, helper.Big1)
-			a := int64(op) - int64(vm.PUSH1) + 1
+			a := int64(op) - int64(localEnv.PUSH1) + 1
 			if int(pc.Int64()+a) > len(script) {
 				return
 			}

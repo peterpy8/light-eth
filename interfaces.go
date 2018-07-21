@@ -6,7 +6,7 @@ import (
 
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"golang.org/x/net/context"
 )
 
@@ -113,8 +113,8 @@ type FilterQuery struct {
 // LogFilterer provides access to externalLogic log events using a one-off query or continuous
 // subscribe subscription.
 type LogFilterer interface {
-	FilterLogs(ctx context.Context, q FilterQuery) ([]vm.Log, error)
-	SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- vm.Log) (Subscription, error)
+	FilterLogs(ctx context.Context, q FilterQuery) ([]localEnv.Log, error)
+	SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- localEnv.Log) (Subscription, error)
 }
 
 // TransactionSender wraps transaction sending. The SendTransaction method injects a

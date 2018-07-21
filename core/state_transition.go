@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/params"
@@ -39,9 +39,9 @@ type StateTransition struct {
 	initialGas    *big.Int
 	value         *big.Int
 	data          []byte
-	state         vm.Database
+	state         localEnv.Database
 
-	env vm.Environment
+	env localEnv.Environment
 }
 
 // Message represents a message sent to a externalLogic.
@@ -90,7 +90,7 @@ func IntrinsicGas(data []byte, externalLogicCreation, homestead bool) *big.Int {
 }
 
 // NewStateTransition initialises and returns a new state transition object.
-func NewStateTransition(env vm.Environment, msg Message, gp *GasPool) *StateTransition {
+func NewStateTransition(env localEnv.Environment, msg Message, gp *GasPool) *StateTransition {
 	return &StateTransition{
 		gp:         gp,
 		env:        env,
@@ -111,14 +111,14 @@ func NewStateTransition(env vm.Environment, msg Message, gp *GasPool) *StateTran
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(env vm.Environment, msg Message, gp *GasPool) ([]byte, *big.Int, error) {
+func ApplyMessage(env localEnv.Environment, msg Message, gp *GasPool) ([]byte, *big.Int, error) {
 	st := NewStateTransition(env, msg, gp)
 
 	ret, _, gasUsed, err := st.TransitionDb()
 	return ret, gasUsed, err
 }
 
-func (self *StateTransition) from() vm.Account {
+func (self *StateTransition) from() localEnv.Account {
 	f := self.msg.From()
 	if !self.state.Exist(f) {
 		return self.state.CreateAccount(f)
@@ -126,7 +126,7 @@ func (self *StateTransition) from() vm.Account {
 	return self.state.GetAccount(f)
 }
 
-func (self *StateTransition) to() vm.Account {
+func (self *StateTransition) to() localEnv.Account {
 	if self.msg == nil {
 		return nil
 	}
@@ -143,7 +143,7 @@ func (self *StateTransition) to() vm.Account {
 
 func (self *StateTransition) useGas(amount *big.Int) error {
 	if self.gas.Cmp(amount) < 0 {
-		return vm.OutOfGasError
+		return localEnv.OutOfGasError
 	}
 	self.gas.Sub(self.gas, amount)
 
@@ -212,7 +212,7 @@ func (self *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *b
 	//var addr helper.Address
 	if externalLogicCreation {
 		ret, _, err = vmenv.Create(sender, self.data, self.gas, self.gasPrice, self.value)
-		if homestead && err == vm.CodeStoreOutOfGasError {
+		if homestead && err == localEnv.CodeStoreOutOfGasError {
 			self.gas = Big0
 		}
 

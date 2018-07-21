@@ -15,7 +15,7 @@ import (
 	"github.com/siotchain/siot/core"
 	"github.com/siotchain/siot/core/state"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/internal/siotapi"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
@@ -306,14 +306,14 @@ type BlockTraceResult struct {
 
 // TraceArgs holds extra parameters to trace functions
 type TraceArgs struct {
-	*vm.LogConfig
+	*localEnv.LogConfig
 	Tracer  *string
 	Timeout *string
 }
 
 // TraceBlock processes the given block's RLP but does not import the block in to
 // the chain.
-func (api *PrivateDebugAPI) TraceBlock(blockRlp []byte, config *vm.LogConfig) BlockTraceResult {
+func (api *PrivateDebugAPI) TraceBlock(blockRlp []byte, config *localEnv.LogConfig) BlockTraceResult {
 	var block types.Block
 	err := rlp.Decode(bytes.NewReader(blockRlp), &block)
 	if err != nil {
@@ -330,7 +330,7 @@ func (api *PrivateDebugAPI) TraceBlock(blockRlp []byte, config *vm.LogConfig) Bl
 
 // TraceBlockFromFile loads the block's RLP from the given file name and attempts to
 // process it but does not import the block in to the chain.
-func (api *PrivateDebugAPI) TraceBlockFromFile(file string, config *vm.LogConfig) BlockTraceResult {
+func (api *PrivateDebugAPI) TraceBlockFromFile(file string, config *localEnv.LogConfig) BlockTraceResult {
 	blockRlp, err := ioutil.ReadFile(file)
 	if err != nil {
 		return BlockTraceResult{Error: fmt.Sprintf("could not read file: %v", err)}
@@ -339,7 +339,7 @@ func (api *PrivateDebugAPI) TraceBlockFromFile(file string, config *vm.LogConfig
 }
 
 // TraceBlockByNumber processes the block by canonical block number.
-func (api *PrivateDebugAPI) TraceBlockByNumber(number uint64, config *vm.LogConfig) BlockTraceResult {
+func (api *PrivateDebugAPI) TraceBlockByNumber(number uint64, config *localEnv.LogConfig) BlockTraceResult {
 	// Fetch the block that we aim to reprocess
 	block := api.siot.BlockChain().GetBlockByNumber(number)
 	if block == nil {
@@ -355,7 +355,7 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(number uint64, config *vm.LogConf
 }
 
 // TraceBlockByHash processes the block by hash.
-func (api *PrivateDebugAPI) TraceBlockByHash(hash helper.Hash, config *vm.LogConfig) BlockTraceResult {
+func (api *PrivateDebugAPI) TraceBlockByHash(hash helper.Hash, config *localEnv.LogConfig) BlockTraceResult {
 	// Fetch the block that we aim to reprocess
 	block := api.siot.BlockChain().GetBlockByHash(hash)
 	if block == nil {
@@ -371,7 +371,7 @@ func (api *PrivateDebugAPI) TraceBlockByHash(hash helper.Hash, config *vm.LogCon
 }
 
 // traceBlock processes the given block but does not save the state.
-func (api *PrivateDebugAPI) traceBlock(block *types.Block, logConfig *vm.LogConfig) (bool, []vm.StructLog, error) {
+func (api *PrivateDebugAPI) traceBlock(block *types.Block, logConfig *localEnv.LogConfig) (bool, []localEnv.StructLog, error) {
 	// Validate and reprocess the block
 	var (
 		blockchain = api.siot.BlockChain()
@@ -379,7 +379,7 @@ func (api *PrivateDebugAPI) traceBlock(block *types.Block, logConfig *vm.LogConf
 		processor  = blockchain.Processor()
 	)
 
-	structLogger := vm.NewStructLogger(logConfig)
+	structLogger := localEnv.NewStructLogger(logConfig)
 
 	if err := core.ValidateHeader(api.config, blockchain.AuxValidator(), block.Header(), blockchain.GetHeader(block.ParentHash(), block.NumberU64()-1), true, false); err != nil {
 		return false, structLogger.StructLogs(), err
@@ -437,7 +437,7 @@ func (t *timeoutError) Error() string {
 // TraceTransaction returns the structured logs created during the execution of EVM
 // and returns them as a JSON object.
 //func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash helper.Hash, config *TraceArgs) (interface{}, error) {
-//	var tracer vm.Tracer
+//	var tracer localEnv.Tracer
 //	if config != nil && config.Tracer != nil {
 //		timeout := defaultTraceTimeout
 //		if config.Timeout != nil {
@@ -460,9 +460,9 @@ func (t *timeoutError) Error() string {
 //		}()
 //		defer cancel()
 //	} else if config == nil {
-//		tracer = vm.NewStructLogger(nil)
+//		tracer = localEnv.NewStructLogger(nil)
 //	} else {
-//		tracer = vm.NewStructLogger(config.LogConfig)
+//		tracer = localEnv.NewStructLogger(config.LogConfig)
 //	}
 //
 //	// Retrieve the tx from the chain and the containing block
@@ -510,7 +510,7 @@ func (t *timeoutError) Error() string {
 //		}
 //
 //		switch tracer := tracer.(type) {
-//		case *vm.StructLogger:
+//		case *localEnv.StructLogger:
 //			return &siotapi.ExecutionResult{
 //				Gas:         gas,
 //				ReturnValue: fmt.Sprintf("%x", ret),

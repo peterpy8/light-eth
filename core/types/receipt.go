@@ -8,7 +8,7 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/helper/rlp"
 )
 
@@ -23,7 +23,7 @@ type Receipt struct {
 	PostState         []byte
 	CumulativeGasUsed *big.Int
 	Bloom             Bloom
-	Logs              vm.Logs
+	Logs              localEnv.Logs
 
 	// Implementation fields (don't reorder!)
 	TxHash               helper.Hash
@@ -35,7 +35,7 @@ type jsonReceipt struct {
 	PostState         *helper.Hash         `json:"root"`
 	CumulativeGasUsed *hexBig              `json:"cumulativeGasUsed"`
 	Bloom             *Bloom               `json:"logsBloom"`
-	Logs              *vm.Logs             `json:"logs"`
+	Logs              *localEnv.Logs       `json:"logs"`
 	TxHash            *helper.Hash         `json:"transactionHash"`
 	ExternalLogicAddress   *helper.Address `json:"externalLogicAddress"`
 	GasUsed           *hexBig              `json:"gasUsed"`
@@ -59,7 +59,7 @@ func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 		PostState         []byte
 		CumulativeGasUsed *big.Int
 		Bloom             Bloom
-		Logs              vm.Logs
+		Logs              localEnv.Logs
 	}
 	if err := s.Decode(&receipt); err != nil {
 		return err
@@ -125,9 +125,9 @@ type ReceiptForStorage Receipt
 // EncodeRLP implements rlp.Encoder, and flattens all content fields of a receipt
 // into an RLP stream.
 func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
-	logs := make([]*vm.LogForStorage, len(r.Logs))
+	logs := make([]*localEnv.LogForStorage, len(r.Logs))
 	for i, log := range r.Logs {
-		logs[i] = (*vm.LogForStorage)(log)
+		logs[i] = (*localEnv.LogForStorage)(log)
 	}
 	return rlp.Encode(w, []interface{}{r.PostState, r.CumulativeGasUsed, r.Bloom, r.TxHash, r.ExternalLogicAddress, logs, r.GasUsed})
 }
@@ -141,7 +141,7 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 		Bloom                Bloom
 		TxHash               helper.Hash
 		ExternalLogicAddress helper.Address
-		Logs                 []*vm.LogForStorage
+		Logs                 []*localEnv.LogForStorage
 		GasUsed              *big.Int
 	}
 	if err := s.Decode(&receipt); err != nil {
@@ -149,9 +149,9 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 	}
 	// Assign the consensus fields
 	r.PostState, r.CumulativeGasUsed, r.Bloom = receipt.PostState, receipt.CumulativeGasUsed, receipt.Bloom
-	r.Logs = make(vm.Logs, len(receipt.Logs))
+	r.Logs = make(localEnv.Logs, len(receipt.Logs))
 	for i, log := range receipt.Logs {
-		r.Logs[i] = (*vm.Log)(log)
+		r.Logs[i] = (*localEnv.Log)(log)
 	}
 	// Assign the implementation fields
 	r.TxHash, r.ExternalLogicAddress, r.GasUsed = receipt.TxHash, receipt.ExternalLogicAddress, receipt.GasUsed

@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/crypto"
 )
 
@@ -86,7 +86,7 @@ func CreateBloom(receipts Receipts) Bloom {
 	return BytesToBloom(bin.Bytes())
 }
 
-func LogsBloom(logs vm.Logs) *big.Int {
+func LogsBloom(logs localEnv.Logs) *big.Int {
 	bin := new(big.Int)
 	for _, log := range logs {
 		data := make([]helper.Hash, len(log.Topics))

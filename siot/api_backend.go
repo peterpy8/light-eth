@@ -14,7 +14,7 @@ import (
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/internal/siotapi"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
 )
@@ -25,7 +25,7 @@ type SiotApiBackend struct {
 	gpo  *gasprice.GasPriceOracle
 }
 
-func (b *SiotApiBackend) ChainConfig() *params.ChainConfig {
+func (b *SiotApiBackend) ChainConfig() *configure.ChainConfig {
 	return b.siot.chainConfig
 }
 

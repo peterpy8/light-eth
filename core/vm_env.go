@@ -7,7 +7,7 @@ import (
 	"github.com/siotchain/siot/core/state"
 	"github.com/siotchain/siot/core/types"
 	"github.com/siotchain/siot/core/localEnv"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 // GetHashFn returns a function for which the VM env can query block hashes through
@@ -26,17 +26,17 @@ func GetHashFn(ref helper.Hash, chain *BlockChain) func(n uint64) helper.Hash {
 }
 
 type VMEnv struct {
-	chainConfig *params.ChainConfig // Chain configuration
-	state       *state.StateDB      // State to use for executing
-	depth       int                 // Current execution depth
-	msg         Message             // Message appliod
+	chainConfig *configure.ChainConfig // Chain configuration
+	state       *state.StateDB         // State to use for executing
+	depth       int                    // Current execution depth
+	msg         Message                // Message appliod
 
 	header    *types.Header            // Header information
 	chain     *BlockChain              // Blockchain handle
 	getHashFn func(uint64) helper.Hash // getHashFn callback is used to retrieve block hashes
 }
 
-func NewEnv(state *state.StateDB, chainConfig *params.ChainConfig, chain *BlockChain, msg Message, header *types.Header) *VMEnv {
+func NewEnv(state *state.StateDB, chainConfig *configure.ChainConfig, chain *BlockChain, msg Message, header *types.Header) *VMEnv {
 	env := &VMEnv{
 		chainConfig: chainConfig,
 		chain:       chain,
@@ -49,13 +49,13 @@ func NewEnv(state *state.StateDB, chainConfig *params.ChainConfig, chain *BlockC
 	return env
 }
 
-func (self *VMEnv) ChainConfig() *params.ChainConfig { return self.chainConfig }
-func (self *VMEnv) Origin() helper.Address           { return self.msg.From() }
-func (self *VMEnv) BlockNumber() *big.Int    { return self.header.Number }
-func (self *VMEnv) Coinbase() helper.Address { return self.header.Coinbase }
-func (self *VMEnv) Time() *big.Int           { return self.header.Time }
-func (self *VMEnv) Difficulty() *big.Int     { return self.header.Difficulty }
-func (self *VMEnv) GasLimit() *big.Int       { return self.header.GasLimit }
+func (self *VMEnv) ChainConfig() *configure.ChainConfig { return self.chainConfig }
+func (self *VMEnv) Origin() helper.Address              { return self.msg.From() }
+func (self *VMEnv) BlockNumber() *big.Int               { return self.header.Number }
+func (self *VMEnv) Coinbase() helper.Address            { return self.header.Coinbase }
+func (self *VMEnv) Time() *big.Int                      { return self.header.Time }
+func (self *VMEnv) Difficulty() *big.Int                { return self.header.Difficulty }
+func (self *VMEnv) GasLimit() *big.Int                  { return self.header.GasLimit }
 func (self *VMEnv) Value() *big.Int          { return self.msg.Value() }
 func (self *VMEnv) Db() localEnv.Database    { return self.state }
 func (self *VMEnv) Depth() int               { return self.depth }

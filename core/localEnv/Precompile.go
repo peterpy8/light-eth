@@ -7,7 +7,7 @@ import (
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 // PrecompiledAccount represents a native Siotchain externalLogic
@@ -30,28 +30,28 @@ func PrecompiledExternalLogics() map[string]*PrecompiledAccount {
 	return map[string]*PrecompiledAccount{
 		// ECRECOVER
 		string(helper.LeftPadBytes([]byte{1}, 20)): &PrecompiledAccount{func(l int) *big.Int {
-			return params.EcrecoverGas
+			return configure.EcrecoverGas
 		}, ecrecoverFunc},
 
 		// SHA256
 		string(helper.LeftPadBytes([]byte{2}, 20)): &PrecompiledAccount{func(l int) *big.Int {
 			n := big.NewInt(int64(l+31) / 32)
-			n.Mul(n, params.Sha256WordGas)
-			return n.Add(n, params.Sha256Gas)
+			n.Mul(n, configure.Sha256WordGas)
+			return n.Add(n, configure.Sha256Gas)
 		}, sha256Func},
 
 		// RIPEMD160
 		string(helper.LeftPadBytes([]byte{3}, 20)): &PrecompiledAccount{func(l int) *big.Int {
 			n := big.NewInt(int64(l+31) / 32)
-			n.Mul(n, params.Ripemd160WordGas)
-			return n.Add(n, params.Ripemd160Gas)
+			n.Mul(n, configure.Ripemd160WordGas)
+			return n.Add(n, configure.Ripemd160Gas)
 		}, ripemd160Func},
 
 		string(helper.LeftPadBytes([]byte{4}, 20)): &PrecompiledAccount{func(l int) *big.Int {
 			n := big.NewInt(int64(l+31) / 32)
-			n.Mul(n, params.IdentityWordGas)
+			n.Mul(n, configure.IdentityWordGas)
 
-			return n.Add(n, params.IdentityGas)
+			return n.Add(n, configure.IdentityGas)
 		}, memCpy},
 	}
 }

@@ -46,7 +46,7 @@ func sendBadBlockReport(block *types.Block, err error) {
 			"protocolVersion": p.version,
 		}
 	}
-	jsonStr, _ := json.Marshal(map[string]interface{}{"method": "siot_badBlock", "id": "1", "jsonrpc": "2.0", "params": []interface{}{params}})
+	jsonStr, _ := json.Marshal(map[string]interface{}{"method": "siot_badBlock", "id": "1", "jsonrpc": "2.0", "configure": []interface{}{params}})
 	client := http.Client{Timeout: 8 * time.Second}
 	resp, err := client.Post(badBlocksURL, "application/json", bytes.NewReader(jsonStr))
 	if err != nil {

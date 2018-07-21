@@ -22,7 +22,7 @@ import (
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/helper/metrics"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/pow"
 	"github.com/siotchain/siot/helper/rlp"
 	"github.com/siotchain/siot/trie"
@@ -63,7 +63,7 @@ const (
 // included in the canonical one where as GetBlockByNumber always represents the
 // canonical chain.
 type BlockChain struct {
-	config *params.ChainConfig // chain & network configuration
+	config *configure.ChainConfig // chain & network configuration
 
 	hc           *HeaderChain
 	chainDb      database.Database
@@ -98,7 +98,7 @@ type BlockChain struct {
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialiser the default Siotchain Validator and
 // Processor.
-func NewBlockChain(chainDb database.Database, config *params.ChainConfig, pow pow.PoW, mux *subscribe.TypeMux) (*BlockChain, error) {
+func NewBlockChain(chainDb database.Database, config *configure.ChainConfig, pow pow.PoW, mux *subscribe.TypeMux) (*BlockChain, error) {
 	bodyCache, _ := lru.New(bodyCacheLimit)
 	bodyRLPCache, _ := lru.New(bodyCacheLimit)
 	blockCache, _ := lru.New(blockCacheLimit)
@@ -618,7 +618,7 @@ func (self *BlockChain) Rollback(chain []helper.Hash) {
 }
 
 // SetReceiptsData computes all the non-consensus fields of the receipts
-func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts types.Receipts) {
+func SetReceiptsData(config *configure.ChainConfig, block *types.Block, receipts types.Receipts) {
 	signer := types.MakeSigner(config, block.Number())
 
 	transactions, logIndex := block.Transactions(), uint(0)
@@ -1297,4 +1297,4 @@ func (self *BlockChain) GetHeaderByNumber(number uint64) *types.Header {
 }
 
 // Config retrieves the blockchain's chain configuration.
-func (self *BlockChain) Config() *params.ChainConfig { return self.config }
+func (self *BlockChain) Config() *configure.ChainConfig { return self.config }

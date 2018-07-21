@@ -16,7 +16,7 @@ import (
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 // WriteGenesisBlock writes the genesis block to the database as block number 0
@@ -27,7 +27,7 @@ func WriteGenesisBlock(chainDb database.Database, reader io.Reader) (*types.Bloc
 	}
 
 	var genesis struct {
-		ChainConfig *params.ChainConfig `json:"config"`
+		ChainConfig *configure.ChainConfig `json:"config"`
 		Nonce       string
 		Timestamp   string
 		ParentHash  string
@@ -117,8 +117,8 @@ func GenesisBlockForTesting(db database.Database, addr helper.Address, balance *
 		panic(fmt.Sprintf("cannot write state: %v", err))
 	}
 	block := types.NewBlock(&types.Header{
-		Difficulty: params.GenesisDifficulty,
-		GasLimit:   params.GenesisGasLimit,
+		Difficulty: configure.GenesisDifficulty,
+		GasLimit:   configure.GenesisGasLimit,
 		Root:       root,
 	}, nil, nil, nil)
 	return block
@@ -144,7 +144,7 @@ func WriteGenesisBlockForTesting(db database.Database, accounts ...GenesisAccoun
 	"gasLimit":"0x%x",
 	"difficulty":"0x%x",
 	"alloc": %s
-}`, types.EncodeNonce(0), params.GenesisGasLimit.Bytes(), params.GenesisDifficulty.Bytes(), accountJson)
+}`, types.EncodeNonce(0), configure.GenesisGasLimit.Bytes(), configure.GenesisDifficulty.Bytes(), accountJson)
 	block, _ := WriteGenesisBlock(db, strings.NewReader(testGenesis))
 	return block
 }
@@ -202,7 +202,7 @@ func OlympicGenesisBlock() string {
 			"e6716f9544a56c530d868e4bfbacb172315bdead": {"balance": "1606938044258990275541962092341162602522202993782792835301376"},
 			"1a26338f0d905e295fccb71fa9ea849ffa12aaf4": {"balance": "1606938044258990275541962092341162602522202993782792835301376"}
 		}
-	}`, types.EncodeNonce(42), params.GenesisGasLimit.Bytes(), params.GenesisDifficulty.Bytes())
+	}`, types.EncodeNonce(42), configure.GenesisGasLimit.Bytes(), configure.GenesisDifficulty.Bytes())
 }
 
 // TestNetGenesisBlock assembles a JSON string representing the Morden test net

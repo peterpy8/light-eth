@@ -9,7 +9,7 @@ import (
 	"github.com/siotchain/siot/core/types"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/pow"
 )
 
@@ -18,8 +18,8 @@ import (
  */
 
 // MakeChainConfig returns a new ChainConfig with the siot default chain settings.
-func MakeChainConfig() *params.ChainConfig {
-	return &params.ChainConfig{
+func MakeChainConfig() *configure.ChainConfig {
+	return &configure.ChainConfig{
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: true,
@@ -57,7 +57,7 @@ type BlockGen struct {
 	receipts []*types.Receipt
 	uncles   []*types.Header
 
-	config *params.ChainConfig
+	config *configure.ChainConfig
 }
 
 // SetCoinbase sets the coinbase of the generated block.
@@ -163,7 +163,7 @@ func (b *BlockGen) OffsetTime(seconds int64) {
 // Blocks created by GenerateChain do not contain valid proof of work
 // values. Inserting them into BlockChain requires use of FakePow or
 // a similar non-validating proof of work implementation.
-func GenerateChain(config *params.ChainConfig, parent *types.Block, db database.Database, n int, gen func(int, *BlockGen)) ([]*types.Block, []types.Receipts) {
+func GenerateChain(config *configure.ChainConfig, parent *types.Block, db database.Database, n int, gen func(int, *BlockGen)) ([]*types.Block, []types.Receipts) {
 	blocks, receipts := make(types.Blocks, n), make([]types.Receipts, n)
 	genblock := func(i int, h *types.Header, statedb *state.StateDB) (*types.Block, types.Receipts) {
 		b := &BlockGen{parent: parent, i: i, chain: blocks, header: h, statedb: statedb, config: config}
@@ -173,10 +173,10 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, db database.
 			config = MakeChainConfig()
 		}
 		if daoBlock := config.DAOForkBlock; daoBlock != nil {
-			limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
+			limit := new(big.Int).Add(daoBlock, configure.DAOForkExtraRange)
 			if h.Number.Cmp(daoBlock) >= 0 && h.Number.Cmp(limit) < 0 {
 				if config.DAOForkSupport {
-					h.Extra = helper.CopyBytes(params.DAOForkBlockExtra)
+					h.Extra = helper.CopyBytes(configure.DAOForkBlockExtra)
 				}
 			}
 		}
@@ -209,7 +209,7 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, db database.
 	return blocks, receipts
 }
 
-func makeHeader(config *params.ChainConfig, parent *types.Block, state *state.StateDB) *types.Header {
+func makeHeader(config *configure.ChainConfig, parent *types.Block, state *state.StateDB) *types.Header {
 	var time *big.Int
 	if parent.Time() == nil {
 		time = big.NewInt(10)
@@ -268,7 +268,7 @@ func makeHeaderChain(parent *types.Header, n int, db database.Database, seed int
 
 // makeBlockChain creates a deterministic chain of blocks rooted at parent.
 func makeBlockChain(parent *types.Block, n int, db database.Database, seed int) []*types.Block {
-	blocks, _ := GenerateChain(params.TestChainConfig, parent, db, n, func(i int, b *BlockGen) {
+	blocks, _ := GenerateChain(configure.TestChainConfig, parent, db, n, func(i int, b *BlockGen) {
 		b.SetCoinbase(helper.Address{0: byte(seed), 19: byte(i)})
 	})
 	return blocks

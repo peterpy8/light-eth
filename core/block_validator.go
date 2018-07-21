@@ -9,7 +9,7 @@ import (
 	"github.com/siotchain/siot/core/state"
 	"github.com/siotchain/siot/core/types"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/pow"
 	"gopkg.in/fatih/set.v0"
 )
@@ -25,13 +25,13 @@ var (
 //
 // BlockValidator implements Validator.
 type BlockValidator struct {
-	config *params.ChainConfig // Chain configuration options
-	bc     *BlockChain         // Canonical block chain
-	Pow    pow.PoW             // Proof of work used for validating
+	config *configure.ChainConfig // Chain configuration options
+	bc     *BlockChain            // Canonical block chain
+	Pow    pow.PoW                // Proof of work used for validating
 }
 
 // NewBlockValidator returns a new block validator which is safe for re-use
-func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, pow pow.PoW) *BlockValidator {
+func NewBlockValidator(config *configure.ChainConfig, blockchain *BlockChain, pow pow.PoW) *BlockValidator {
 	validator := &BlockValidator{
 		config: config,
 		Pow:    pow,
@@ -187,8 +187,8 @@ func (v *BlockValidator) ValidateHeader(header, parent *types.Header, checkPow b
 // Validates a header. Returns an error if the header is invalid.
 //
 // See YP section 4.3.4. "Block Header Validity"
-func ValidateHeader(config *params.ChainConfig, pow pow.PoW, header *types.Header, parent *types.Header, checkPow, uncle bool) error {
-	if big.NewInt(int64(len(header.Extra))).Cmp(params.MaximumExtraDataSize) == 1 {
+func ValidateHeader(config *configure.ChainConfig, pow pow.PoW, header *types.Header, parent *types.Header, checkPow, uncle bool) error {
+	if big.NewInt(int64(len(header.Extra))).Cmp(configure.MaximumExtraDataSize) == 1 {
 		return fmt.Errorf("Header extra data too long (%d)", len(header.Extra))
 	}
 
@@ -214,8 +214,8 @@ func ValidateHeader(config *params.ChainConfig, pow pow.PoW, header *types.Heade
 	a = a.Sub(a, header.GasLimit)
 	a.Abs(a)
 	b := new(big.Int).Set(parent.GasLimit)
-	b = b.Div(b, params.GasLimitBoundDivisor)
-	if !(a.Cmp(b) < 0) || (header.GasLimit.Cmp(params.MinGasLimit) == -1) {
+	b = b.Div(b, configure.GasLimitBoundDivisor)
+	if !(a.Cmp(b) < 0) || (header.GasLimit.Cmp(configure.MinGasLimit) == -1) {
 		return fmt.Errorf("GasLimit check failed for header %v (%v > %v)", header.GasLimit, a, b)
 	}
 
@@ -246,7 +246,7 @@ func ValidateHeader(config *params.ChainConfig, pow pow.PoW, header *types.Heade
 // CalcDifficulty is the difficulty adjustment algorithm. It returns
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
-func CalcDifficulty(config *params.ChainConfig, time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {
+func CalcDifficulty(config *configure.ChainConfig, time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {
 	//if config.IsHomestead(new(big.Int).Add(parentNumber, helper.Big1)) {
 	//	return calcDifficultyHomestead(time, parentTime, parentNumber, parentDiff)
 	//} else {
@@ -271,13 +271,13 @@ func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *
 		x.Set(bigMinus99)
 	}
 
-	y.Div(parentDiff, params.DifficultyBoundDivisor)
+	y.Div(parentDiff, configure.DifficultyBoundDivisor)
 	x.Mul(y, x)
 	x.Add(parentDiff, x)
 
 	// minimum difficulty can ever be (before exponential factor)
-	if x.Cmp(params.MinimumDifficulty) < 0 {
-		x.Set(params.MinimumDifficulty)
+	if x.Cmp(configure.MinimumDifficulty) < 0 {
+		x.Set(configure.MinimumDifficulty)
 	}
 
 	// for the exponential factor
@@ -296,20 +296,20 @@ func calcDifficultyHomestead(time, parentTime uint64, parentNumber, parentDiff *
 
 func calcDifficultyFrontier(time, parentTime uint64, parentNumber, parentDiff *big.Int) *big.Int {
 	diff := new(big.Int)
-	adjust := new(big.Int).Div(parentDiff, params.DifficultyBoundDivisor)
+	adjust := new(big.Int).Div(parentDiff, configure.DifficultyBoundDivisor)
 	bigTime := new(big.Int)
 	bigParentTime := new(big.Int)
 
 	bigTime.SetUint64(time)
 	bigParentTime.SetUint64(parentTime)
 
-	if bigTime.Sub(bigTime, bigParentTime).Cmp(params.DurationLimit) < 0 {
+	if bigTime.Sub(bigTime, bigParentTime).Cmp(configure.DurationLimit) < 0 {
 		diff.Add(parentDiff, adjust)
 	} else {
 		diff.Sub(parentDiff, adjust)
 	}
-	if diff.Cmp(params.MinimumDifficulty) < 0 {
-		diff.Set(params.MinimumDifficulty)
+	if diff.Cmp(configure.MinimumDifficulty) < 0 {
+		diff.Set(configure.MinimumDifficulty)
 	}
 
 	periodCount := new(big.Int).Add(parentNumber, helper.Big1)
@@ -319,7 +319,7 @@ func calcDifficultyFrontier(time, parentTime uint64, parentNumber, parentDiff *b
 		expDiff := periodCount.Sub(periodCount, helper.Big2)
 		expDiff.Exp(helper.Big2, expDiff, nil)
 		diff.Add(diff, expDiff)
-		diff = helper.BigMax(diff, params.MinimumDifficulty)
+		diff = helper.BigMax(diff, configure.MinimumDifficulty)
 	}
 
 	return diff
@@ -332,10 +332,10 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 	// contrib = (parentGasUsed * 3 / 2) / 1024
 	contrib := new(big.Int).Mul(parent.GasUsed(), big.NewInt(3))
 	contrib = contrib.Div(contrib, big.NewInt(2))
-	contrib = contrib.Div(contrib, params.GasLimitBoundDivisor)
+	contrib = contrib.Div(contrib, configure.GasLimitBoundDivisor)
 
 	// decay = parentGasLimit / 1024 -1
-	decay := new(big.Int).Div(parent.GasLimit(), params.GasLimitBoundDivisor)
+	decay := new(big.Int).Div(parent.GasLimit(), configure.GasLimitBoundDivisor)
 	decay.Sub(decay, big.NewInt(1))
 
 	/*
@@ -347,13 +347,13 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 	*/
 	gl := new(big.Int).Sub(parent.GasLimit(), decay)
 	gl = gl.Add(gl, contrib)
-	gl.Set(helper.BigMax(gl, params.MinGasLimit))
+	gl.Set(helper.BigMax(gl, configure.MinGasLimit))
 
 	// however, if we're now below the target (TargetGasLimit) we increase the
 	// limit as much as we can (parentGasLimit / 1024 -1)
-	if gl.Cmp(params.TargetGasLimit) < 0 {
+	if gl.Cmp(configure.TargetGasLimit) < 0 {
 		gl.Add(parent.GasLimit(), decay)
-		gl.Set(helper.BigMin(gl, params.TargetGasLimit))
+		gl.Set(helper.BigMin(gl, configure.TargetGasLimit))
 	}
 	return gl
 }

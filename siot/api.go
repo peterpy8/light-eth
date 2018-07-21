@@ -20,7 +20,7 @@ import (
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
 	"github.com/siotchain/siot/miner"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/helper/rlp"
 	"github.com/siotchain/siot/net/rpc"
 )
@@ -286,13 +286,13 @@ func (api *PublicDebugAPI) DumpBlock(number uint64) (state.Dump, error) {
 // PrivateDebugAPI is the collection of Siotchain full node APIs exposed over
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
-	config *params.ChainConfig
+	config *configure.ChainConfig
 	siot   *Siotchain
 }
 
 // NewPrivateDebugAPI creates a new API definition for the full node-related
 // private debug methods of the Siotchain service.
-func NewPrivateDebugAPI(config *params.ChainConfig, siot *Siotchain) *PrivateDebugAPI {
+func NewPrivateDebugAPI(config *configure.ChainConfig, siot *Siotchain) *PrivateDebugAPI {
 	return &PrivateDebugAPI{config: config, siot: siot}
 }
 

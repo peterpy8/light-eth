@@ -28,7 +28,7 @@ import (
 	"github.com/siotchain/siot/miner"
 	"github.com/siotchain/siot/context"
 	"github.com/siotchain/siot/net/p2p"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/net/rpc"
 )
 
@@ -46,7 +46,7 @@ var (
 )
 
 type Config struct {
-	ChainConfig *params.ChainConfig // chain configuration
+	ChainConfig *configure.ChainConfig // chain configuration
 
 	NetworkId  int    // Network ID to use for selecting peers to connect to
 	Genesis    string // Genesis JSON to seed the chain database with
@@ -93,7 +93,7 @@ type LesServer interface {
 
 // Siotchain implements the Siotchain full node service.
 type Siotchain struct {
-	chainConfig *params.ChainConfig
+	chainConfig *configure.ChainConfig
 	// Channel for shutting down the service
 	shutdownChan  chan bool // Channel for shutting down the Siotchain
 	stopDbUpgrade func()    // stop chain db sequential key upgrade

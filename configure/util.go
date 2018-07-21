@@ -1,4 +1,4 @@
-package params
+package configure
 
 import (
 	"math/big"

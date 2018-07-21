@@ -12,7 +12,7 @@ import (
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/subscribe"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
 )
@@ -45,7 +45,7 @@ type Backend interface {
 	Stats() (pending int, queued int)
 	TxPoolContent() (map[helper.Address]types.Transactions, map[helper.Address]types.Transactions)
 
-	ChainConfig() *params.ChainConfig
+	ChainConfig() *configure.ChainConfig
 	CurrentBlock() *types.Block
 }
 

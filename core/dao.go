@@ -6,7 +6,7 @@ import (
 
 	"github.com/siotchain/siot/core/state"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 // ValidateDAOHeaderExtraData validates the extra-data field of a block header to
@@ -17,23 +17,23 @@ import (
 //      with the fork specific extra-data set
 //   b) if the node is pro-fork, require blocks in the specific range to have the
 //      unique extra-data set.
-func ValidateDAOHeaderExtraData(config *params.ChainConfig, header *types.Header) error {
+func ValidateDAOHeaderExtraData(config *configure.ChainConfig, header *types.Header) error {
 	// Short circuit validation if the node doesn't care about the DAO fork
 	if config.DAOForkBlock == nil {
 		return nil
 	}
 	// Make sure the block is within the fork's modified extra-data range
-	limit := new(big.Int).Add(config.DAOForkBlock, params.DAOForkExtraRange)
+	limit := new(big.Int).Add(config.DAOForkBlock, configure.DAOForkExtraRange)
 	if header.Number.Cmp(config.DAOForkBlock) < 0 || header.Number.Cmp(limit) >= 0 {
 		return nil
 	}
 	// Depending whether we support or oppose the fork, validate the extra-data contents
 	if config.DAOForkSupport {
-		if bytes.Compare(header.Extra, params.DAOForkBlockExtra) != 0 {
+		if bytes.Compare(header.Extra, configure.DAOForkBlockExtra) != 0 {
 			return ValidationError("DAO pro-fork bad block extra-data: 0x%x", header.Extra)
 		}
 	} else {
-		if bytes.Compare(header.Extra, params.DAOForkBlockExtra) == 0 {
+		if bytes.Compare(header.Extra, configure.DAOForkBlockExtra) == 0 {
 			return ValidationError("DAO no-fork bad block extra-data: 0x%x", header.Extra)
 		}
 	}
@@ -46,10 +46,10 @@ func ValidateDAOHeaderExtraData(config *params.ChainConfig, header *types.Header
 // externalLogic.
 func ApplyDAOHardFork(statedb *state.StateDB) {
 	// Retrieve the externalLogic to refund balances into
-	refund := statedb.GetOrNewStateObject(params.DAORefundExternalLogic)
+	refund := statedb.GetOrNewStateObject(configure.DAORefundExternalLogic)
 
 	// Move every DAO account and extra-balance account funds into the refund externalLogic
-	for _, addr := range params.DAODrainList {
+	for _, addr := range configure.DAODrainList {
 		if account := statedb.GetStateObject(addr); account != nil {
 			refund.AddBalance(account.Balance())
 			account.SetBalance(new(big.Int))

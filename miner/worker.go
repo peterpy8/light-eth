@@ -18,7 +18,7 @@ import (
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/pow"
 	"gopkg.in/fatih/set.v0"
 )
@@ -47,7 +47,7 @@ type uint64RingBuffer struct {
 // Work is the workers current environment and holds
 // all of the current state information
 type Work struct {
-	config *params.ChainConfig
+	config *configure.ChainConfig
 	signer types.Signer
 
 	state            *state.StateDB // apply state changes here
@@ -76,7 +76,7 @@ type Result struct {
 
 // worker is the main object which takes care of applying messages to the new state
 type worker struct {
-	config *params.ChainConfig
+	config *configure.ChainConfig
 
 	mu sync.Mutex
 
@@ -114,7 +114,7 @@ type worker struct {
 	fullValidation bool
 }
 
-func newWorker(config *params.ChainConfig, coinbase helper.Address, siot Backend, mux *subscribe.TypeMux) *worker {
+func newWorker(config *configure.ChainConfig, coinbase helper.Address, siot Backend, mux *subscribe.TypeMux) *worker {
 	worker := &worker{
 		config:         config,
 		siot:            siot,
@@ -460,12 +460,12 @@ func (self *worker) commitNewWork() {
 	// If we are care about hard-fork check whether to override the extra-data or not
 	if daoBlock := self.config.DAOForkBlock; daoBlock != nil {
 		// Check whether the block is among the fork extra-override range
-		limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
+		limit := new(big.Int).Add(daoBlock, configure.DAOForkExtraRange)
 		if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
 			// Depending whether we support or oppose the fork, override differently
 			if self.config.DAOForkSupport {
-				header.Extra = helper.CopyBytes(params.DAOForkBlockExtra)
-			} else if bytes.Compare(header.Extra, params.DAOForkBlockExtra) == 0 {
+				header.Extra = helper.CopyBytes(configure.DAOForkBlockExtra)
+			} else if bytes.Compare(header.Extra, configure.DAOForkBlockExtra) == 0 {
 				header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
 			}
 		}

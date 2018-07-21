@@ -8,7 +8,7 @@ import (
 
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/crypto"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 var ErrInvalidChainId = errors.New("invalid chaid id for signer")
@@ -21,7 +21,7 @@ type sigCache struct {
 }
 
 // MakeSigner returns a Signer based on the given chain config and block number.
-func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
+func MakeSigner(config *configure.ChainConfig, blockNumber *big.Int) Signer {
 	var signer Signer
 	switch {
 	case config.IsEIP155(blockNumber):

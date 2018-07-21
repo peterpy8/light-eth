@@ -6,14 +6,14 @@ import (
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/crypto"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 // Call executes within the given externalLogic
 func Call(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
-	if env.Depth() > int(params.CallCreateDepth.Int64()) {
+	if env.Depth() > int(configure.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 
 		return nil, localEnv.DepthError
@@ -65,7 +65,7 @@ func Call(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helpe
 func CallCode(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
-	if env.Depth() > int(params.CallCreateDepth.Int64()) {
+	if env.Depth() > int(configure.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 
 		return nil, localEnv.DepthError
@@ -101,7 +101,7 @@ func CallCode(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr h
 func Create(env localEnv.Environment, caller localEnv.ExternalLogicRef, code []byte, gas, gasPrice, value *big.Int) (ret []byte, address helper.Address, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
-	if env.Depth() > int(params.CallCreateDepth.Int64()) {
+	if env.Depth() > int(configure.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 
 		return nil, helper.Address{}, localEnv.DepthError
@@ -136,14 +136,14 @@ func Create(env localEnv.Environment, caller localEnv.ExternalLogicRef, code []b
 
 	//ret, err = env.Vm().Run(externalLogic, nil)
 	// check whether the max code size has been exceeded
-	maxCodeSizeExceeded := len(ret) > params.MaxCodeSize
+	maxCodeSizeExceeded := len(ret) > configure.MaxCodeSize
 	// if the externalLogic creation ran successfully and no errors were returned
 	// calculate the gas required to store the code. If the code could not
 	// be stored due to not enough gas set an error and let it be handled
 	// by the error checking condition below.
 	if err == nil && !maxCodeSizeExceeded {
 		dataGas := big.NewInt(int64(len(ret)))
-		dataGas.Mul(dataGas, params.CreateDataGas)
+		dataGas.Mul(dataGas, configure.CreateDataGas)
 		if externalLogic.UseGas(dataGas) {
 			env.Db().SetCode(addr, ret)
 		} else {
@@ -171,7 +171,7 @@ func Create(env localEnv.Environment, caller localEnv.ExternalLogicRef, code []b
 func DelegateCall(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
-	if env.Depth() > int(params.CallCreateDepth.Int64()) {
+	if env.Depth() > int(configure.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 		return nil, localEnv.DepthError
 	}

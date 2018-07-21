@@ -7,7 +7,7 @@ import (
 
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/helper/rlp"
 )
 
@@ -35,8 +35,8 @@ func MakeDefaultExtraData(clientIdentifier string) []byte {
 	if err != nil {
 		glog.V(logger.Warn).Infoln("error setting canonical miner information:", err)
 	}
-	if uint64(len(extra)) > params.MaximumExtraDataSize.Uint64() {
-		glog.V(logger.Warn).Infoln("error setting canonical miner information: extra exceeds", params.MaximumExtraDataSize)
+	if uint64(len(extra)) > configure.MaximumExtraDataSize.Uint64() {
+		glog.V(logger.Warn).Infoln("error setting canonical miner information: extra exceeds", configure.MaximumExtraDataSize)
 		glog.V(logger.Debug).Infof("extra: %x\n", extra)
 		return nil
 	}

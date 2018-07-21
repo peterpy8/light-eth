@@ -25,7 +25,7 @@ type jsonRequest struct {
 	Method  string          `json:"method"`
 	Version string          `json:"jsonrpc"`
 	Id      json.RawMessage `json:"id,omitempty"`
-	Payload json.RawMessage `json:"params,omitempty"`
+	Payload json.RawMessage `json:"configure,omitempty"`
 }
 
 type jsonSuccessResponse struct {
@@ -54,7 +54,7 @@ type jsonSubscription struct {
 type jsonNotification struct {
 	Version string           `json:"jsonrpc"`
 	Method  string           `json:"method"`
-	Params  jsonSubscription `json:"params"`
+	Params  jsonSubscription `json:"configure"`
 }
 
 // jsonCodec reads and writes JSON-RPC messages to the underlying connection. It
@@ -240,11 +240,11 @@ func parseBatchRequest(incomingMsg json.RawMessage) ([]rpcRequest, bool, Error) 
 	return requests, true, nil
 }
 
-// ParseRequestArguments tries to parse the given params (json.RawMessage) with the given types. It returns the parsed
+// ParseRequestArguments tries to parse the given configure (json.RawMessage) with the given types. It returns the parsed
 // values or an error when the parsing failed.
 func (c *jsonCodec) ParseRequestArguments(argTypes []reflect.Type, params interface{}) ([]reflect.Value, Error) {
 	if args, ok := params.(json.RawMessage); !ok {
-		return nil, &invalidParamsError{"Invalid params supplied"}
+		return nil, &invalidParamsError{"Invalid configure supplied"}
 	} else {
 		return parsePositionalArguments(args, argTypes)
 	}
@@ -264,10 +264,10 @@ func parsePositionalArguments(args json.RawMessage, callbackArgs []reflect.Type)
 	}
 
 	if len(params) > len(callbackArgs) {
-		return nil, &invalidParamsError{fmt.Sprintf("too many params, want %d got %d", len(callbackArgs), len(params))}
+		return nil, &invalidParamsError{fmt.Sprintf("too many configure, want %d got %d", len(callbackArgs), len(params))}
 	}
 
-	// assume missing params are null values
+	// assume missing configure are null values
 	for i := len(params); i < len(callbackArgs); i++ {
 		params = append(params, nil)
 	}
@@ -276,7 +276,7 @@ func parsePositionalArguments(args json.RawMessage, callbackArgs []reflect.Type)
 	for i, p := range params {
 		// verify that JSON null values are only supplied for optional arguments (ptr types)
 		if p == nil && callbackArgs[i].Kind() != reflect.Ptr {
-			return nil, &invalidParamsError{fmt.Sprintf("invalid or missing value for params[%d]", i)}
+			return nil, &invalidParamsError{fmt.Sprintf("invalid or missing value for configure[%d]", i)}
 		}
 		if p == nil {
 			argValues[i] = reflect.Zero(callbackArgs[i])
@@ -308,7 +308,7 @@ func (c *jsonCodec) CreateErrorResponseWithInfo(id interface{}, err Error, info 
 		Error: jsonError{Code: err.ErrorCode(), Message: err.Error(), Data: info}}
 }
 
-// CreateNotification will create a JSON-RPC notification with the given subscription id and subscribe as params.
+// CreateNotification will create a JSON-RPC notification with the given subscription id and subscribe as configure.
 func (c *jsonCodec) CreateNotification(subid string, event interface{}) interface{} {
 	if isHexNum(reflect.TypeOf(event)) {
 		return &jsonNotification{Version: jsonrpcVersion, Method: notificationMethod,

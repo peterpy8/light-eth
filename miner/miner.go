@@ -16,7 +16,7 @@ import (
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/pow"
 )
 
@@ -46,7 +46,7 @@ type Miner struct {
 	shouldStart int32 // should start indicates whether we should start after sync
 }
 
-func New(siot Backend, config *params.ChainConfig, mux *subscribe.TypeMux, pow pow.PoW) *Miner {
+func New(siot Backend, config *configure.ChainConfig, mux *subscribe.TypeMux, pow pow.PoW) *Miner {
 	miner := &Miner{
 		siot:      siot,
 		mux:      mux,
@@ -157,8 +157,8 @@ func (self *Miner) HashRate() (tot int64) {
 }
 
 func (self *Miner) SetExtra(extra []byte) error {
-	if uint64(len(extra)) > params.MaximumExtraDataSize.Uint64() {
-		return fmt.Errorf("Extra exceeds max length. %d > %v", len(extra), params.MaximumExtraDataSize)
+	if uint64(len(extra)) > configure.MaximumExtraDataSize.Uint64() {
+		return fmt.Errorf("Extra exceeds max length. %d > %v", len(extra), configure.MaximumExtraDataSize)
 	}
 
 	self.worker.extra = extra

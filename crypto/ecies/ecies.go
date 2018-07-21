@@ -47,7 +47,7 @@ var (
 	ErrInvalidParams              = fmt.Errorf("ecies: invalid ECIES parameters")
 	ErrInvalidPublicKey           = fmt.Errorf("ecies: invalid public key")
 	ErrSharedKeyIsPointAtInfinity = fmt.Errorf("ecies: shared key is point at infinity")
-	ErrSharedKeyTooBig            = fmt.Errorf("ecies: shared key params are too big")
+	ErrSharedKeyTooBig            = fmt.Errorf("ecies: shared key configure are too big")
 )
 
 // PublicKey is a representation of an elliptic curve public key.
@@ -92,7 +92,7 @@ func ImportECDSA(prv *ecdsa.PrivateKey) *PrivateKey {
 	return &PrivateKey{*pub, prv.D}
 }
 
-// Generate an elliptic curve public / private keypair. If params is nil,
+// Generate an elliptic curve public / private keypair. If configure is nil,
 // the recommended default paramters for the key will be chosen.
 func GenerateKey(rand io.Reader, curve elliptic.Curve, params *ECIESParams) (prv *PrivateKey, err error) {
 	pb, x, y, err := elliptic.GenerateKey(curve, rand)

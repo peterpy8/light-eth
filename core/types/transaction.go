@@ -12,7 +12,7 @@ import (
 
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/crypto"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/helper/rlp"
 )
 
@@ -100,7 +100,7 @@ func newTransaction(nonce uint64, to *helper.Address, amount, gasLimit, gasPrice
 	return &Transaction{data: d}
 }
 
-func pickSigner(rules params.Rules) Signer {
+func pickSigner(rules configure.Rules) Signer {
 	var signer Signer
 	switch {
 	case rules.IsEIP155:

@@ -13,7 +13,7 @@ import (
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 	"github.com/siotchain/siot/helper/rlp"
 )
 
@@ -588,7 +588,7 @@ func WriteBlockChainVersion(db database.Database, vsn int) {
 }
 
 // WriteChainConfig writes the chain config settings to the database.
-func WriteChainConfig(db database.Database, hash helper.Hash, cfg *params.ChainConfig) error {
+func WriteChainConfig(db database.Database, hash helper.Hash, cfg *configure.ChainConfig) error {
 	// short circuit and ignore if nil config. GetChainConfig
 	// will return a default.
 	if cfg == nil {
@@ -604,13 +604,13 @@ func WriteChainConfig(db database.Database, hash helper.Hash, cfg *params.ChainC
 }
 
 // GetChainConfig will fetch the network settings based on the given hash.
-func GetChainConfig(db database.Database, hash helper.Hash) (*params.ChainConfig, error) {
+func GetChainConfig(db database.Database, hash helper.Hash) (*configure.ChainConfig, error) {
 	jsonChainConfig, _ := db.Get(append(configPrefix, hash[:]...))
 	if len(jsonChainConfig) == 0 {
 		return nil, ChainConfigNotFoundErr
 	}
 
-	var config params.ChainConfig
+	var config configure.ChainConfig
 	if err := json.Unmarshal(jsonChainConfig, &config); err != nil {
 		return nil, err
 	}

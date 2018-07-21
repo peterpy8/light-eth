@@ -8,7 +8,7 @@ import (
 	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 var (
@@ -68,9 +68,9 @@ func MessageCreatesExternalLogic(msg Message) bool {
 func IntrinsicGas(data []byte, externalLogicCreation, homestead bool) *big.Int {
 	igas := new(big.Int)
 	if externalLogicCreation && homestead {
-		igas.Set(params.TxGasExternalLogicCreation)
+		igas.Set(configure.TxGasExternalLogicCreation)
 	} else {
-		igas.Set(params.TxGas)
+		igas.Set(configure.TxGas)
 	}
 	if len(data) > 0 {
 		var nz int64
@@ -80,10 +80,10 @@ func IntrinsicGas(data []byte, externalLogicCreation, homestead bool) *big.Int {
 			}
 		}
 		m := big.NewInt(nz)
-		m.Mul(m, params.TxDataNonZeroGas)
+		m.Mul(m, configure.TxDataNonZeroGas)
 		igas.Add(igas, m)
 		m.SetInt64(int64(len(data)) - nz)
-		m.Mul(m, params.TxDataZeroGas)
+		m.Mul(m, configure.TxDataZeroGas)
 		igas.Add(igas, m)
 	}
 	return igas

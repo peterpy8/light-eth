@@ -4,14 +4,14 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 // Environment is an EVM requirement and helper which allows access to outside
 // information such as states.
 type Environment interface {
 	// The current ruleset
-	ChainConfig() *params.ChainConfig
+	ChainConfig() *configure.ChainConfig
 	// The state database
 	Db() Database
 	// Creates a restorable snapshot

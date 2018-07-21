@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/params"
+	"github.com/siotchain/siot/configure"
 )
 
 // Type is the VM type accepted by **NewVm**
@@ -49,13 +49,13 @@ func quadMemGas(mem *Memory, newMemSize, gas *big.Int) {
 			// The order has been optimised to reduce allocation
 			oldSize := toWordSize(big.NewInt(int64(mem.Len())))
 			pow := new(big.Int).Exp(oldSize, helper.Big2, Zero)
-			linCoef := oldSize.Mul(oldSize, params.MemoryGas)
-			quadCoef := new(big.Int).Div(pow, params.QuadCoeffDiv)
+			linCoef := oldSize.Mul(oldSize, configure.MemoryGas)
+			quadCoef := new(big.Int).Div(pow, configure.QuadCoeffDiv)
 			oldTotalFee := new(big.Int).Add(linCoef, quadCoef)
 
 			pow.Exp(newMemSizeWords, helper.Big2, Zero)
-			linCoef = linCoef.Mul(newMemSizeWords, params.MemoryGas)
-			quadCoef = quadCoef.Div(pow, params.QuadCoeffDiv)
+			linCoef = linCoef.Mul(newMemSizeWords, configure.MemoryGas)
+			quadCoef = quadCoef.Div(pow, configure.QuadCoeffDiv)
 			newTotalFee := linCoef.Add(linCoef, quadCoef)
 
 			fee := newTotalFee.Sub(newTotalFee, oldTotalFee)

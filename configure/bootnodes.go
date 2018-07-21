@@ -1,4 +1,4 @@
-package params
+package configure
 
 import (
 	"github.com/siotchain/siot/net/p2p/discover"

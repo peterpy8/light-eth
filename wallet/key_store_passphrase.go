@@ -274,7 +274,7 @@ func getKDFKey(cryptoJSON cryptoJSON, auth string) ([]byte, error) {
 }
 
 // TODO: can we do without this when unmarshalling dynamic JSON?
-// why do integers in KDF configure end up as float64 and not int after
+// why do integers in KDF params end up as float64 and not int after
 // unmarshal?
 func ensureInt(x interface{}) int {
 	res, ok := x.(int)

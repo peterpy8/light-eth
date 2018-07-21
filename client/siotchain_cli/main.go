@@ -174,7 +174,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 			fmt.Printf("%s\n", b)
 
 		} else {
-			fmt.Println("incorrect format: getnodeinfo has no configure")
+			fmt.Println("incorrect format: getnodeinfo has no params")
 		}
 	case chunks[0] == "getnodeid":
 		if numofparams == requestmap["getnodeid"] {
@@ -186,7 +186,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 			fmt.Printf("%s\n", result.ID)
 
 		} else {
-			fmt.Println("incorrect format: getnodeinfo has no configure")
+			fmt.Println("incorrect format: getnodeinfo has no params")
 		}
 	case chunks[0] == "getaccounts":
 		if numofparams == requestmap["getaccounts"] {

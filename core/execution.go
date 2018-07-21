@@ -4,19 +4,19 @@ import (
 	"math/big"
 
 	"github.com/siotchain/siot/helper"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/params"
 )
 
 // Call executes within the given externalLogic
-func Call(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
+func Call(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 
-		return nil, vm.DepthError
+		return nil, localEnv.DepthError
 	}
 	if !env.CanTransfer(caller.Address(), value) {
 		caller.ReturnGas(gas, gasPrice)
@@ -26,11 +26,11 @@ func Call(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, i
 
 	snapshotPreTransfer := env.SnapshotDatabase()
 	var (
-		from = env.Db().GetAccount(caller.Address())
-		to   vm.Account
+		from  = env.Db().GetAccount(caller.Address())
+		to   localEnv.Account
 	)
 	if !env.Db().Exist(addr) {
-		if vm.Precompiled[addr.Str()] == nil && env.ChainConfig().IsEIP158(env.BlockNumber()) && value.BitLen() == 0 {
+		if localEnv.Precompiled[addr.Str()] == nil && env.ChainConfig().IsEIP158(env.BlockNumber()) && value.BitLen() == 0 {
 			caller.ReturnGas(gas, gasPrice)
 			return nil, nil
 		}
@@ -44,7 +44,7 @@ func Call(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, i
 	// initialise a new externalLogic and set the code that is to be used by the
 	// EVM. The externalLogic is a scoped environment for this execution context
 	// only.
-	externalLogic := vm.NewExternalLogic(caller, to, value, gas, gasPrice)
+	externalLogic := localEnv.NewExternalLogic(caller, to, value, gas, gasPrice)
 	//externalLogic.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
 	defer externalLogic.Finalise()
 
@@ -62,13 +62,13 @@ func Call(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, i
 }
 
 // CallCode executes the given address' code as the given externalLogic address
-func CallCode(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
+func CallCode(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice, value *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 
-		return nil, vm.DepthError
+		return nil, localEnv.DepthError
 	}
 	if !env.CanTransfer(caller.Address(), value) {
 		caller.ReturnGas(gas, gasPrice)
@@ -83,7 +83,7 @@ func CallCode(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Addres
 	// initialise a new externalLogic and set the code that is to be used by the
 	// EVM. The externalLogic is a scoped environment for this execution context
 	// only.
-	externalLogic := vm.NewExternalLogic(caller, to, value, gas, gasPrice)
+	externalLogic := localEnv.NewExternalLogic(caller, to, value, gas, gasPrice)
 	//externalLogic.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
 	defer externalLogic.Finalise()
 
@@ -98,13 +98,13 @@ func CallCode(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Addres
 }
 
 // Create creates a new externalLogic with the given code
-func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, gasPrice, value *big.Int) (ret []byte, address helper.Address, err error) {
+func Create(env localEnv.Environment, caller localEnv.ExternalLogicRef, code []byte, gas, gasPrice, value *big.Int) (ret []byte, address helper.Address, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
 
-		return nil, helper.Address{}, vm.DepthError
+		return nil, helper.Address{}, localEnv.DepthError
 	}
 	if !env.CanTransfer(caller.Address(), value) {
 		caller.ReturnGas(gas, gasPrice)
@@ -130,7 +130,7 @@ func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, ga
 	// initialise a new externalLogic and set the code that is to be used by the
 	// EVM. The externalLogic is a scoped environment for this execution context
 	// only.
-	externalLogic := vm.NewExternalLogic(caller, to, value, gas, gasPrice)
+	externalLogic := localEnv.NewExternalLogic(caller, to, value, gas, gasPrice)
 	//externalLogic.SetCallCode(&addr, crypto.Keccak256Hash(code), code)
 	defer externalLogic.Finalise()
 
@@ -147,7 +147,7 @@ func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, ga
 		if externalLogic.UseGas(dataGas) {
 			env.Db().SetCode(addr, ret)
 		} else {
-			err = vm.CodeStoreOutOfGasError
+			err = localEnv.CodeStoreOutOfGasError
 		}
 	}
 
@@ -155,7 +155,7 @@ func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, ga
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
 	if maxCodeSizeExceeded ||
-		(err != nil && (env.ChainConfig().IsHomestead(env.BlockNumber()) || err != vm.CodeStoreOutOfGasError)) {
+		(err != nil && (env.ChainConfig().IsHomestead(env.BlockNumber()) || err != localEnv.CodeStoreOutOfGasError)) {
 		externalLogic.UseGas(externalLogic.Gas)
 		env.RevertToSnapshot(snapshotPreTransfer)
 
@@ -168,12 +168,12 @@ func Create(env vm.Environment, caller vm.ExternalLogicRef, code []byte, gas, ga
 }
 
 // DelegateCall is equivalent to CallCode except that sender and value propagates from parent scope to child scope
-func DelegateCall(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice *big.Int) (ret []byte, err error) {
+func DelegateCall(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helper.Address, input []byte, gas, gasPrice *big.Int) (ret []byte, err error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if env.Depth() > int(params.CallCreateDepth.Int64()) {
 		caller.ReturnGas(gas, gasPrice)
-		return nil, vm.DepthError
+		return nil, localEnv.DepthError
 	}
 
 	var (
@@ -182,7 +182,7 @@ func DelegateCall(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Ad
 	)
 
 	// Iinitialise a new externalLogic and make initialise the delegate values
-	externalLogic := vm.NewExternalLogic(caller, to, caller.Value(), gas, gasPrice).AsDelegate()
+	externalLogic := localEnv.NewExternalLogic(caller, to, caller.Value(), gas, gasPrice).AsDelegate()
 	//externalLogic.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
 	defer externalLogic.Finalise()
 
@@ -198,7 +198,7 @@ func DelegateCall(env vm.Environment, caller vm.ExternalLogicRef, addr helper.Ad
 }
 
 // generic transfer method
-func Transfer(from, to vm.Account, amount *big.Int) {
+func Transfer(from, to localEnv.Account, amount *big.Int) {
 	from.SubBalance(amount)
 	to.AddBalance(amount)
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/siotchain/siot/core/state"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/logger"
 	"github.com/siotchain/siot/logger/glog"
@@ -41,14 +41,14 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain) *StateProcess
 // Process returns the receipts and logs accumulated during the process and
 // returns the amount of gas that was used in the process. If any of the
 // transactions failed to execute due to insufficient gas it will return an error.
-func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB) (types.Receipts, vm.Logs, *big.Int, error) {
+func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB) (types.Receipts, localEnv.Logs, *big.Int, error) {
 	var (
 		receipts     types.Receipts
-		totalUsedGas = big.NewInt(0)
+		totalUsedGas  = big.NewInt(0)
 		err          error
-		header       = block.Header()
-		allLogs      vm.Logs
-		gp           = new(GasPool).AddGas(block.GasLimit())
+		header              = block.Header()
+		allLogs      localEnv.Logs
+		gp                      = new(GasPool).AddGas(block.GasLimit())
 	)
 	// Mutate the the block and state according to any hard-fork specs
 	if p.config.DAOForkSupport && p.config.DAOForkBlock != nil && p.config.DAOForkBlock.Cmp(block.Number()) == 0 {
@@ -72,9 +72,9 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB) (ty
 // ApplyTransaction attempts to apply a transaction to the given state database
 // and uses the input parameters for its environment.
 //
-// ApplyTransactions returns the generated receipts and vm logs during the
+// ApplyTransactions returns the generated receipts and localEnv logs during the
 // execution of the state transition phase.
-func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *big.Int) (*types.Receipt, vm.Logs, *big.Int, error) {
+func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *big.Int) (*types.Receipt, localEnv.Logs, *big.Int, error) {
 	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
 	if err != nil {
 		return nil, nil, nil, err

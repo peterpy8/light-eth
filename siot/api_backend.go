@@ -8,7 +8,7 @@ import (
 	"github.com/siotchain/siot/core"
 	"github.com/siotchain/siot/core/state"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/siot/downloader"
 	"github.com/siotchain/siot/siot/gasprice"
 	"github.com/siotchain/siot/database"
@@ -90,7 +90,7 @@ func (b *SiotApiBackend) GetTd(blockHash helper.Hash) *big.Int {
 	return b.siot.blockchain.GetTdByHash(blockHash)
 }
 
-func (b *SiotApiBackend) GetLocalEnv(ctx context.Context, msg core.Message, state siotapi.State, header *types.Header) (vm.Environment, func() error, error) {
+func (b *SiotApiBackend) GetLocalEnv(ctx context.Context, msg core.Message, state siotapi.State, header *types.Header) (localEnv.Environment, func() error, error) {
 	statedb := state.(SiotApiState).state
 	from := statedb.GetOrNewStateObject(msg.From())
 	from.SetBalance(helper.MaxBig)

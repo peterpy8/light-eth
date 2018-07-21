@@ -12,7 +12,7 @@ import (
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/core"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/subscribe"
 	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
@@ -40,10 +40,10 @@ var (
 	ErrInvalidSubscriptionID = errors.New("invalid id")
 )
 
-// Log is a helper that can hold additional information about vm.Log
+// Log is a helper that can hold additional information about localEnv.Log
 // necessary for the RPC interface.
 type Log struct {
-	*vm.Log
+	*localEnv.Log
 	Removed bool `json:"removed"`
 }
 
@@ -231,7 +231,7 @@ func (es *EventSystem) broadcast(filters filterIndex, ev *subscribe.Event) {
 	}
 
 	switch e := ev.Data.(type) {
-	case vm.Logs:
+	case localEnv.Logs:
 		if len(e) > 0 {
 			for _, f := range filters[LogsSubscription] {
 				if ev.Time.After(f.created) {
@@ -346,7 +346,7 @@ func (es *EventSystem) lightFilterLogs(header *types.Header, addresses []helper.
 func (es *EventSystem) eventLoop() {
 	var (
 		index = make(filterIndex)
-		sub   = es.mux.Subscribe(core.PendingLogsEvent{}, core.RemovedLogsEvent{}, vm.Logs{}, core.TxPreEvent{}, core.ChainEvent{})
+		sub   = es.mux.Subscribe(core.PendingLogsEvent{}, core.RemovedLogsEvent{}, localEnv.Logs{}, core.TxPreEvent{}, core.ChainEvent{})
 	)
 	for {
 		select {
@@ -368,8 +368,8 @@ func (es *EventSystem) eventLoop() {
 	}
 }
 
-// convertLogs is a helper utility that converts vm.Logs to []filter.Log.
-func convertLogs(in vm.Logs, removed bool) []Log {
+// convertLogs is a helper utility that converts localEnv.Logs to []filter.Log.
+func convertLogs(in localEnv.Logs, removed bool) []Log {
 	logs := make([]Log, len(in))
 	for i, l := range in {
 		logs[i] = Log{l, removed}

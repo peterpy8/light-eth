@@ -343,7 +343,7 @@ func (self *StateObject) Nonce() uint64 {
 }
 
 // Never called, but must be present to allow StateObject to be used
-// as a vm.Account interface that also satisfies the vm.ExternalLogicRef
+// as a localEnv.Account interface that also satisfies the localEnv.ExternalLogicRef
 // interface. Interfaces are awesome.
 func (self *StateObject) Value() *big.Int {
 	panic("Value on StateObject should never be called")

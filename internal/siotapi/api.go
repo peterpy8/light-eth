@@ -14,7 +14,7 @@ import (
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/core"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/crypto"
 	"github.com/siotchain/siot/database"
 	"github.com/siotchain/siot/logger"
@@ -580,7 +580,7 @@ type StructLogRes struct {
 }
 
 // formatLogs formats Siotchain returned structured logs for json output
-func FormatLogs(structLogs []vm.StructLog) []StructLogRes {
+func FormatLogs(structLogs []localEnv.StructLog) []StructLogRes {
 	formattedStructLogs := make([]StructLogRes, len(structLogs))
 	for index, trace := range structLogs {
 		formattedStructLogs[index] = StructLogRes{
@@ -957,7 +957,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(txHash helper.Hash) (ma
 		"logsBloom":         receipt.Bloom,
 	}
 	if receipt.Logs == nil {
-		fields["logs"] = []vm.Logs{}
+		fields["logs"] = []localEnv.Logs{}
 	}
 	// If the ExternalLogicAddress is 20 0x0 bytes, assume it is not a externalLogic creation
 	if receipt.ExternalLogicAddress != (helper.Address{}) {

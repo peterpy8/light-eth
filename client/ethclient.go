@@ -9,7 +9,7 @@ import (
 	"github.com/siotchain/siot"
 	"github.com/siotchain/siot/helper"
 	"github.com/siotchain/siot/core/types"
-	"github.com/siotchain/siot/core/vm"
+	"github.com/siotchain/siot/core/localEnv"
 	"github.com/siotchain/siot/helper/rlp"
 	"github.com/siotchain/siot/net/rpc"
 	"golang.org/x/net/context"
@@ -326,14 +326,14 @@ func (ec *Client) NonceAt(ctx context.Context, account helper.Address, blockNumb
 // Filters
 
 // FilterLogs executes a filter query.
-func (ec *Client) FilterLogs(ctx context.Context, q siotchain.FilterQuery) ([]vm.Log, error) {
-	var result []vm.Log
+func (ec *Client) FilterLogs(ctx context.Context, q siotchain.FilterQuery) ([]localEnv.Log, error) {
+	var result []localEnv.Log
 	err := ec.c.CallContext(ctx, &result, "siot_getLogs", toFilterArg(q))
 	return result, err
 }
 
 // SubscribeFilterLogs subscribes to the results of a streaming filter query.
-func (ec *Client) SubscribeFilterLogs(ctx context.Context, q siotchain.FilterQuery, ch chan<- vm.Log) (siotchain.Subscription, error) {
+func (ec *Client) SubscribeFilterLogs(ctx context.Context, q siotchain.FilterQuery, ch chan<- localEnv.Log) (siotchain.Subscription, error) {
 	return ec.c.SiotSubscribe(ctx, ch, "logs", toFilterArg(q))
 }
 

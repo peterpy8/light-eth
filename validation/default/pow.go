@@ -1,4 +1,4 @@
-package ezp
+package _default
 
 import (
 	"encoding/binary"

@@ -255,7 +255,7 @@ func initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remoteID d
 	if err != nil {
 		return s, err
 	}
-	authPacket, err := sealEIP8(authMsg, h)
+	authPacket, err := sealSiotImpr(authMsg, h)
 	if err != nil {
 		return s, err
 	}
@@ -341,7 +341,7 @@ func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, token []byt
 	if authMsg.gotPlain {
 		authRespPacket, err = authRespMsg.sealPlain(h)
 	} else {
-		authRespPacket, err = sealEIP8(authRespMsg, h)
+		authRespPacket, err = sealSiotImpr(authRespMsg, h)
 	}
 	if err != nil {
 		return s, err
@@ -433,13 +433,13 @@ func (msg *authRespV4) decodePlain(input []byte) {
 
 var padSpace = make([]byte, 300)
 
-func sealEIP8(msg interface{}, h *encHandshake) ([]byte, error) {
+func sealSiotImpr(msg interface{}, h *encHandshake) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := rlp.Encode(buf, msg); err != nil {
 		return nil, err
 	}
 	// pad with random amount of data. the amount needs to be at least 100 bytes to make
-	// the message distinguishable from pre-EIP-8 handshakes.
+	// the message distinguishable from pre-SiotImpr handshakes.
 	pad := padSpace[:mrand.Intn(len(padSpace)-100)+100]
 	buf.Write(pad)
 	prefix := make([]byte, 2)
@@ -458,13 +458,13 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 	if _, err := io.ReadFull(r, buf); err != nil {
 		return buf, err
 	}
-	// Attempt decoding pre-EIP-8 "plain" format.
+	// Attempt decoding pre-SiotImpr "plain" format.
 	key := ecies.ImportECDSA(prv)
 	if dec, err := key.Decrypt(rand.Reader, buf, nil, nil); err == nil {
 		msg.decodePlain(dec)
 		return buf, nil
 	}
-	// Could be EIP-8 format, try that.
+	// Could be SiotImpr format, try that.
 	prefix := buf[:2]
 	size := binary.BigEndian.Uint16(prefix)
 	if size < uint16(plainSize) {

@@ -423,7 +423,7 @@ func (self *StateDB) createObject(addr helper.Address) (newobj, prev *StateObjec
 // CreateAccount explicitly creates a state object. If a state object with the address
 // already exists the balance is carried over to the new account.
 //
-// CreateAccount is called during the EVM CREATE operation. The situation might arise that
+// CreateAccount is called during the Siotchain Env CREATE operation. The situation might arise that
 // a externalLogic does the following:
 //
 //   1. sends funds to sha(account ++ (nonce + 1))

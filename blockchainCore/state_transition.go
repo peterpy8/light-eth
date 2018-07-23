@@ -107,7 +107,7 @@ func NewStateTransition(env localEnv.Environment, msg Message, gp *GasPool) *Sta
 // ApplyMessage computes the new state by applying the given message
 // against the old state within the environment.
 //
-// ApplyMessage returns the bytes returned by any EVM execution (if it took place),
+// ApplyMessage returns the bytes returned by any Siotchain Env execution (if it took place),
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.

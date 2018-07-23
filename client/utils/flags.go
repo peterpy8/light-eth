@@ -752,32 +752,32 @@ func MakeChainConfigFromDb(ctx *cli.Context, db database.Database) *configure.Ch
 			}
 			config.DAOForkSupport = true
 		}
-		if config.EIP150Block == nil {
+		if config.SiotImpr0Block == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP150Block = configure.TestNetHomesteadGasRepriceBlock
+				config.SiotImpr0Block = configure.TestNetHomesteadGasRepriceBlock
 			} else {
-				config.EIP150Block = configure.MainNetHomesteadGasRepriceBlock
+				config.SiotImpr0Block = configure.MainNetHomesteadGasRepriceBlock
 			}
 		}
-		if config.EIP150Hash == (helper.Hash{}) {
+		if config.SiotImpr0Hash == (helper.Hash{}) {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP150Hash = configure.TestNetHomesteadGasRepriceHash
+				config.SiotImpr0Hash = configure.TestNetHomesteadGasRepriceHash
 			} else {
-				config.EIP150Hash = configure.MainNetHomesteadGasRepriceHash
+				config.SiotImpr0Hash = configure.MainNetHomesteadGasRepriceHash
 			}
 		}
-		if config.EIP155Block == nil {
+		if config.SiotImpr1Block == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP150Block = configure.TestNetSpuriousDragon
+				config.SiotImpr0Block = configure.TestNetSpuriousDragon
 			} else {
-				config.EIP155Block = configure.MainNetSpuriousDragon
+				config.SiotImpr1Block = configure.MainNetSpuriousDragon
 			}
 		}
-		if config.EIP158Block == nil {
+		if config.SiotImpr2Block == nil {
 			if ctx.GlobalBool(TestNetFlag.Name) {
-				config.EIP158Block = configure.TestNetSpuriousDragon
+				config.SiotImpr2Block = configure.TestNetSpuriousDragon
 			} else {
-				config.EIP158Block = configure.MainNetSpuriousDragon
+				config.SiotImpr2Block = configure.MainNetSpuriousDragon
 			}
 		}
 		if config.ChainId.BitLen() == 0 {

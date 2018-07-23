@@ -93,7 +93,7 @@ type TxPool struct {
 func NewTxPool(config *configure.ChainConfig, eventMux *subscribe.TypeMux, currentStateFn stateFn, gasLimitFn func() *big.Int) *TxPool {
 	pool := &TxPool{
 		config:       config,
-		signer:       types.NewEIP155Signer(config.ChainId),
+		signer:       types.NewSiotImpr1Signer(config.ChainId),
 		pending:      make(map[helper.Address]*txList),
 		queue:        make(map[helper.Address]*txList),
 		all:          make(map[helper.Hash]*types.Transaction),
@@ -317,15 +317,6 @@ func (pool *TxPool) add(tx *types.Transaction) error {
 	}
 	pool.enqueueTx(hash, tx)
 
-	// Print a log message if low enough level is set
-	if glog.V(logger.Debug) {
-		rcpt := "[NEW_CONTRACT]"
-		if to := tx.To(); to != nil {
-			rcpt = helper.Bytes2Hex(to[:4])
-		}
-		from, _ := types.Sender(pool.signer, tx) // from already verified during tx validation
-		glog.Infof("(t) 0x%x => %s (%v) %x\n", from[:4], rcpt, tx.Value, hash)
-	}
 	return nil
 }
 

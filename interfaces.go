@@ -83,7 +83,7 @@ type CallMsg struct {
 }
 
 // A ExternalLogicCaller provides externalLogic calls, essentially transactions that are executed by
-// the EVM but not mined into the blockchain. ExternalLogicCall is a low-level method to
+// the Siotchain Env but not mined into the blockchain. ExternalLogicCall is a low-level method to
 // execute such calls. For applications which are structured around specific externalLogics,
 // the abigen tool provides a nicer, properly typed way to perform calls.
 type ExternalLogicCaller interface {

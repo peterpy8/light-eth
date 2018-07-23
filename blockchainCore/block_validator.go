@@ -113,7 +113,7 @@ func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *stat
 	}
 	// Validate the state root against the received state root and throw
 	// an error if they don't match.
-	if root := statedb.IntermediateRoot(v.config.IsEIP158(header.Number)); header.Root != root {
+	if root := statedb.IntermediateRoot(v.config.IsSiotImpr2(header.Number)); header.Root != root {
 		glog.V(logger.Debug).Infof("invalid merkle root: header=%x computed=%x", header.Root, root)
 		return nil
 	}
@@ -237,9 +237,9 @@ func ValidateHeader(config *configure.ChainConfig, pow validation.PoW, header *t
 	if err := ValidateDAOHeaderExtraData(config, header); err != nil {
 		return err
 	}
-	if config.EIP150Block != nil && config.EIP150Block.Cmp(header.Number) == 0 {
-		if config.EIP150Hash != (helper.Hash{}) && config.EIP150Hash != header.Hash() {
-			return ValidationError("Homestead gas reprice fork hash mismatch: have 0x%x, want 0x%x", header.Hash(), config.EIP150Hash)
+	if config.SiotImpr0Block != nil && config.SiotImpr0Block.Cmp(header.Number) == 0 {
+		if config.SiotImpr0Hash != (helper.Hash{}) && config.SiotImpr0Hash != header.Hash() {
+			return ValidationError("Homestead gas reprice fork hash mismatch: have 0x%x, want 0x%x", header.Hash(), config.SiotImpr0Hash)
 		}
 	}
 	return nil

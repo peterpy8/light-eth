@@ -30,7 +30,7 @@ func Call(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helpe
 		to   localEnv.Account
 	)
 	if !env.Db().Exist(addr) {
-		if localEnv.Precompiled[addr.Str()] == nil && env.ChainConfig().IsEIP158(env.BlockNumber()) && value.BitLen() == 0 {
+		if localEnv.Precompiled[addr.Str()] == nil && env.ChainConfig().IsSiotImpr2(env.BlockNumber()) && value.BitLen() == 0 {
 			caller.ReturnGas(gas, gasPrice)
 			return nil, nil
 		}
@@ -42,14 +42,14 @@ func Call(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr helpe
 	env.Transfer(from, to, value)
 
 	// initialise a new externalLogic and set the code that is to be used by the
-	// EVM. The externalLogic is a scoped environment for this execution context
+	// Siotchain Env. The externalLogic is a scoped environment for this execution context
 	// only.
 	externalLogic := localEnv.NewExternalLogic(caller, to, value, gas, gasPrice)
 	//externalLogic.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
 	defer externalLogic.Finalise()
 
 	//ret, err = env.Vm().Run(externalLogic, input)
-	// When an error was returned by the EVM or when setting the creation code
+	// When an error was returned by the Siotchain Env or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
 	if err != nil {
@@ -81,7 +81,7 @@ func CallCode(env localEnv.Environment, caller localEnv.ExternalLogicRef, addr h
 		to                  = env.Db().GetAccount(caller.Address())
 	)
 	// initialise a new externalLogic and set the code that is to be used by the
-	// EVM. The externalLogic is a scoped environment for this execution context
+	// Siotchain Env. The externalLogic is a scoped environment for this execution context
 	// only.
 	externalLogic := localEnv.NewExternalLogic(caller, to, value, gas, gasPrice)
 	//externalLogic.SetCallCode(&addr, env.Db().GetCodeHash(addr), env.Db().GetCode(addr))
@@ -122,13 +122,13 @@ func Create(env localEnv.Environment, caller localEnv.ExternalLogicRef, code []b
 		from = env.Db().GetAccount(caller.Address())
 		to   = env.Db().CreateAccount(addr)
 	)
-	if env.ChainConfig().IsEIP158(env.BlockNumber()) {
+	if env.ChainConfig().IsSiotImpr2(env.BlockNumber()) {
 		env.Db().SetNonce(addr, 1)
 	}
 	env.Transfer(from, to, value)
 
 	// initialise a new externalLogic and set the code that is to be used by the
-	// EVM. The externalLogic is a scoped environment for this execution context
+	// Siotchain Env. The externalLogic is a scoped environment for this execution context
 	// only.
 	externalLogic := localEnv.NewExternalLogic(caller, to, value, gas, gasPrice)
 	//externalLogic.SetCallCode(&addr, crypto.Keccak256Hash(code), code)
@@ -151,7 +151,7 @@ func Create(env localEnv.Environment, caller localEnv.ExternalLogicRef, code []b
 		}
 	}
 
-	// When an error was returned by the EVM or when setting the creation code
+	// When an error was returned by the Siotchain Env or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
 	if maxCodeSizeExceeded ||

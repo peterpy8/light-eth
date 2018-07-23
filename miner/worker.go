@@ -262,7 +262,7 @@ func (self *worker) wait() {
 				}
 				go self.mux.Post(blockchainCore.NewMinedBlockEvent{Block: block})
 			} else {
-				work.state.Commit(self.config.IsEIP158(block.Number()))
+				work.state.Commit(self.config.IsSiotImpr2(block.Number()))
 				parent := self.chain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 				if parent == nil {
 					glog.V(logger.Error).Infoln("Invalid block found during mining")
@@ -349,7 +349,7 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 	}
 	work := &Work{
 		config:    self.config,
-		signer:    types.NewEIP155Signer(self.config.ChainId),
+		signer:    types.NewSiotImpr1Signer(self.config.ChainId),
 		state:     state,
 		ancestors: set.New(),
 		family:    set.New(),
@@ -509,7 +509,7 @@ func (self *worker) commitNewWork() {
 	if atomic.LoadInt32(&self.mining) == 1 {
 		// commit state root after all state transitions.
 		blockchainCore.AccumulateRewards(work.state, header, uncles)
-		header.Root = work.state.IntermediateRoot(self.config.IsEIP158(header.Number))
+		header.Root = work.state.IntermediateRoot(self.config.IsSiotImpr2(header.Number))
 	}
 
 	// create the new block whose nonce will be mined.
@@ -551,11 +551,11 @@ func (env *Work) commitTransactions(mux *subscribe.TypeMux, txs *types.Transacti
 		// Error may be ignored here. The error has already been checked
 		// during transaction acceptance is the transaction pool.
 		//
-		// We use the eip155 signer regardless of the current hf.
+		// We use the SiotImpr1 signer regardless of the current hf.
 		from, _ := types.Sender(env.signer, tx)
-		// Check whether the tx is replay protected. If we're not in the EIP155 hf
+		// Check whether the tx is replay protected. If we're not in the SiotImpr1 hf
 		// phase, start ignoring the sender until we do.
-		if tx.Protected() && !env.config.IsEIP155(env.header.Number) {
+		if tx.Protected() && !env.config.IsSiotImpr1(env.header.Number) {
 			glog.V(logger.Detail).Infof("Transaction (%x) is replay protected, but we haven't yet hardforked. Transaction will be ignored until we hardfork.\n", tx.Hash())
 
 			txs.Pop()

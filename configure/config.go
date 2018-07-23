@@ -11,10 +11,10 @@ var MainnetChainConfig = &ChainConfig{
 	HomesteadBlock: MainNetHomesteadBlock,
 	DAOForkBlock:   MainNetDAOForkBlock,
 	DAOForkSupport: true,
-	EIP150Block:    MainNetHomesteadGasRepriceBlock,
-	EIP150Hash:     MainNetHomesteadGasRepriceHash,
-	EIP155Block:    MainNetSpuriousDragon,
-	EIP158Block:    MainNetSpuriousDragon,
+	SiotImpr0Block: MainNetHomesteadGasRepriceBlock,
+	SiotImpr0Hash:  MainNetHomesteadGasRepriceHash,
+	SiotImpr1Block: MainNetSpuriousDragon,
+	SiotImpr2Block: MainNetSpuriousDragon,
 }
 
 // TestnetChainConfig is the chain parameters to run a node on the test network.
@@ -22,10 +22,10 @@ var TestnetChainConfig = &ChainConfig{
 	HomesteadBlock: TestNetHomesteadBlock,
 	DAOForkBlock:   TestNetDAOForkBlock,
 	DAOForkSupport: false,
-	EIP150Block:    TestNetHomesteadGasRepriceBlock,
-	EIP150Hash:     TestNetHomesteadGasRepriceHash,
-	EIP155Block:    TestNetSpuriousDragon,
-	EIP158Block:    TestNetSpuriousDragon,
+	SiotImpr0Block: TestNetHomesteadGasRepriceBlock,
+	SiotImpr0Hash:  TestNetHomesteadGasRepriceHash,
+	SiotImpr1Block: TestNetSpuriousDragon,
+	SiotImpr2Block: TestNetSpuriousDragon,
 }
 
 // ChainConfig is the core config which determines the blockchain settings.
@@ -41,11 +41,11 @@ type ChainConfig struct {
 	DAOForkSupport bool     `json:"daoForkSupport"` // Whether the nodes supports or opposes the DAO hard-fork
 
 	// EIP150 implements the Gas price changes
-	EIP150Block *big.Int    `json:"eip150Block"` // EIP150 HF block (nil = no fork)
-	EIP150Hash  helper.Hash `json:"eip150Hash"`  // EIP150 HF hash (fast sync aid)
+	SiotImpr0Block *big.Int    `json:"siotImpr0Block"` // SiotImpr0 block
+	SiotImpr0Hash  helper.Hash `json:"siotImpr0Hash"`     // SiotImpr0 hash
 
-	EIP155Block *big.Int `json:"eip155Block"` // EIP155 HF block
-	EIP158Block *big.Int `json:"eip158Block"` // EIP158 HF block
+	SiotImpr1Block *big.Int `json:"siotImpr1Block"` // SiotImpr1 block
+	SiotImpr2Block *big.Int `json:"siotImpr2Block"`    // SiotImpr2 block
 }
 
 var (
@@ -70,36 +70,36 @@ func (c *ChainConfig) GasTable(num *big.Int) GasTable {
 	}
 
 	switch {
-	case c.EIP158Block != nil && num.Cmp(c.EIP158Block) >= 0:
+	case c.SiotImpr2Block != nil && num.Cmp(c.SiotImpr2Block) >= 0:
 		return GasTableEIP158
-	case c.EIP150Block != nil && num.Cmp(c.EIP150Block) >= 0:
+	case c.SiotImpr0Block != nil && num.Cmp(c.SiotImpr0Block) >= 0:
 		return GasTableHomesteadGasRepriceFork
 	default:
 		return GasTableHomestead
 	}
 }
 
-func (c *ChainConfig) IsEIP150(num *big.Int) bool {
-	if c.EIP150Block == nil || num == nil {
+func (c *ChainConfig) IsSiotImpr0(num *big.Int) bool {
+	if c.SiotImpr0Block == nil || num == nil {
 		return false
 	}
-	return num.Cmp(c.EIP150Block) >= 0
+	return num.Cmp(c.SiotImpr0Block) >= 0
 
 }
 
-func (c *ChainConfig) IsEIP155(num *big.Int) bool {
-	if c.EIP155Block == nil || num == nil {
+func (c *ChainConfig) IsSiotImpr1(num *big.Int) bool {
+	if c.SiotImpr1Block == nil || num == nil {
 		return false
 	}
-	return num.Cmp(c.EIP155Block) >= 0
+	return num.Cmp(c.SiotImpr1Block) >= 0
 
 }
 
-func (c *ChainConfig) IsEIP158(num *big.Int) bool {
-	if c.EIP158Block == nil || num == nil {
+func (c *ChainConfig) IsSiotImpr2(num *big.Int) bool {
+	if c.SiotImpr2Block == nil || num == nil {
 		return false
 	}
-	return num.Cmp(c.EIP158Block) >= 0
+	return num.Cmp(c.SiotImpr2Block) >= 0
 
 }
 
@@ -109,10 +109,10 @@ func (c *ChainConfig) IsEIP158(num *big.Int) bool {
 // Rules is a one time interface meaning that it shouldn't be used in between transition
 // phases.
 type Rules struct {
-	ChainId                                   *big.Int
-	IsHomestead, IsEIP150, IsEIP155, IsEIP158 bool
+	ChainId                                            *big.Int
+	IsHomestead, IsSiotImpr0, IsSiotImpr1, IsSiotImpr2 bool
 }
 
 func (c *ChainConfig) Rules(num *big.Int) Rules {
-	return Rules{ChainId: new(big.Int).Set(c.ChainId), IsHomestead: c.IsHomestead(num), IsEIP150: c.IsEIP150(num), IsEIP155: c.IsEIP155(num), IsEIP158: c.IsEIP158(num)}
+	return Rules{ChainId: new(big.Int).Set(c.ChainId), IsHomestead: c.IsHomestead(num), IsSiotImpr0: c.IsSiotImpr0(num), IsSiotImpr1: c.IsSiotImpr1(num), IsSiotImpr2: c.IsSiotImpr2(num)}
 }

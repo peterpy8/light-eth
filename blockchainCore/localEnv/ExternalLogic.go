@@ -30,7 +30,7 @@ type ExternalLogic struct {
 	DelegateCall bool
 }
 
-// NewExternalLogic returns a new externalLogic environment for the execution of EVM.
+// NewExternalLogic returns a new externalLogic environment for the execution of Siotchain Env.
 func NewExternalLogic(caller ExternalLogicRef, object ExternalLogicRef, value, gas, price *big.Int) *ExternalLogic {
 	//c := &ExternalLogic{CallerAddress: caller.Address(), caller: caller, self: object, Args: nil}
 	c := &ExternalLogic{CallerAddress: caller.Address(), caller: caller, self: object, Args: nil}

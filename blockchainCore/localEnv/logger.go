@@ -20,7 +20,7 @@ func (self Storage) Copy() Storage {
 	return cpy
 }
 
-// LogConfig are the configuration options for structured logger the EVM
+// LogConfig are the configuration options for structured logger the Siotchain Env
 type LogConfig struct {
 	DisableMemory  bool // disable memory capture
 	DisableStack   bool // disable stack capture
@@ -42,7 +42,7 @@ type StructLog struct {
 	Err     error
 }
 
-// Tracer is used to collect execution traces from an EVM transaction
+// Tracer is used to collect execution traces from an Siotchain Env transaction
 // execution. CaptureState is called for each step of the VM with the
 // current VM state.
 // Note that reference types are actual VM data structures; make copies
@@ -51,7 +51,7 @@ type Tracer interface {
 	CaptureState(env Environment, pc uint64, gas, cost *big.Int, memory *Memory, stack *Stack, externalLogic *ExternalLogic, depth int, err error) error
 }
 
-// StructLogger is an EVM state logger and implements Tracer.
+// StructLogger is an Siotchain Env state logger and implements Tracer.
 //
 // StructLogger can capture state based on the given Log configuration and also keeps
 // a track record of modified storage which is used in reporting snapshots of the
@@ -124,7 +124,7 @@ func (l *StructLogger) CaptureState(env Environment, pc uint64, gas, cost *big.I
 			storage = l.changedValues[externalLogic.Address()].Copy()
 		}
 	}
-	// create a new snaptshot of the EVM.
+	// create a new snaptshot of the Siotchain Env.
 	log := StructLog{pc, new(big.Int).Set(gas), cost, mem, stck, storage, env.Depth(), err}
 
 	l.logs = append(l.logs, log)

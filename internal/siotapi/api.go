@@ -688,7 +688,7 @@ type RPCTransaction struct {
 func newRPCPendingTransaction(tx *types.Transaction) *RPCTransaction {
 	var signer types.Signer = types.FrontierSigner{}
 	if tx.Protected() {
-		signer = types.NewEIP155Signer(tx.ChainId())
+		signer = types.NewSiotImpr1Signer(tx.ChainId())
 	}
 	from, _ := types.Sender(signer, tx)
 	v, r, s := types.SignatureValues(signer, tx)
@@ -713,7 +713,7 @@ func newRPCTransactionFromBlockIndex(b *types.Block, txIndex int) (*RPCTransacti
 		tx := b.Transactions()[txIndex]
 		var signer types.Signer = types.FrontierSigner{}
 		if tx.Protected() {
-			signer = types.NewEIP155Signer(tx.ChainId())
+			signer = types.NewSiotImpr1Signer(tx.ChainId())
 		}
 		from, _ := types.Sender(signer, tx)
 		v, r, s := tx.RawSignatureValues()
@@ -937,7 +937,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(txHash helper.Hash) (ma
 
 	var signer types.Signer = types.FrontierSigner{}
 	if tx.Protected() {
-		signer = types.NewEIP155Signer(tx.ChainId())
+		signer = types.NewSiotImpr1Signer(tx.ChainId())
 	}
 	from, _ := types.Sender(signer, tx)
 
@@ -1184,7 +1184,7 @@ type SignTransactionResult struct {
 func newTx(t *types.Transaction) *Tx {
 	var signer types.Signer = types.HomesteadSigner{}
 	if t.Protected() {
-		signer = types.NewEIP155Signer(t.ChainId())
+		signer = types.NewSiotImpr1Signer(t.ChainId())
 	}
 
 	from, _ := types.Sender(signer, t)
@@ -1255,7 +1255,7 @@ func (s *PublicTransactionPoolAPI) PendingTransactions() []*RPCTransaction {
 	for _, tx := range pending {
 		var signer types.Signer = types.HomesteadSigner{}
 		if tx.Protected() {
-			signer = types.NewEIP155Signer(tx.ChainId())
+			signer = types.NewSiotImpr1Signer(tx.ChainId())
 		}
 		from, _ := types.Sender(signer, tx)
 		if s.b.AccountManager().HasAddress(from) {
@@ -1272,7 +1272,7 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, tx Tx, gasPrice, 
 	for _, p := range pending {
 		var signer types.Signer = types.HomesteadSigner{}
 		if p.Protected() {
-			signer = types.NewEIP155Signer(p.ChainId())
+			signer = types.NewSiotImpr1Signer(p.ChainId())
 		}
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == tx.From && signer.Hash(p) == signer.Hash(tx.tx) {

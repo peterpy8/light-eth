@@ -47,6 +47,10 @@ func WriteGenesisBlock(chainDb database.Database, reader io.Reader) (*types.Bloc
 		return nil, err
 	}
 
+	genesis.ChainConfig.HomesteadBlock = configure.TestNetHomesteadBlock
+	genesis.ChainConfig.SiotImpr1Block = configure.TestNetSpuriousDragon
+	genesis.ChainConfig.SiotImpr2Block = configure.TestNetSpuriousDragon
+
 	// creating with empty hash always works
 	statedb, _ := state.New(helper.Hash{}, chainDb)
 	for addr, account := range genesis.Alloc {

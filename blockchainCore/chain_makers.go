@@ -188,7 +188,7 @@ func GenerateChain(config *configure.ChainConfig, parent *types.Block, db databa
 			gen(i, b)
 		}
 		AccumulateRewards(statedb, h, b.uncles)
-		root, err := statedb.Commit(config.IsEIP158(h.Number))
+		root, err := statedb.Commit(config.IsSiotImpr2(h.Number))
 		if err != nil {
 			panic(fmt.Sprintf("state write error: %v", err))
 		}
@@ -217,7 +217,7 @@ func makeHeader(config *configure.ChainConfig, parent *types.Block, state *state
 		time = new(big.Int).Add(parent.Time(), big.NewInt(10)) // block time is fixed at 10 seconds
 	}
 	return &types.Header{
-		Root:       state.IntermediateRoot(config.IsEIP158(parent.Number())),
+		Root:       state.IntermediateRoot(config.IsSiotImpr2(parent.Number())),
 		ParentHash: parent.Hash(),
 		Coinbase:   parent.Coinbase(),
 		Difficulty: CalcDifficulty(MakeChainConfig(), time.Uint64(), new(big.Int).Sub(time, big.NewInt(10)).Uint64(), parent.Number(), parent.Difficulty()),
@@ -234,12 +234,12 @@ func makeHeader(config *configure.ChainConfig, parent *types.Block, state *state
 func newCanonical(n int, full bool) (database.Database, *BlockChain, error) {
 	// Create the new chain database
 	db, _ := database.NewMemDatabase()
-	evmux := &subscribe.TypeMux{}
+	siotmux := &subscribe.TypeMux{}
 
 	// Initialize a fresh chain with only a genesis block
 	genesis, _ := WriteTestNetGenesisBlock(db)
 
-	blockchain, _ := NewBlockChain(db, MakeChainConfig(), FakePow{}, evmux)
+	blockchain, _ := NewBlockChain(db, MakeChainConfig(), FakePow{}, siotmux)
 	// Create and inject the requested chain
 	if n == 0 {
 		return db, blockchain, nil

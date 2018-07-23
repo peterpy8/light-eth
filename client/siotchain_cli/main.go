@@ -171,7 +171,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 				SiotNetwork: strconv.Itoa(cliCtx.GlobalInt(utils.NetworkIdFlag.Name))}
 			resultJson, _ := json.Marshal(result_display)
 			b, _ := prettyprint(resultJson)
-			fmt.Printf("%s\n", b)
+			green("%s\n", b)
 
 		} else {
 			fmt.Println("incorrect format: getnodeinfo has no params")
@@ -183,8 +183,7 @@ func handleRequest(cliCtx *cli.Context, client *client.Client, input string) err
 				fmt.Println(err)
 				break
 			}
-			fmt.Printf("%s\n", result.ID)
-
+			green("%s\n", result.ID)
 		} else {
 			fmt.Println("incorrect format: getnodeinfo has no params")
 		}

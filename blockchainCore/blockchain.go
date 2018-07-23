@@ -913,7 +913,7 @@ func (self *BlockChain) InsertChain(chain types.Blocks) (int, error) {
 			return i, err
 		}
 		// Write state changes to database
-		_, err = self.stateCache.Commit(self.config.IsEIP158(block.Number()))
+		_, err = self.stateCache.Commit(self.config.IsSiotImpr2(block.Number()))
 		if err != nil {
 			return i, err
 		}

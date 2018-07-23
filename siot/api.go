@@ -434,7 +434,7 @@ func (t *timeoutError) Error() string {
 	return "Execution time exceeded"
 }
 
-// TraceTransaction returns the structured logs created during the execution of EVM
+// TraceTransaction returns the structured logs created during the execution of Siot
 // and returns them as a JSON object.
 //func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, txHash helper.Hash, config *TraceArgs) (interface{}, error) {
 //	var tracer localEnv.Tracer

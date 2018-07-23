@@ -154,7 +154,7 @@ func (ec *Client) TransactionInBlock(ctx context.Context, blockHash helper.Hash,
 	if err == nil {
 		var signer types.Signer = types.HomesteadSigner{}
 		if tx.Protected() {
-			signer = types.NewEIP155Signer(tx.ChainId())
+			signer = types.NewSiotImpr1Signer(tx.ChainId())
 		}
 		if _, r, _ := types.SignatureValues(signer, tx); r == nil {
 			return nil, fmt.Errorf("server returned transaction without signature")
@@ -407,7 +407,7 @@ func (ec *Client) CallExternalLogic(ctx context.Context, msg siotchain.CallMsg, 
 	return helper.FromHex(hex), nil
 }
 
-// PendingCallExternalLogic executes a message call transaction using the EVM.
+// PendingCallExternalLogic executes a message call transaction using the Siotchain Env.
 // The state seen by the externalLogic call is the pending state.
 func (ec *Client) PendingCallExternalLogic(ctx context.Context, msg siotchain.CallMsg) ([]byte, error) {
 	var hex string

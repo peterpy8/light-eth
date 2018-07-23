@@ -7,7 +7,7 @@ import (
 	"github.com/siotchain/siot/configure"
 )
 
-// Environment is an EVM requirement and helper which allows access to outside
+// Environment is an Siotchain Env requirement and helper which allows access to outside
 // information such as states.
 type Environment interface {
 	// The current ruleset
@@ -54,7 +54,7 @@ type Environment interface {
 	Create(me ExternalLogicRef, data []byte, gas, price, value *big.Int) ([]byte, helper.Address, error)
 }
 
-// Vm is the basic interface for an implementation of the EVM.
+// Vm is the basic interface for an implementation of the Siotchain Env.
 type Vm interface {
 	// Run should execute the given externalLogic with the input given in in
 	// and return the externalLogic execution return bytes or an error if it
@@ -62,7 +62,7 @@ type Vm interface {
 	Run(c *ExternalLogic, in []byte) ([]byte, error)
 }
 
-// Database is a EVM database for full state querying.
+// Database is a Siotchain Env database for full state querying.
 type Database interface {
 	GetAccount(helper.Address) Account
 	CreateAccount(helper.Address) Account

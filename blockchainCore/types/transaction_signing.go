@@ -24,8 +24,8 @@ type sigCache struct {
 func MakeSigner(config *configure.ChainConfig, blockNumber *big.Int) Signer {
 	var signer Signer
 	switch {
-	case config.IsEIP155(blockNumber):
-		signer = NewEIP155Signer(config.ChainId)
+	case config.IsSiotImpr1(blockNumber):
+		signer = NewSiotImpr1Signer(config.ChainId)
 	case config.IsHomestead(blockNumber):
 		signer = HomesteadSigner{}
 	default:
@@ -101,7 +101,7 @@ type EIP155Signer struct {
 	chainId, chainIdMul *big.Int
 }
 
-func NewEIP155Signer(chainId *big.Int) EIP155Signer {
+func NewSiotImpr1Signer(chainId *big.Int) EIP155Signer {
 	return EIP155Signer{
 		chainId:    chainId,
 		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),

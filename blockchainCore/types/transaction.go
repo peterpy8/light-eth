@@ -103,8 +103,8 @@ func newTransaction(nonce uint64, to *helper.Address, amount, gasLimit, gasPrice
 func pickSigner(rules configure.Rules) Signer {
 	var signer Signer
 	switch {
-	case rules.IsEIP155:
-		signer = NewEIP155Signer(rules.ChainId)
+	case rules.IsSiotImpr1:
+		signer = NewSiotImpr1Signer(rules.ChainId)
 	case rules.IsHomestead:
 		signer = HomesteadSigner{}
 	default:
@@ -182,7 +182,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 
 	var V byte
 	if isProtectedV((*big.Int)(dec.V)) {
-		V = normaliseV(NewEIP155Signer(deriveChainId((*big.Int)(dec.V))), (*big.Int)(dec.V))
+		V = normaliseV(NewSiotImpr1Signer(deriveChainId((*big.Int)(dec.V))), (*big.Int)(dec.V))
 	} else {
 		V = byte(((*big.Int)(dec.V)).Uint64())
 	}

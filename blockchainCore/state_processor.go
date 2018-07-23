@@ -87,7 +87,7 @@ func ApplyTransaction(config *configure.ChainConfig, bc *BlockChain, gp *GasPool
 
 	// Update the state with pending changes
 	usedGas.Add(usedGas, gas)
-	receipt := types.NewReceipt(statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes(), usedGas)
+	receipt := types.NewReceipt(statedb.IntermediateRoot(config.IsSiotImpr2(header.Number)).Bytes(), usedGas)
 	receipt.TxHash = tx.Hash()
 	receipt.GasUsed = new(big.Int).Set(gas)
 	if MessageCreatesExternalLogic(msg) {

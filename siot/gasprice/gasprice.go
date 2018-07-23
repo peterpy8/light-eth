@@ -39,7 +39,7 @@ type GpoParams struct {
 type GasPriceOracle struct {
 	chain         *blockchainCore.BlockChain
 	db            database.Database
-	evmux         *subscribe.TypeMux
+	siotmux       *subscribe.TypeMux
 	params        *GpoParams
 	initOnce      sync.Once
 	minPrice      *big.Int
@@ -53,7 +53,7 @@ type GasPriceOracle struct {
 }
 
 // NewGasPriceOracle returns a new oracle.
-func NewGasPriceOracle(chain *blockchainCore.BlockChain, db database.Database, evmux *subscribe.TypeMux, params *GpoParams) *GasPriceOracle {
+func NewGasPriceOracle(chain *blockchainCore.BlockChain, db database.Database, siotmux *subscribe.TypeMux, params *GpoParams) *GasPriceOracle {
 	minprice := params.GpoMinGasPrice
 	if minprice == nil {
 		minprice = big.NewInt(gpoDefaultMinGasPrice)
@@ -65,7 +65,7 @@ func NewGasPriceOracle(chain *blockchainCore.BlockChain, db database.Database, e
 	return &GasPriceOracle{
 		chain:    chain,
 		db:       db,
-		evmux:    evmux,
+		siotmux:  siotmux,
 		params:   params,
 		blocks:   make(map[uint64]*blockPriceInfo),
 		minBase:  minbase,
@@ -102,7 +102,7 @@ func (self *GasPriceOracle) processPastBlocks() {
 }
 
 func (self *GasPriceOracle) listenLoop() {
-	events := self.evmux.Subscribe(blockchainCore.ChainEvent{}, blockchainCore.ChainSplitEvent{})
+	events := self.siotmux.Subscribe(blockchainCore.ChainEvent{}, blockchainCore.ChainSplitEvent{})
 	defer events.Unsubscribe()
 
 	for event := range events.Chan() {

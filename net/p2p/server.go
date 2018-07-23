@@ -303,7 +303,6 @@ func (srv *Server) Start() (err error) {
 		return errors.New("server already running")
 	}
 	srv.running = true
-	glog.V(logger.Info).Infoln("Starting Server")
 
 	// static fields
 	if srv.PrivateKey == nil {
@@ -557,7 +556,6 @@ type tempError interface {
 // inbound connections.
 func (srv *Server) listenLoop() {
 	defer srv.loopWG.Done()
-	glog.V(logger.Info).Infoln("Listening on", srv.listener.Addr())
 
 	// This channel acts as a semaphore limiting
 	// active inbound connections that are lingering pre-handshake.

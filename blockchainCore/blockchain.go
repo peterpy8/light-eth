@@ -190,15 +190,6 @@ func (self *BlockChain) loadLastState() error {
 	self.stateCache = statedb
 	self.stateCache.GetAccount(helper.Address{})
 
-	// Issue a status log for the user
-	headerTd := self.GetTd(currentHeader.Hash(), currentHeader.Number.Uint64())
-	blockTd := self.GetTd(self.currentBlock.Hash(), self.currentBlock.NumberU64())
-	fastTd := self.GetTd(self.currentFastBlock.Hash(), self.currentFastBlock.NumberU64())
-
-	glog.V(logger.Info).Infof("Last header: #%d [%x…] TD=%v", currentHeader.Number, currentHeader.Hash().Bytes()[:4], headerTd)
-	glog.V(logger.Info).Infof("Last block: #%d [%x…] TD=%v", self.currentBlock.Number(), self.currentBlock.Hash().Bytes()[:4], blockTd)
-	glog.V(logger.Info).Infof("Fast block: #%d [%x…] TD=%v", self.currentFastBlock.Number(), self.currentFastBlock.Hash().Bytes()[:4], fastTd)
-
 	return nil
 }
 
@@ -567,8 +558,6 @@ func (bc *BlockChain) Stop() {
 	atomic.StoreInt32(&bc.procInterrupt, 1)
 
 	bc.wg.Wait()
-
-	glog.V(logger.Info).Infoln("Chain manager stopped")
 }
 
 func (self *BlockChain) procFutureBlocks() {
@@ -1023,7 +1012,8 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 		} else {
 			hashes = fmt.Sprintf("%x…", end.Hash().Bytes()[:4])
 		}
-		glog.Infof("imported %d blocks, %5d txs (%7.3f Mg) in %9v (%6.3f Mg/s). #%v [%s]%s", st.processed, txcount, float64(st.usedGas)/1000000, helper.PrettyDuration(elapsed), float64(st.usedGas)*1000/float64(elapsed), end.Number(), hashes, extra)
+		fmt.Printf("imported %d blocks\n", st.processed)
+		glog.V(logger.Debug).Infof("imported %d blocks, %5d txs (%7.3f Mg) in %9v (%6.3f Mg/s). #%v [%s]%s", st.processed, txcount, float64(st.usedGas)/1000000, helper.PrettyDuration(elapsed), float64(st.usedGas)*1000/float64(elapsed), end.Number(), hashes, extra)
 
 		*st = insertStats{startTime: now, lastIndex: index}
 	}
@@ -1193,8 +1183,8 @@ func (self *BlockChain) update() {
 // reportBlock logs a bad block error.
 func reportBlock(block *types.Block, err error) {
 	if glog.V(logger.Error) {
-		glog.Errorf("Bad block #%v (%s)\n", block.Number(), block.Hash().Hex())
-		glog.Errorf("    %v", err)
+		glog.V(logger.Debug).Infof("Bad block #%v (%s)\n", block.Number(), block.Hash().Hex())
+		glog.V(logger.Debug).Infof("    %v", err)
 	}
 }
 

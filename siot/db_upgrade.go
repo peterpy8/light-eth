@@ -326,8 +326,6 @@ func addMipmapBloomBins(db database.Database) (err error) {
 		return
 	}
 
-	tstart := time.Now()
-	glog.V(logger.Info).Infoln("upgrading db log bloom bins")
 	for i := uint64(0); i <= latestBlock.NumberU64(); i++ {
 		hash := blockchainCore.GetCanonicalHash(db, i)
 		if (hash == helper.Hash{}) {
@@ -335,6 +333,5 @@ func addMipmapBloomBins(db database.Database) (err error) {
 		}
 		blockchainCore.WriteMipmapBloom(db, i, blockchainCore.GetBlockReceipts(db, hash, i))
 	}
-	glog.V(logger.Info).Infoln("upgrade completed in", time.Since(tstart))
 	return nil
 }

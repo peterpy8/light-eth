@@ -169,7 +169,7 @@ func New(ctx *context.ServiceContext, config *Config) (*Siotchain, error) {
 		return nil, err
 	}
 
-	glog.V(logger.Info).Infof("Protocol Versions: %v, Network Id: %v", ProtocolVersions, config.NetworkId)
+	glog.V(logger.Debug).Infof("Protocol Versions: %v, Network Id: %v", ProtocolVersions, config.NetworkId)
 
 	if !config.SkipBcVersionCheck {
 		bcVersion := blockchainCore.GetBlockChainVersion(chainDb)
@@ -348,10 +348,12 @@ func (s *Siotchain) StartMining(threads int) error {
 		return err
 	}
 	go s.miner.Start(eb, threads)
+	fmt.Println("Mining started")
 	return nil
 }
 
-func (s *Siotchain) StopMining()         { s.miner.Stop() }
+func (s *Siotchain) StopMining()         { s.miner.Stop()
+fmt.Println("Mining stopped")}
 func (s *Siotchain) IsMining() bool      { return s.miner.Mining() }
 func (s *Siotchain) Miner() *miner.Miner { return s.miner }
 
@@ -432,14 +434,13 @@ func (self *Siotchain) StartAutoDAG() {
 		return // already started
 	}
 	go func() {
-		glog.V(logger.Info).Infof("Automatic pregeneration of ethash DAG ON (ethash dir: %s)", ethash.DefaultDir)
+		glog.V(logger.Debug).Infof("Automatic pregeneration of ethash DAG ON (ethash dir: %s)", ethash.DefaultDir)
 		var nextEpoch uint64
 		timer := time.After(0)
 		self.autodagquit = make(chan bool)
 		for {
 			select {
 			case <-timer:
-				glog.V(logger.Info).Infof("checking DAG (ethash dir: %s)", ethash.DefaultDir)
 				currentBlock := self.BlockChain().CurrentBlock().NumberU64()
 				thisEpoch := currentBlock / epochLength
 				if nextEpoch <= thisEpoch {
@@ -478,7 +479,7 @@ func (self *Siotchain) StopAutoDAG() {
 		close(self.autodagquit)
 		self.autodagquit = nil
 	}
-	glog.V(logger.Info).Infof("Automatic pregeneration of ethash DAG OFF (ethash dir: %s)", ethash.DefaultDir)
+	glog.V(logger.Debug).Infof("Automatic pregeneration of ethash DAG OFF (ethash dir: %s)", ethash.DefaultDir)
 }
 
 // HTTPClient returns the light http client used for fetching offchain docs

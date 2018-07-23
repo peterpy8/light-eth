@@ -116,9 +116,6 @@ func (self *Miner) Start(coinbase helper.Address, threads int) {
 	for i := 0; i < threads; i++ {
 		self.worker.register(NewCpuAgent(i, self.pow))
 	}
-
-	glog.V(logger.Info).Infof("Starting mining operation (CPU=%d TOT=%d)\n", threads, len(self.worker.agents))
-
 	self.worker.start()
 
 	self.worker.commitNewWork()

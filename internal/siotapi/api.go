@@ -1023,7 +1023,7 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction, si
 		addr := crypto.CreateAddress(from, signedTx.Nonce())
 		glog.V(logger.Info).Infof("Tx(%s) created: %s\n", signedTx.Hash().Hex(), addr.Hex())
 	} else {
-		glog.V(logger.Info).Infof("Tx(%s) to: %s\n", signedTx.Hash().Hex(), tx.To().Hex())
+		fmt.Println("a new transaction made")
 	}
 
 	return signedTx.Hash(), nil

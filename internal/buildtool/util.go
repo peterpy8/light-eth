@@ -3,7 +3,6 @@ package buildtool
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"fmt"
 )
 
 var DryRunFlag = flag.Bool("n", false, "dry run, don't execute commands")

@@ -209,8 +209,6 @@ func (pm *ProtocolManager) Start() {
 }
 
 func (pm *ProtocolManager) Stop() {
-	glog.V(logger.Info).Infoln("Stopping Siotchain protocol handler...")
-
 	pm.txSub.Unsubscribe()         // quits txBroadcastLoop
 	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
 
@@ -229,8 +227,6 @@ func (pm *ProtocolManager) Stop() {
 
 	// Wait for all peer handler goroutines and the loops to come down.
 	pm.wg.Wait()
-
-	glog.V(logger.Info).Infoln("Siotchain protocol handler stopped")
 }
 
 func (pm *ProtocolManager) newPeer(pv int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {

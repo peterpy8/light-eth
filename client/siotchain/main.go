@@ -20,6 +20,8 @@ import (
 	"github.com/siotchain/siot/context"
 	"gopkg.in/urfave/cli.v1"
 	"github.com/siotchain/siot/wallet"
+	"io/ioutil"
+	"path/filepath"
 )
 
 
@@ -152,6 +154,13 @@ func main() {
 func siotchain(ctx *cli.Context) error {
 	node := makeFullNode(ctx)
 	startNode(ctx, node)
+	fmt.Println("Current node launched and connected to siotchain")
+	absPath, _ := filepath.Abs("./client/siotchain/launch.txt")
+	b, err := ioutil.ReadFile(absPath)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("\n\n", string(b))
 	node.Wait()
 	return nil
 }
@@ -176,11 +185,11 @@ func initGenesis(ctx *cli.Context) error {
 		utils.Fatalf("failed to read genesis file: %v", err)
 	}
 
-	block, err := blockchainCore.WriteGenesisBlock(chaindb, genesisFile)
-	if err != nil {
+	_, err1 := blockchainCore.WriteGenesisBlock(chaindb, genesisFile)
+	if err1 != nil {
 		utils.Fatalf("failed to write genesis block: %v", err)
 	}
-	glog.V(logger.Info).Infof("successfully wrote genesis block and/or chain rule set: %x", block.Hash())
+	fmt.Println("successfully created a genesis block")
 	return nil
 }
 

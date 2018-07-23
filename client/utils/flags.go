@@ -6,14 +6,11 @@ import (
 	"io/ioutil"
 	"math"
 	"math/big"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
-
 	"github.com/ethereum/ethash"
 	"github.com/siotchain/siot/wallet"
 	"github.com/siotchain/siot/helper"
@@ -82,7 +79,7 @@ func NewApp(gitCommit, usage string) *cli.App {
 var (
 	// General settings
 	DataDirFlag = DirectoryFlag{
-		Name:  "dir",
+		Name:  "datapath",
 		Usage: "Target directory to save the databases and account keystore",
 		Value: DirectoryString{context.DefaultDataDir()},
 	}
@@ -168,7 +165,7 @@ var (
 		Usage: "Enable automatic DAG pregeneration",
 	}
 	MinerFlag = cli.StringFlag{
-		Name:  "etherbase",
+		Name:  "miner",
 		Usage: "Public address for block mining rewards (default = first account created)",
 		Value: "0",
 	}
@@ -528,20 +525,20 @@ func MakeAddress(accman *wallet.Manager, account string) (wallet.Account, error)
 	return accman.AccountByIndex(index)
 }
 
-// MakeEtherbase retrieves the etherbase either from the directly specified
+// MakeMiner retrieves the miner either from the directly specified
 // cmd line flags or from the keystore if CLI indexed.
-func MakeEtherbase(accman *wallet.Manager, ctx *cli.Context) helper.Address {
+func MakeMiner(accman *wallet.Manager, ctx *cli.Context) helper.Address {
 	accounts := accman.Accounts()
 	if !ctx.GlobalIsSet(MinerFlag.Name) && len(accounts) == 0 {
-		glog.V(logger.Error).Infoln("WARNING: No etherbase set and no wallet found as default")
+		glog.V(logger.Debug).Infoln("WARNING: No miner set and no wallet found as default")
 		return helper.Address{}
 	}
-	etherbase := ctx.GlobalString(MinerFlag.Name)
-	if etherbase == "" {
+	minerBase := ctx.GlobalString(MinerFlag.Name)
+	if minerBase == "" {
 		return helper.Address{}
 	}
-	// If the specified etherbase is a valid address, return it
-	account, err := MakeAddress(accman, etherbase)
+	// If the specified minerBase is a valid address, return it
+	account, err := MakeAddress(accman, minerBase)
 	if err != nil {
 		Fatalf("Option %q: %v", MinerFlag.Name, err)
 	}
@@ -631,26 +628,21 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 	}
 
 	// initialise new random number generator
-	rand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	// get enabled jit flag
+	ctx.GlobalSet(VMEnableJitFlag.Name, "false")
 	jitEnabled := ctx.GlobalBool(VMEnableJitFlag.Name)
-	// if the jit is not enabled enable it for 10 pct of the people
-	if !jitEnabled && rand.Float64() < 0.1 {
-		jitEnabled = true
-		glog.V(logger.Info).Infoln("You're one of the lucky few that will try out the JIT VM (random). If you get a consensus failure please be so kind to report this incident with the block hash that failed. You can switch to the regular VM by setting --jitvm=false")
-	}
 
 	ethConf := &siot.Config{
-		MinerAddr:       MakeEtherbase(stack.AccountManager(), ctx),
+		MinerAddr:       MakeMiner(stack.AccountManager(), ctx),
 		ChainConfig:     MakeChainConfig(ctx, stack),
 		FastSync:        ctx.GlobalBool(FastSyncFlag.Name),
 		MaxPeers:        ctx.GlobalInt(MaxPeersFlag.Name),
-		DatabaseCache:           ctx.GlobalInt(CacheFlag.Name),
-		DatabaseHandles:         MakeDatabaseHandles(),
-		NetworkId:               ctx.GlobalInt(NetworkIdFlag.Name),
-		MinerThreads:            ctx.GlobalInt(MinerThreadsFlag.Name),
-		ExtraData:               MakeMinerExtra(extra, ctx),
-		NatSpec:                 ctx.GlobalBool(NatspecEnabledFlag.Name),
+		DatabaseCache:   ctx.GlobalInt(CacheFlag.Name),
+		DatabaseHandles: MakeDatabaseHandles(),
+		NetworkId:       ctx.GlobalInt(NetworkIdFlag.Name),
+		MinerThreads:    ctx.GlobalInt(MinerThreadsFlag.Name),
+		ExtraData:       MakeMinerExtra(extra, ctx),
+		NatSpec:         ctx.GlobalBool(NatspecEnabledFlag.Name),
 		DocRoot:                 ctx.GlobalString(DocRootFlag.Name),
 		EnableJit:               jitEnabled,
 		ForceJit:                ctx.GlobalBool(VMForceJitFlag.Name),

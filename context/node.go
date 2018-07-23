@@ -152,7 +152,6 @@ func (n *Node) Start() error {
 		MaxPendingPeers:  n.config.MaxPendingPeers,
 	}
 	running := &p2p.Server{Config: n.serverConfig}
-	glog.V(logger.Info).Infoln("instance:", n.serverConfig.Name)
 
 	// Otherwise copy and specialize the P2P configuration
 	services := make(map[reflect.Type]Service)
@@ -317,7 +316,6 @@ func (n *Node) startIPC(apis []rpc.API) error {
 		return err
 	}
 	go func() {
-		glog.V(logger.Info).Infof("IPC endpoint opened: %s", n.ipcEndpoint)
 
 		for {
 			conn, err := listener.Accept()
@@ -348,8 +346,6 @@ func (n *Node) stopIPC() {
 	if n.ipcListener != nil {
 		n.ipcListener.Close()
 		n.ipcListener = nil
-
-		glog.V(logger.Info).Infof("IPC endpoint closed: %s", n.ipcEndpoint)
 	}
 	if n.ipcHandler != nil {
 		n.ipcHandler.Stop()
@@ -387,7 +383,6 @@ func (n *Node) startHTTP(endpoint string, apis []rpc.API, modules []string, cors
 		return err
 	}
 	go rpc.NewHTTPServer(cors, handler).Serve(listener)
-	glog.V(logger.Info).Infof("HTTP endpoint opened: http://%s", endpoint)
 
 	// All listeners booted successfully
 	n.httpEndpoint = endpoint
@@ -402,8 +397,6 @@ func (n *Node) stopHTTP() {
 	if n.httpListener != nil {
 		n.httpListener.Close()
 		n.httpListener = nil
-
-		glog.V(logger.Info).Infof("HTTP endpoint closed: http://%s", n.httpEndpoint)
 	}
 	if n.httpHandler != nil {
 		n.httpHandler.Stop()

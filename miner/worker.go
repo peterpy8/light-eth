@@ -317,15 +317,11 @@ func (self *worker) wait() {
 			}
 
 			// check staleness and display confirmation
-			var stale, confirm string
 			canonBlock := self.chain.GetBlockByNumber(block.NumberU64())
 			if canonBlock != nil && canonBlock.Hash() != block.Hash() {
-				stale = "stale "
 			} else {
-				confirm = "Wait 5 blocks for confirmation"
 				work.localMinedBlocks = newLocalMinedBlock(block.Number().Uint64(), work.localMinedBlocks)
 			}
-			glog.V(logger.Info).Infof("🔨  Mined %sblock (#%v / %x). %s", stale, block.Number(), block.Hash().Bytes()[:4], confirm)
 
 			self.commitNewWork()
 		}
@@ -419,7 +415,6 @@ func (self *worker) logLocalMinedBlocks(current, previous *Work) {
 		for checkBlockNum := previous.Block.NumberU64(); checkBlockNum < nextBlockNum; checkBlockNum++ {
 			inspectBlockNum := checkBlockNum - miningLogAtDepth
 			if self.isBlockLocallyMined(current, inspectBlockNum) {
-				glog.V(logger.Info).Infof("🔨 🔗  Mined %d blocks back: block #%v", miningLogAtDepth, inspectBlockNum)
 			}
 		}
 	}
@@ -442,7 +437,6 @@ func (self *worker) commitNewWork() {
 	// this will ensure we're not going off too far in the future
 	if now := time.Now().Unix(); tstamp > now+4 {
 		wait := time.Duration(tstamp-now) * time.Second
-		glog.V(logger.Info).Infoln("We are too far in the future. Waiting for", wait)
 		time.Sleep(wait)
 	}
 
@@ -523,7 +517,6 @@ func (self *worker) commitNewWork() {
 
 	// We only care about logging if we're actually mining.
 	if atomic.LoadInt32(&self.mining) == 1 {
-		glog.V(logger.Info).Infof("commit new work on block %v with %d txs & %d uncles. Took %v\n", work.Block.Number(), work.tcount, len(uncles), time.Since(tstart))
 		self.logLocalMinedBlocks(work, previous)
 	}
 	self.push(work)

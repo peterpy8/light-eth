@@ -64,7 +64,7 @@ func StartNode(stack *context.Node) {
 		signal.Notify(sigc, os.Interrupt)
 		defer signal.Stop(sigc)
 		<-sigc
-		glog.V(logger.Info).Infoln("Got interrupt, shutting down...")
+		fmt.Println("\nCurrent node stopped")
 		go stack.Stop()
 		for i := 10; i > 0; i-- {
 			<-sigc

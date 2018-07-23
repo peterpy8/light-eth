@@ -198,7 +198,7 @@ func ListenUDP(priv *ecdsa.PrivateKey, laddr string, natm nat.Interface, nodeDBP
 	if err != nil {
 		return nil, err
 	}
-	glog.V(logger.Info).Infoln("Listening,", tab.self)
+	glog.V(logger.Debug).Infoln("Listening,", tab.self)
 	return tab, nil
 }
 

@@ -10,5 +10,5 @@ rm -rf $Datadir0
 echo "node datadir cleared"
 echo "main node init"
 
-build/bin/siotchain --dir $Datadir0 init genesis.json
-build/bin/siotchain --dir $Datadir0 --networkport 10000 --rpc --rpcport 8888 --chainnetwork 9876
+build/bin/siotchain --datapath $Datadir0 init genesis.json
+build/bin/siotchain --datapath $Datadir0 --networkport 10000 --rpc --rpcport 8888 --chainnetwork 9876

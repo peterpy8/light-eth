@@ -256,7 +256,7 @@ func (d *dag) generate() {
 		if d.dir == "" {
 			d.dir = DefaultDir
 		}
-		glog.V(logger.Info).Infof("Generating DAG for epoch %d (size %d) (%x)", d.epoch, dagSize, seedHash)
+		glog.V(logger.Debug).Infof("Generating DAG for epoch %d (size %d) (%x)", d.epoch, dagSize, seedHash)
 		// Generate a temporary cache.
 		// TODO: this could share the cache with Light
 		cache := C.ethash_light_new_internal(cacheSize, (*C.ethash_h256_t)(unsafe.Pointer(&seedHash[0])))
@@ -273,7 +273,7 @@ func (d *dag) generate() {
 			panic("ethash_full_new IO or memory error")
 		}
 		runtime.SetFinalizer(d, freeDAG)
-		glog.V(logger.Info).Infof("Done generating DAG for epoch %d, it took %v", d.epoch, time.Since(started))
+		glog.V(logger.Debug).Infof("Done generating DAG for epoch %d, it took %v", d.epoch, time.Since(started))
 	})
 }
 

@@ -632,7 +632,7 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 	ctx.GlobalSet(VMEnableJitFlag.Name, "false")
 	jitEnabled := ctx.GlobalBool(VMEnableJitFlag.Name)
 
-	ethConf := &siot.Config{
+	siotConf := &siot.Config{
 		MinerAddr:       MakeMiner(stack.AccountManager(), ctx),
 		ChainConfig:     MakeChainConfig(ctx, stack),
 		FastSync:        ctx.GlobalBool(FastSyncFlag.Name),
@@ -660,16 +660,16 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 	switch {
 	case ctx.GlobalBool(OlympicFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			ethConf.NetworkId = 1
+			siotConf.NetworkId = 1
 		}
-		ethConf.Genesis = blockchainCore.OlympicGenesisBlock()
+		siotConf.Genesis = blockchainCore.OlympicGenesisBlock()
 
 	case ctx.GlobalBool(DevModeFlag.Name):
-		ethConf.Genesis = blockchainCore.OlympicGenesisBlock()
+		siotConf.Genesis = blockchainCore.OlympicGenesisBlock()
 		if !ctx.GlobalIsSet(GasPriceFlag.Name) {
-			ethConf.GasPrice = new(big.Int)
+			siotConf.GasPrice = new(big.Int)
 		}
-		ethConf.PowTest = true
+		siotConf.PowTest = true
 	}
 	// Override any global options pertaining to the Siotchain protocol
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {
@@ -677,7 +677,7 @@ func RegisterSiotService(ctx *cli.Context, stack *context.Node, extra []byte) {
 	}
 
 	if err := stack.Register(func(ctx *context.ServiceContext) (context.Service, error) {
-		fullNode, err := siot.New(ctx, ethConf)
+		fullNode, err := siot.New(ctx, siotConf)
 		return fullNode, err
 	}); err != nil {
 		Fatalf("Failed to register the Siotchain full node service: %v", err)
